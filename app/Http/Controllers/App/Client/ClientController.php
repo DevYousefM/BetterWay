@@ -592,13 +592,13 @@ class ClientController extends Controller
 
         $ClientDocument = new ClientDocument;
         $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImage;
+        $ClientDocument->ClientDocumentPath = $ClientNationalIDImage || null;
         $ClientDocument->ClientDocumentType = "NATIONAL_ID";
         $ClientDocument->save();
 
         $ClientDocument = new ClientDocument;
         $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack;
+        $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack || null;
         $ClientDocument->ClientDocumentType = "NATIONAL_ID";
         $ClientDocument->save();
 
