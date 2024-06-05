@@ -1,17 +1,22 @@
+name: Upload complete repo (e.g. website) to a SFTP destination
+
 on: [push]
 
 jobs:
-  sftp:
-    name: deploy
+  Upload-to-SFTP:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: 🚚 Get latest code # Checkout the latest code
         uses: actions/checkout@v2
-      - name: SFTP
-        uses: kontial/github-action-sftp@v1.0
+
+      - name: 📂 SFTP uploader # Upload to SFTP
+        uses: wangyucode/sftp-upload-action@v2.0.2
         with:
-          server: nfcads.com
-          user: nfcads
-          password: ${{ secrets.ftp_password }}
-          port: 22
-          remote: public_html/backend/
+          host: nfcads.com # Recommended to put the credentials in github secrets.
+          username: nfcads
+          password: ${{ secrets.FTP_PASSWORD }}
+          compress: true # Compression
+          forceUpload: true # Optional, Force uploading all files, Default to false(upload only newer files).
+          localDir: "." # Required, Absolute or relative to cwd.
+          remoteDir: "public_html/backend" # Required, Absolute path only.
+          exclude: "" # Optional. exclude patterns (glob) like .gitignore, use ',' to split, Default to ''.
