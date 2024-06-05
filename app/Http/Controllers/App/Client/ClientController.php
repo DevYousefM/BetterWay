@@ -243,7 +243,6 @@ class ClientController extends Controller
         if ($request->Filled('LoginBy')) {
             $LoginBy = $request->LoginBy;
         } else {
-            return "test";
             return RespondWithBadRequest(1);
         }
 
@@ -258,8 +257,6 @@ class ClientController extends Controller
         if ($request->Filled('ClientPhone')) {
             $ClientPhone = $request->ClientPhone;
         } else {
-            return "test";
-
             if ($LoginBy == "MANUAL") {
                 return RespondWithBadRequest(1);
             }
@@ -342,7 +339,7 @@ class ClientController extends Controller
 
         $IDReferralClient = $ReferralClient->IDClient;
 
-        if ($Upline) {
+        // if ($Upline) {
             $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
             $IDParentClient = $ParentClient->IDClient;
             $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
@@ -360,7 +357,7 @@ class ClientController extends Controller
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
             }
-        }
+        // }
 
         $ClientPrivacy = 1;
         $IDNationality = 1;
