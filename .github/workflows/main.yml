@@ -11,7 +11,7 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
-        server: sftp://nfcads.com
+        server: ftp.nfcads.com
         username: nfcads
         password: ${{ secrets.ftp_password }}
         port: 22
