@@ -541,6 +541,8 @@ class ClientController extends Controller
             }
         }
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
+        $ClientNationalIDImage = null;
+        $ClientNationalIDImageBack = null;
         if ($request->Filled('ClientNationalID')) {
             if ($request->file('ClientNationalIDImage')) {
                 if (!in_array($request->ClientNationalIDImage->extension(), $ImageExtArray)) {
@@ -592,13 +594,13 @@ class ClientController extends Controller
 
         $ClientDocument = new ClientDocument;
         $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImage || null;
+        $ClientDocument->ClientDocumentPath = $ClientNationalIDImage;
         $ClientDocument->ClientDocumentType = "NATIONAL_ID";
         $ClientDocument->save();
 
         $ClientDocument = new ClientDocument;
         $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack || null;
+        $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack;
         $ClientDocument->ClientDocumentType = "NATIONAL_ID";
         $ClientDocument->save();
 
