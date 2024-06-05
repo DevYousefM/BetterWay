@@ -1,22 +1,50 @@
-name: Upload complete repo (e.g. website) to a SFTP destination
+name: Publish Website on DEV
 
-on: [push]
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push request event
+  # but only for the specific branch
+  push:
+    branches: [test-branch]
 
+# A workflow run is made up of one or more jobs
+# that can run sequentially or in parallel
 jobs:
-  Upload-to-SFTP:
-    runs-on: ubuntu-latest
-    steps:
-      - name: 🚚 Get latest code # Checkout the latest code
-        uses: actions/checkout@v2
+  # This workflow contains a single job called "SFTP-Deploy-Action"
+  SFTP-Deploy-Action:
+    name: SFTP-Deploy-Action
 
-      - name: 📂 SFTP uploader # Upload to SFTP
-        uses: wangyucode/sftp-upload-action@v2.0.2
+    # The type of runner that the job will run on
+    # (depends on server but usually this value is works)
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks
+    # that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE,
+      # so your job can access it
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          host: nfcads.com # Recommended to put the credentials in github secrets.
-          username: nfcads
-          password: ${{ secrets.FTP_PASSWORD }}
-          compress: true # Compression
-          forceUpload: true # Optional, Force uploading all files, Default to false(upload only newer files).
-          localDir: "." # Required, Absolute or relative to cwd.
-          remoteDir: "public_html/backend" # Required, Absolute path only.
-          exclude: "vendor*,.git*,.env,.haccess,node_modules*" # Optional. exclude patterns (glob) like .gitignore, use ',' to split, Default to ''.
+          # Fetch all history for all tags and branches
+          fetch-depth: 0
+
+          # Checkout a specific branch
+          ref: test-branch
+
+      # This is a composite GitHub Action (Linux runner)
+      # for deploying repository content to remote server
+      - name: SFTP-Deploy-Action
+        uses: milanmk/actions-file-deployer@master
+        with:
+          remote-protocol: sftp
+
+          remote-host: nfcads.com
+          remote-user: nfcads
+          remote-password: ${{ secrets.FTP_PASSWORD }}
+
+          # Path for specific folder on server for files deployment
+          remote-path: /public_html/backend
+
+          # Port for SFTP access to server
+          remote-port: 22
