@@ -1,18 +1,17 @@
-on: push
-name: 🚀 Deploy website on push
+on: [push]
+
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  sftp:
+    name: deploy
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v3
-    
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        server: sftp.nfcads.com
-        username: nfcads
-        password: ${{ secrets.ftp_password }}
-        port: 22
-        server-dir: public_html/backend/
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: SFTP
+        uses: kontial/github-action-sftp@v1.0
+        with:
+          server: nfcads.com
+          user: nfcads
+          password: ${{ secrets.ftp_password }}
+          port: 22
+          remote: public_html/backend/
