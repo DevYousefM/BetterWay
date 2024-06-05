@@ -1,18 +1,18 @@
 on: push
-name: 🚀 Deploy website on push
+name: Publish Website
 jobs:
-  web-deploy:
-    name: 🎉 Deploy
+  FTP-Deploy-Action:
+    name: FTP-Deploy-Action
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v4
-    
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - uses: actions/checkout@v2.1.0
       with:
-        server: nfcads.com
-        username: nfcads
-        password: ${{ secrets.ftp_password }}
-        port: 22
-        server-dir: public_html/backend/
+        fetch-depth: 2
+    - name: FTP-Deploy-Action
+      uses: SamKirkland/FTP-Deploy-Action@3.1.2
+      with:
+        ftp-server: sftp://nfcads.com/public_html/backend/
+        ftp-username: nfcads
+        ftp-password: ${{ secrets.ftp_password }} 
+  
+  
