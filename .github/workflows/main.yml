@@ -19,4 +19,4 @@ jobs:
           forceUpload: true # Optional, Force uploading all files, Default to false(upload only newer files).
           localDir: "." # Required, Absolute or relative to cwd.
           remoteDir: "public_html/backend" # Required, Absolute path only.
-          exclude: "" # Optional. exclude patterns (glob) like .gitignore, use ',' to split, Default to ''.
+          exclude: "vendor*,.git*,.env,.haccess,node_modules*" # Optional. exclude patterns (glob) like .gitignore, use ',' to split, Default to ''.
