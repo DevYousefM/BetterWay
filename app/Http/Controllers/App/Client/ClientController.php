@@ -470,7 +470,7 @@ class ClientController extends Controller
         if ($request->Filled('IDArea')) {
             $IDArea = $request->IDArea;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(39);
         }
         $ClientNationalID = null;
         if ($request->Filled('ClientNationalID')) {
@@ -479,42 +479,42 @@ class ClientController extends Controller
             $ClientPassport = $request->ClientPassport;
             $Client->ClientPassport = $ClientPassport;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(40);
         }
         if ($request->Filled('ClientBirthDate')) {
             $ClientBirthDate = $request->ClientBirthDate;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(41);
         }
         if ($request->Filled('ClientNameArabic')) {
             $ClientNameArabic = $request->ClientNameArabic;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(42);
         }
         if ($request->Filled('IDNationality')) {
             $IDNationality = $request->IDNationality;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(43);
         }
         if ($request->Filled('ClientCurrentAddress')) {
             $ClientCurrentAddress = $request->ClientCurrentAddress;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(44);
         }
         if ($request->Filled('ClientIDAddress')) {
             $ClientIDAddress = $request->ClientIDAddress;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(45);
         }
         if ($request->Filled('ClientLatitude')) {
             $ClientLatitude = $request->ClientLatitude;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(46);
         }
         if ($request->Filled('ClientLongitude')) {
             $ClientLongitude = $request->ClientLongitude;
         } else {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(47);
         }
         if ($request->Filled('ClientEmail')) {
             $ClientEmail = $request->ClientEmail;
@@ -550,7 +550,7 @@ class ClientController extends Controller
                 }
                 $ClientNationalIDImage = SaveImage($request->file('ClientNationalIDImage'), "clients", $IDClient);
             } else {
-                return RespondWithBadRequest(1);
+                return RespondWithBadRequest(48);
             }
             if ($request->file('ClientNationalIDImageBack')) {
                 if (!in_array($request->ClientNationalIDImageBack->extension(), $ImageExtArray)) {
@@ -558,7 +558,7 @@ class ClientController extends Controller
                 }
                 $ClientNationalIDImageBack = SaveImage($request->file('ClientNationalIDImageBack'), "clients", $IDClient);
             } else {
-                return RespondWithBadRequest(1);
+                return RespondWithBadRequest(49);
             }
         }
 
@@ -572,13 +572,15 @@ class ClientController extends Controller
         }
 
         $ClientPassportImage = Null;
-        if ($request->file('ClientPassportImage')) {
-            if (!in_array($request->ClientPassportImage->extension(), $ImageExtArray)) {
-                return RespondWithBadRequest(15);
+        if ($request->Filled('ClientPassport')) {
+            if ($request->file('ClientPassportImage')) {
+                if (!in_array($request->ClientPassportImage->extension(), $ImageExtArray)) {
+                    return RespondWithBadRequest(15);
+                }
+                $ClientPassportImage = SaveImage($request->file('ClientPassportImage'), "clients", $IDClient);
+            } else {
+                return RespondWithBadRequest(50);
             }
-            $ClientPassportImage = SaveImage($request->file('ClientPassportImage'), "clients", $IDClient);
-        }else {
-            return RespondWithBadRequest(1);
         }
 
         $Client->IDArea = $IDArea;
@@ -594,7 +596,7 @@ class ClientController extends Controller
         $Client->ClientLongitude = $ClientLongitude;
         $Client->save();
 
-        if($ClientNationalIDImage){
+        if ($ClientNationalIDImage) {
             $ClientDocument = new ClientDocument;
             $ClientDocument->IDClient = $Client->IDClient;
             $ClientDocument->ClientDocumentPath = $ClientNationalIDImage;
@@ -602,13 +604,13 @@ class ClientController extends Controller
             $ClientDocument->save();
         }
 
-        if($ClientNationalIDImageBack){
+        if ($ClientNationalIDImageBack) {
             $ClientDocument = new ClientDocument;
             $ClientDocument->IDClient = $Client->IDClient;
             $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack;
             $ClientDocument->ClientDocumentType = "NATIONAL_ID";
             $ClientDocument->save();
-        }       
+        }
 
         if ($ClientPassportImage) {
             $ClientDocument = new ClientDocument;
