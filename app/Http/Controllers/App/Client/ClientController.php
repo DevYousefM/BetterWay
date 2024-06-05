@@ -458,7 +458,6 @@ class ClientController extends Controller
     {
         $Client = auth('client')->user();
         if (!$Client) {
-            
             return RespondWithBadRequest(10);
         }
 
