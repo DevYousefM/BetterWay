@@ -2756,4 +2756,69 @@ class ClientController extends Controller
         );
         return $Response;
     }
+    public function ClientCheck(Request $request)
+    {
+
+        $Type = $request->Type;
+        $UserName = $request->UserName;
+        $IDReferral = $request->IDReferral;
+        if (!$UserName) {
+            $Clients = Client::select("IDClient", "ClientName", "ClientPicture", "ClientPhone", "ClientAppID", "ClientPrivacy")->get();
+            foreach ($Clients as $Client) {
+                if ($Client->ClientPrivacy) {
+                    $Client->ClientPicture = '';
+                } else {
+                    $Client->ClientPicture = ($Client->ClientPicture) ? asset($Client->ClientPicture) : '';
+                }
+            }
+        } else {
+
+            if (!$Type) {
+                $Clients = Client::where("ClientPhone", 'like', '%' . $UserName . '%')->orwhere("ClientAppID", 'like', '%' . $UserName . '%')->where("clients.ClientDeleted", 0)->select("IDClient", "ClientName", "ClientPicture", "ClientPhone", "ClientAppID", "ClientPrivacy")->get();
+                foreach ($Clients as $Client) {
+                    if ($Client->ClientPrivacy) {
+                        $Client->ClientPicture = '';
+                    } else {
+                        $Client->ClientPicture = ($Client->ClientPicture) ? asset($Client->ClientPicture) : '';
+                    }
+                }
+            } else {
+                if ($Type == "REFERRAL") {
+                    $Clients = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->where("clients.ClientDeleted", 0);
+                    $Clients = $Clients->where(function ($query) use ($UserName) {
+                        $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
+                    })->select("clients.IDClient", "clients.ClientName", "clients.ClientPicture", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientPrivacy")->get();
+                }
+                if ($Type == "UPLINE") {
+                    if (!$IDReferral) {
+                        return RespondWithBadRequest(1);
+                    }
+                    $Key = $IDReferral . "-";
+                    $SecondKey = $IDReferral . "-";
+                    $ThirdKey = "-" . $IDReferral;
+                    $AllNetwork = PlanNetwork::where("PlanNetworkPath", 'like', $IDReferral . '%')->orwhere("PlanNetworkPath", 'like', $Key . '%')->orwhere("PlanNetworkPath", 'like', '%' . $SecondKey . '%')->orwhere("PlanNetworkPath", 'like', '%' . $ThirdKey . '%')->get()->pluck("IDClient")->toArray();
+                    array_push($AllNetwork, $IDReferral);
+                    $Clients = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->where("clients.ClientDeleted", 0)->whereIn("clients.IDClient", $AllNetwork);
+                    $Clients = $Clients->where(function ($query) use ($UserName) {
+                        $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
+                            ->orwhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
+                    })->select("clients.IDClient", "clients.ClientName", "clients.ClientPicture", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientPrivacy")->get();
+                }
+            }
+        }
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $Clients
+        );
+        return $Response;
+    }
 }
