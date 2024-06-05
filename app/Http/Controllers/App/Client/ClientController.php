@@ -323,7 +323,15 @@ class ClientController extends Controller
                 return RespondWithBadRequest(23);
             }
         } else {
-            $IDParentClient = Null;
+            $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
+                $query->where('ClientAppID', $Referral)
+                    ->orwhere('ClientEmail', $Referral)
+                    ->orwhere('ClientPhone', $Referral);
+            })->first();
+
+            if (!$ParentClient) {
+                return RespondWithBadRequest(23);
+            }
         }
 
 
@@ -340,23 +348,23 @@ class ClientController extends Controller
         $IDReferralClient = $ReferralClient->IDClient;
 
         // if ($Upline) {
-            $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
-            $IDParentClient = $ParentClient->IDClient;
-            $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
-            $PlanNetworkPath = explode("-", $PlanNetworkPath);
-            if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
-                return RespondWithBadRequest(33);
-            }
+        $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
+        $IDParentClient = $ParentClient->IDClient;
+        $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
+        $PlanNetworkPath = explode("-", $PlanNetworkPath);
+        if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
+            return RespondWithBadRequest(33);
+        }
 
-            $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
-            $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
-            $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
-            if ($ParentNetwork == $ChildNumber) {
-                return RespondWithBadRequest(24);
-            }
-            if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
-                return RespondWithBadRequest(34);
-            }
+        $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
+        $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
+        $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
+        if ($ParentNetwork == $ChildNumber) {
+            return RespondWithBadRequest(24);
+        }
+        if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
+            return RespondWithBadRequest(34);
+        }
         // }
 
         $ClientPrivacy = 1;
