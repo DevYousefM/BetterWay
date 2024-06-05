@@ -14,7 +14,7 @@ jobs:
           username: nfcads
           password: ${{ secrets.FTP_PASSWORD }}
           remote_folder: public_html/backend
-          local_folder: ""
+          local_folder: "."
           cleanup: false # optional, remove existing files inside FTP remote folder
           include: '[ "*", "**/*" ]'
           exclude: '["node_modules/**", "vendor/**" ,"_secret.php", ".github/**", ".git/**", "*.env"]'
