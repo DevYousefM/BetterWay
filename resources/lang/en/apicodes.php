@@ -50,5 +50,10 @@ return [
     '47' => 'Longitude is required',
     '48' => 'National ID Image is required',
     '49' => 'Back National ID Image is required',
-    '50' => 'Passport Image is required'
+    '50' => 'Passport Image is required',
+    '51' => 'Phone Number is required',
+    '52' => 'Phone Flag is required',
+    '53' => 'Password is required',
+    '54' => 'Client Name is required',
+    '55' => 'Referral is required'
 ];
