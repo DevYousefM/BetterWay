@@ -592,17 +592,21 @@ class ClientController extends Controller
         $Client->ClientLongitude = $ClientLongitude;
         $Client->save();
 
-        $ClientDocument = new ClientDocument;
-        $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImage;
-        $ClientDocument->ClientDocumentType = "NATIONAL_ID";
-        $ClientDocument->save();
+        if($ClientNationalIDImage){
+            $ClientDocument = new ClientDocument;
+            $ClientDocument->IDClient = $Client->IDClient;
+            $ClientDocument->ClientDocumentPath = $ClientNationalIDImage;
+            $ClientDocument->ClientDocumentType = "NATIONAL_ID";
+            $ClientDocument->save();
+        }
 
-        $ClientDocument = new ClientDocument;
-        $ClientDocument->IDClient = $Client->IDClient;
-        $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack;
-        $ClientDocument->ClientDocumentType = "NATIONAL_ID";
-        $ClientDocument->save();
+        if($ClientNationalIDImageBack){
+            $ClientDocument = new ClientDocument;
+            $ClientDocument->IDClient = $Client->IDClient;
+            $ClientDocument->ClientDocumentPath = $ClientNationalIDImageBack;
+            $ClientDocument->ClientDocumentType = "NATIONAL_ID";
+            $ClientDocument->save();
+        }       
 
         if ($ClientPassportImage) {
             $ClientDocument = new ClientDocument;
