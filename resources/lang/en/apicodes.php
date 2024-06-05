@@ -39,4 +39,16 @@ return [
     '36' => 'Your account is still pending',
     '37' => 'You already rated',
     '38' => 'Wrong Security Code',
+    '39' => 'Area is required',
+    '40' => 'National ID or Passport Number is required',
+    '41' => 'Birth Day is required',
+    '42' => 'Name in Arabic is required',
+    '43' => 'Nationality is required',
+    '44' => 'Current Address is required',
+    '45' => 'Address in ID is required',
+    '46' => 'Latitude is required',
+    '47' => 'Longitude is required',
+    '48' => 'National ID Image is required',
+    '49' => 'Back National ID Image is required',
+    '50' => 'Passport Image is required'
 ];
