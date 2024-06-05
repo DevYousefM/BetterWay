@@ -6,5 +6,5 @@ use Illuminate\Support\Facades\Route;
 
 // Route::get('/', [WebController::class, 'Home'])->name('home');
 Route::get('/', function () {
-    return "acs";
+    return "123456";
 })->name('home');
