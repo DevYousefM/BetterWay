@@ -540,25 +540,26 @@ class ClientController extends Controller
                 return RespondWithBadRequest(20);
             }
         }
-
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if ($request->file('ClientNationalIDImage')) {
-            if (!in_array($request->ClientNationalIDImage->extension(), $ImageExtArray)) {
-                return RespondWithBadRequest(15);
+        if ($request->Filled('ClientNationalID')) {
+            if ($request->file('ClientNationalIDImage')) {
+                if (!in_array($request->ClientNationalIDImage->extension(), $ImageExtArray)) {
+                    return RespondWithBadRequest(15);
+                }
+                $ClientNationalIDImage = SaveImage($request->file('ClientNationalIDImage'), "clients", $IDClient);
+            } else {
+                return RespondWithBadRequest(1);
             }
-            $ClientNationalIDImage = SaveImage($request->file('ClientNationalIDImage'), "clients", $IDClient);
-        } else {
-            return RespondWithBadRequest(1);
+            if ($request->file('ClientNationalIDImageBack')) {
+                if (!in_array($request->ClientNationalIDImageBack->extension(), $ImageExtArray)) {
+                    return RespondWithBadRequest(15);
+                }
+                $ClientNationalIDImageBack = SaveImage($request->file('ClientNationalIDImageBack'), "clients", $IDClient);
+            } else {
+                return RespondWithBadRequest(1);
+            }
         }
 
-        if ($request->file('ClientNationalIDImageBack')) {
-            if (!in_array($request->ClientNationalIDImageBack->extension(), $ImageExtArray)) {
-                return RespondWithBadRequest(15);
-            }
-            $ClientNationalIDImageBack = SaveImage($request->file('ClientNationalIDImageBack'), "clients", $IDClient);
-        } else {
-            return RespondWithBadRequest(1);
-        }
 
         if ($request->file('ClientPicture')) {
             if (!in_array($request->ClientPicture->extension(), $ImageExtArray)) {
