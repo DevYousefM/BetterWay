@@ -577,6 +577,8 @@ class ClientController extends Controller
                 return RespondWithBadRequest(15);
             }
             $ClientPassportImage = SaveImage($request->file('ClientPassportImage'), "clients", $IDClient);
+        }else {
+            return RespondWithBadRequest(1);
         }
 
         $Client->IDArea = $IDArea;
