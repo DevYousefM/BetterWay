@@ -469,7 +469,6 @@ class ClientController extends Controller
             })->first();
 
             if (!$ParentClient) {
-
                 return RespondWithBadRequest(23);
             }
         } else {
@@ -522,15 +521,14 @@ class ClientController extends Controller
 
         $IDReferral = $ReferralClient->IDClient;
         if ($ParentClient) {
-            if ($ParentClient[0] == "0") {
-                $ParentClient = "+2" . $ParentClient;
-            }
             $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($ParentClient) {
                 $query->where('ClientAppID', $ParentClient)
                     ->orwhere('ClientEmail', $ParentClient)
-                    ->orwhere('ClientPhone', $ParentClient);
+                    ->orwhere(
+                        'ClientPhone',
+                        $ParentClient[0] == "0" ? "+2" . $ParentClient : $ParentClient
+                    );
             })->first();
-
             if (!$ParentClient) {
                 return RespondWithBadRequest(23);
             }
