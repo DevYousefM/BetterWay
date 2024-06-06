@@ -366,7 +366,7 @@ class ClientController extends Controller
             $IDParentClient = $lastPlanNetwork->IDClient;
             $PlanNetworkPath = $lastPlanNetwork->PlanNetworkPath;
             $PlanNetworkPath = explode("-", $PlanNetworkPath);
-            if ($IDParentClient != $IDReferralClient) {
+            if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
                 return RespondWithBadRequest(33);
             }       
             
