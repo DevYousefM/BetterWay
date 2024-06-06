@@ -82,7 +82,8 @@ class RouteServiceProvider extends ServiceProvider
 
     protected function MapAdminApiRoutes()
     {
-        Route::middleware('adminapi')
+        Route::prefix('api')
+            ->middleware('adminapi')
             ->namespace($this->namespace)
             ->group(base_path('routes/app/admin.php'));
     }
