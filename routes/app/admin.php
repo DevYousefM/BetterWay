@@ -173,7 +173,7 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/position/update', [ClientController::class, 'ClientPositionUpdate']);
     Route::post('/clients/ledger', [ClientController::class, 'ClientLedger']);
     Route::post('/clients/rename', [ClientController::class, 'ClientRename']);
-    Route::post("/clients",[ClientController::class,"ClientCheck"]);
+    Route::post("/clients", [ClientController::class, "ClientCheck"]);
 
     Route::post('/positions', [ClientController::class, 'PositionList']);
     Route::post('/positions/status', [ClientController::class, 'PositionStatus']);
@@ -231,6 +231,6 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/test', [GhazalController::class, 'RequestPayment']);
     Route::post('/test2', [GhazalController::class, 'PaymentCallBack']);
     Route::get('/test3/{id}', [GhazalController::class, 'PaymentInvoice']);
-    
+
     Route::post('/clients/test', [ClientController::class, 'test']);
 });
