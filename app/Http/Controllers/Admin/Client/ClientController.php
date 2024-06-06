@@ -431,6 +431,7 @@ class ClientController extends Controller
         $Admin = auth('user')->user();
         $IDClient = $request->IDClient;
         $IDPlanProduct = $request->IDPlanProduct;
+        
         $PlanNetworkPosition = $request->PlanNetworkPosition;
         if (!$IDClient) {
             return RespondWithBadRequest(505);
@@ -528,16 +529,16 @@ class ClientController extends Controller
 
 
         $IDReferral = $ReferralClient->IDClient;
-        if ($ParentClient) {
-            $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($ParentClient) {
-                $query->where('ClientAppID', $ParentClient)
-                    ->orwhere('ClientEmail', $ParentClient)
+        if ($Upline) {
+            $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
+                $query->where('ClientAppID', $Upline)
+                    ->orwhere('ClientEmail', $Upline)
                     ->orwhere(
                         'ClientPhone',
-                        $ParentClient[0] == "0" ? "+2" . $ParentClient : $ParentClient
+                        $Upline[0] == "0" ? "+2" . $Upline : $Upline
                     );
             })->first();
-            if (!$ParentClient) {
+            if (!$Upline) {
                 return RespondWithBadRequest(23);
             }
         } else {
