@@ -231,5 +231,6 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/test', [GhazalController::class, 'RequestPayment']);
     Route::post('/test2', [GhazalController::class, 'PaymentCallBack']);
     Route::get('/test3/{id}', [GhazalController::class, 'PaymentInvoice']);
-
+    
+    Route::post('/clients/test', [ClientController::class, 'test']);
 });
