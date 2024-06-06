@@ -34,11 +34,13 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot(){
+    public function boot()
+    {
         parent::boot();
     }
 
-    public function map(){
+    public function map()
+    {
         $this->MapApiRoutes();
         $this->MapWebRoutes();
         $this->MapClientApiRoutes();
@@ -47,41 +49,46 @@ class RouteServiceProvider extends ServiceProvider
         $this->MapExternalApiRoutes();
     }
 
-    protected function MapApiRoutes(){
+    protected function MapApiRoutes()
+    {
         Route::prefix('api')
-             ->middleware('api')
-             ->namespace($this->namespace)
-             ->group(base_path('routes/api.php'));
+            ->middleware('api')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/api.php'));
     }
 
-    protected function MapWebRoutes(){
+    protected function MapWebRoutes()
+    {
         Route::middleware('web')
-             ->namespace($this->namespace)
-             ->group(base_path('routes/web.php'));
+            ->namespace($this->namespace)
+            ->group(base_path('routes/web.php'));
     }
 
-    protected function MapClientApiRoutes(){
+    protected function MapClientApiRoutes()
+    {
         Route::prefix('api')
             ->middleware('clientapi')
             ->namespace($this->namespace)
             ->group(base_path('routes/app/client.php'));
     }
 
-    protected function MapUserApiRoutes(){
+    protected function MapUserApiRoutes()
+    {
         Route::prefix('api')
             ->middleware('userapi')
             ->namespace($this->namespace)
             ->group(base_path('routes/app/user.php'));
     }
 
-    protected function MapAdminApiRoutes(){
-        Route::prefix('api')
-            ->middleware('adminapi')
+    protected function MapAdminApiRoutes()
+    {
+        Route::middleware('adminapi')
             ->namespace($this->namespace)
             ->group(base_path('routes/app/admin.php'));
     }
 
-    protected function MapExternalApiRoutes(){
+    protected function MapExternalApiRoutes()
+    {
         Route::prefix('api')
             ->middleware('externalapi')
             ->namespace($this->namespace)
@@ -93,7 +100,8 @@ class RouteServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function configureRateLimiting(){
+    protected function configureRateLimiting()
+    {
         RateLimiter::for('clientapi', function (Request $request) {
             return Limit::perMinute(120)->by(optional($request->user())->id ?: $request->ip());
         });
