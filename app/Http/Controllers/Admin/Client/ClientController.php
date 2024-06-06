@@ -106,6 +106,8 @@ class ClientController extends Controller
         } else {
             $LoginBy = "MANUAL";
         }
+        
+        $ClientNationalID = null;
         if ($request->Filled('ClientNationalID')) {
             $ClientNationalID = $request->ClientNationalID;
         } else if ($request->Filled('ClientPassport')) {
@@ -281,7 +283,7 @@ class ClientController extends Controller
             $Client->ClientPrivacy = 1;
         }
         $Client->ClientBirthDate = $ClientBirthDate;
-        $Client->ClientNationalID = $ClientNationalID || null;
+        $Client->ClientNationalID = $ClientNationalID;
         $Client->ClientAppLanguage = $ClientAppLanguage;
         $Client->ClientPicture = $ClientPicture;
         $Client->ClientGender = $ClientGender;
