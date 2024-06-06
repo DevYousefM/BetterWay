@@ -410,7 +410,10 @@ class ClientController extends Controller
         //     return RespondWithBadRequest(34);
         // }
         // }
-        $ParentPlanNetwork = PlanNetwork::where('PlanNetworkPath', 'LIKE', $ReferralClient->IDClient . '%')->select("PlanNetworkPath")->get();
+        $ParentPlanNetwork = PlanNetwork::where('PlanNetworkPath', 'LIKE', $ReferralClient->IDClient . '%')
+            ->join('clients', 'clients.IDClient', '=', 'PlanNetwork.IDClient') // Adjust table and column names as necessary
+            ->select('PlanNetwork.PlanNetworkPath', 'clients.ClientName') // Adjust column names as necessary
+            ->get();
 
         return $ParentPlanNetwork;
     }
@@ -507,7 +510,7 @@ class ClientController extends Controller
         }
         $PlanProduct = PlanProduct::find($IDPlanProduct);
         if (!$PlanProduct) {
-            return RespondWithBadRequest(23);
+            return RespondWithBadRequest(203);
         }
 
         $IDPlan = $PlanProduct->IDPlan;
@@ -516,15 +519,6 @@ class ClientController extends Controller
             $ReferralClient = "+2" . $ReferralClient;
         }
 
-        $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($ReferralClient) {
-            $query->where('ClientAppID', $ReferralClient)
-                ->orwhere('ClientEmail', $ReferralClient)
-                ->orwhere('ClientPhone', $ReferralClient);
-        })->first();
-
-        if (!$ReferralClient) {
-            return RespondWithBadRequest(23);
-        }
 
         $IDReferral = $ReferralClient->IDClient;
         if ($ParentClient) {
@@ -645,7 +639,7 @@ class ClientController extends Controller
         }
 
         $Client = Client::find($IDClient);
-        
+
         $Client->IDReferral = $IDReferralClient;
         $Client->IDUpline = $IDParentClient;
         $Client->NetworkPosition = $PlanNetworkPosition;
