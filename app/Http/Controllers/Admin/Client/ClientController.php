@@ -430,7 +430,6 @@ class ClientController extends Controller
     {
         $Admin = auth('user')->user();
         $IDClient = $request->IDClient;
-        $ParentClient = $request->ParentClient;
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanNetworkPosition = $request->PlanNetworkPosition;
         if (!$IDClient) {
