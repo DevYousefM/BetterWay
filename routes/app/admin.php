@@ -173,7 +173,7 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/position/update', [ClientController::class, 'ClientPositionUpdate']);
     Route::post('/clients/ledger', [ClientController::class, 'ClientLedger']);
     Route::post('/clients/rename', [ClientController::class, 'ClientRename']);
-    Route::get("/clients",[ClientController::class,"ClientCheck"]);
+    Route::post("/clients",[ClientController::class,"ClientCheck"]);
 
     Route::post('/positions', [ClientController::class, 'PositionList']);
     Route::post('/positions/status', [ClientController::class, 'PositionStatus']);
