@@ -303,34 +303,23 @@ class ClientController extends Controller
         }
 
         if ($Upline) {
-            if ($Upline[0] == "0") {
-                $Upline = "+2" . $Upline;
-            }
-        }
-
-        if ($Referral[0] == "0") {
-            $Referral = "+2" . $Referral;
-        }
-
-        if ($Upline) {
             $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
                 $query->where('ClientAppID', $Upline)
                     ->orwhere('ClientEmail', $Upline)
-                    ->orwhere('ClientPhone', $Upline);
+                    ->orwhere('ClientPhone', $Upline[0] == "0"
+                        ? $Upline = "+2" . $Upline : $Upline);
             })->first();
 
             if (!$ParentClient) {
                 return RespondWithBadRequest(23);
             }
-        } else {
-            $IDParentClient = Null;
         }
 
 
         $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
             $query->where('ClientAppID', $Referral)
                 ->orwhere('ClientEmail', $Referral)
-                ->orwhere('ClientPhone', $Referral);
+                ->orwhere('ClientPhone', $Referral[0] == "0" ? $Referral = "+2" . $Referral : $Referral);
         })->first();
 
         if (!$ReferralClient) {
@@ -357,6 +346,30 @@ class ClientController extends Controller
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
             }
+        }
+        if (!$Upline) {
+            $current = $ReferralClient->IDClient;
+            $lastPlanNetwork = PlanNetwork::where("IDClient", $current)->first();
+
+            while (true) {
+                $ParentPlanNetwork = PlanNetwork::where("IDParentClient", $current)
+                    ->where("PlanNetworkPosition", $PlanNetworkPosition)
+                    ->first();
+
+                if ($ParentPlanNetwork) {
+                    $current = $ParentPlanNetwork->IDClient;
+                    $lastPlanNetwork = $ParentPlanNetwork;
+                } else {
+                    break;
+                }
+            }
+            $IDParentClient = $lastPlanNetwork->IDClient;
+            $PlanNetworkPath = $lastPlanNetwork->PlanNetworkPath;
+            $PlanNetworkPath = explode("-", $PlanNetworkPath);
+            if ($IDParentClient != $IDReferralClient) {
+                return RespondWithBadRequest(33);
+            }       
+            
         }
 
         $ClientPrivacy = 1;

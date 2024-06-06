@@ -382,7 +382,7 @@ class ClientController extends Controller
                 ->orwhere('ClientPhone', $Referral[0] == "0"
                     ? $Referral = "+2" . $Referral : $Referral);
         })->first();
-        return $ReferralClient;
+        // return $ReferralClient;
         if (!$ReferralClient) {
             return RespondWithBadRequest(23);
         }
@@ -408,12 +408,23 @@ class ClientController extends Controller
         //     return RespondWithBadRequest(34);
         // }
         // }
-        $ParentPlanNetwork = PlanNetwork::where('PlanNetworkPath', 'LIKE', $ReferralClient->IDClient . '%')
-            ->join('clients', 'clients.IDClient', '=', 'PlanNetwork.IDClient') // Adjust table and column names as necessary
-            ->select('PlanNetwork.PlanNetworkPath', 'clients.ClientName') // Adjust column names as necessary
-            ->get();
+        $current = $ReferralClient->IDClient;
+        $lastPlanNetwork = null;
 
-        return $ParentPlanNetwork;
+        while (true) {
+            $PlanNetwork = PlanNetwork::where("IDParentClient", $current)
+                ->where("PlanNetworkPosition", "RIGHT")
+                ->first();
+
+            if ($PlanNetwork) {
+                $current = $PlanNetwork->IDClient;
+                $lastPlanNetwork = $PlanNetwork;
+            } else {
+                break;
+            }
+        }
+
+        return $lastPlanNetwork;
     }
     public function ClientNetworkAdd(Request $request)
     {
