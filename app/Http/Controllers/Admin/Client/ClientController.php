@@ -160,81 +160,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(54);
         }
 
-        // if ($request->Filled('Referral')) {
-        //     $Referral = $request->Referral;
-        // } else {
-        //     return RespondWithBadRequest(55);
-        // }
 
-        // if ($request->Filled('Upline')) {
-        //     $Upline = $request->Upline;
-        // } else {
-        //     $Upline = NULL;
-        // }
-
-        // if ($request->Filled('Position')) {
-        //     $PlanNetworkPosition = $request->Position;
-        // } else {
-        //     $PlanNetworkPosition = "LEFT";
-        // }
-
-        // if ($Upline) {
-        //     if ($Upline[0] == "0") {
-        //         $Upline = "+2" . $Upline;
-        //     }
-        // }
-
-        // if ($Referral[0] == "0") {
-        //     $Referral = "+2" . $Referral;
-        // }
-
-        // if ($Upline) {
-        //     $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
-        //         $query->where('ClientAppID', $Upline)
-        //             ->orwhere('ClientEmail', $Upline)
-        //             ->orwhere('ClientPhone', $Upline);
-        //     })->first();
-
-        //     if (!$ParentClient) {
-
-        //         return RespondWithBadRequest(23);
-        //     }
-        // } else {
-        //     $IDParentClient = Null;
-        // }
-
-
-        // $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
-        //     $query->where('ClientAppID', $Referral)
-        //         ->orwhere('ClientEmail', $Referral)
-        //         ->orwhere('ClientPhone', $Referral);
-        // })->first();
-
-        // if (!$ReferralClient) {
-        //     return RespondWithBadRequest(23);
-        // }
-
-        // $IDReferralClient = $ReferralClient->IDClient;
-
-        // if ($Upline) {
-        //     $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
-        //     $IDParentClient = $ParentClient->IDClient;
-        //     $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
-        //     $PlanNetworkPath = explode("-", $PlanNetworkPath);
-        //     if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
-        //         return RespondWithBadRequest(33);
-        //     }
-
-        //     $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
-        //     $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
-        //     $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
-        //     if ($ParentNetwork == $ChildNumber) {
-        //         return RespondWithBadRequest(24);
-        //     }
-        //     if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
-        //         return RespondWithBadRequest(34);
-        //     }
-        // }
 
         if ($request->Filled('ClientNameArabic')) {
             $ClientNameArabic = $request->ClientNameArabic;
@@ -339,9 +265,7 @@ class ClientController extends Controller
         $Client->ClientAppID = $ClientAppID;
         $Client->ClientEmail = $ClientEmail;
         $Client->IDArea = $IDArea;
-        // $Client->IDReferral = $IDReferralClient;
-        // $Client->IDUpline = $IDParentClient;
-        // $Client->NetworkPosition = $PlanNetworkPosition;
+
         $Client->ClientPhone = $ClientPhone;
         $Client->ClientPhoneFlag = $ClientPhoneFlag;
         $Client->LoginBy = $LoginBy;
@@ -495,23 +419,92 @@ class ClientController extends Controller
         $Admin = auth('user')->user();
         $IDClient = $request->IDClient;
         $ParentClient = $request->ParentClient;
-        $ReferralClient = $request->ReferralClient;
-        $IDPlan = $request->IDPlan;
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanNetworkPosition = $request->PlanNetworkPosition;
         if (!$IDClient) {
-            return RespondWithBadRequest(1);
-        }
-        if (!$ReferralClient) {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(505);
         }
         if (!$IDPlanProduct) {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(506);
         }
         if (!$PlanNetworkPosition) {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(507);
+        }
+        if ($request->Filled('Referral')) {
+            $Referral = $request->Referral;
+        } else {
+            return RespondWithBadRequest(55);
         }
 
+        if ($request->Filled('Upline')) {
+            $Upline = $request->Upline;
+        } else {
+            $Upline = NULL;
+        }
+
+        if ($request->Filled('Position')) {
+            $PlanNetworkPosition = $request->Position;
+        } else {
+            $PlanNetworkPosition = "LEFT";
+        }
+
+        if ($Upline) {
+            if ($Upline[0] == "0") {
+                $Upline = "+2" . $Upline;
+            }
+        }
+
+        if ($Referral[0] == "0") {
+            $Referral = "+2" . $Referral;
+        }
+
+        if ($Upline) {
+            $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
+                $query->where('ClientAppID', $Upline)
+                    ->orwhere('ClientEmail', $Upline)
+                    ->orwhere('ClientPhone', $Upline);
+            })->first();
+
+            if (!$ParentClient) {
+
+                return RespondWithBadRequest(23);
+            }
+        } else {
+            $IDParentClient = Null;
+        }
+
+
+        $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
+            $query->where('ClientAppID', $Referral)
+                ->orwhere('ClientEmail', $Referral)
+                ->orwhere('ClientPhone', $Referral);
+        })->first();
+
+        if (!$ReferralClient) {
+            return RespondWithBadRequest(23);
+        }
+
+        $IDReferralClient = $ReferralClient->IDClient;
+
+        if ($Upline) {
+            $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
+            $IDParentClient = $ParentClient->IDClient;
+            $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
+            $PlanNetworkPath = explode("-", $PlanNetworkPath);
+            if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
+                return RespondWithBadRequest(33);
+            }
+
+            $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
+            $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
+            $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
+            if ($ParentNetwork == $ChildNumber) {
+                return RespondWithBadRequest(24);
+            }
+            if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
+                return RespondWithBadRequest(34);
+            }
+        }
         $PlanProduct = PlanProduct::find($IDPlanProduct);
         if (!$PlanProduct) {
             return RespondWithBadRequest(23);
@@ -623,6 +616,7 @@ class ClientController extends Controller
         $PlanNetwork = new PlanNetwork;
         $PlanNetwork->IDClient = $IDClient;
         $PlanNetwork->IDPlan = $IDPlan;
+
         $PlanNetwork->IDPlanProduct = $IDPlanProduct;
         $PlanNetwork->IDParentClient = $IDParentClient;
         $PlanNetwork->IDReferralClient = $IDReferralClient;
@@ -651,6 +645,11 @@ class ClientController extends Controller
         }
 
         $Client = Client::find($IDClient);
+        
+        $Client->IDReferral = $IDReferralClient;
+        $Client->IDUpline = $IDParentClient;
+        $Client->NetworkPosition = $PlanNetworkPosition;
+
         $BatchNumber = "#PN" . $PlanNetwork->IDPlanNetwork;
         $TimeFormat = new DateTime('now');
         $Time = $TimeFormat->format('H');
