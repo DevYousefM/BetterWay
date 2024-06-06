@@ -2833,7 +2833,7 @@ class ClientController extends Controller
     }
     public function ClientCheck(Request $request)
     {
-
+        return $request;
         $Type = $request->Type;
         $UserName = $request->UserName;
         $IDReferral = $request->IDReferral;
