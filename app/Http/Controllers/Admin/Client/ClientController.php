@@ -106,7 +106,7 @@ class ClientController extends Controller
         } else {
             $LoginBy = "MANUAL";
         }
-        
+
         $ClientNationalID = null;
         if ($request->Filled('ClientNationalID')) {
             $ClientNationalID = $request->ClientNationalID;
@@ -194,9 +194,11 @@ class ClientController extends Controller
             return RespondWithBadRequest(3);
         }
 
-        $ClientRecord = Client::where('ClientNationalID', $ClientNationalID)->where("ClientDeleted", 0)->first();
-        if ($ClientRecord) {
-            return RespondWithBadRequest(20);
+        if ($ClientNationalID) {
+            $ClientRecord = Client::where('ClientNationalID', $ClientNationalID)->where("ClientDeleted", 0)->first();
+            if ($ClientRecord) {
+                return RespondWithBadRequest(20);
+            }
         }
 
         $NextIDClient = DB::select('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE  TABLE_NAME = "clients"')[0]->AUTO_INCREMENT;
@@ -433,7 +435,7 @@ class ClientController extends Controller
         $Admin = auth('user')->user();
         $IDClient = $request->IDClient;
         $IDPlanProduct = $request->IDPlanProduct;
-        
+
         $PlanNetworkPosition = $request->PlanNetworkPosition;
         if (!$IDClient) {
             return RespondWithBadRequest(505);
