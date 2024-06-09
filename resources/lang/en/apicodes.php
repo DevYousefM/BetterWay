@@ -56,5 +56,6 @@ return [
     '53' => 'Password is required',
     '54' => 'Client Name is required',
     '55' => 'Referral is required',
-    '56' => 'Please wait 24 hours to get this offer'
+    '56' => 'Please wait 24 hours to get this offer',
+    '57' => 'Invoice amount below offer minimum.'
 ];

@@ -51,7 +51,8 @@ use DB;
 
 class BrandController extends Controller
 {
-    public function BrandList(Request $request,Brand $Brands){
+    public function BrandList(Request $request, Brand $Brands)
+    {
         $User = auth('user')->user();
         $IDPage = $request->IDPage;
         $SearchKey = $request->SearchKey;
@@ -64,46 +65,47 @@ class BrandController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $Brands = $Brands->leftjoin("users","users.IDUser","brands.IDUser");
-        if($SearchKey) {
+        $Brands = $Brands->leftjoin("users", "users.IDUser", "brands.IDUser");
+        if ($SearchKey) {
             $Brands = $Brands->where(function ($query) use ($SearchKey) {
                 $query->where('brands.BrandNameEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brands.BrandNameAr', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brands.BrandNumber', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brands.BrandEmail', 'like', '%' . $SearchKey . '%');
+                    ->orwhere('brands.BrandNameAr', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brands.BrandNumber', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brands.BrandEmail', 'like', '%' . $SearchKey . '%');
             });
         }
 
-        if($BrandStatus){
-            $Brands = $Brands->where("brands.BrandStatus",$BrandStatus);
+        if ($BrandStatus) {
+            $Brands = $Brands->where("brands.BrandStatus", $BrandStatus);
         }
-        if($StartDate){
-            $Brands = $Brands->where("brands.created_at",">=",$StartDate);
+        if ($StartDate) {
+            $Brands = $Brands->where("brands.created_at", ">=", $StartDate);
         }
-        if($EndDate){
-            $Brands = $Brands->where("brands.created_at","<=",$EndDate);
+        if ($EndDate) {
+            $Brands = $Brands->where("brands.created_at", "<=", $EndDate);
         }
-        if($User->IDRole == 2){
-            $Brands = $Brands->where("brands.IDBrand",$User->IDBrand);
+        if ($User->IDRole == 2) {
+            $Brands = $Brands->where("brands.IDBrand", $User->IDBrand);
         }
 
-        $Brands = $Brands->select("brands.IDBrand","brands.IDUser","brands.BrandNameEn","brands.BrandNameAr","brands.BrandDescEn","brands.BrandDescAr","brands.BrandPolicyEn","brands.BrandPolicyAr","brands.BrandLogo","brands.BrandNumber","brands.BrandEmail","brands.BrandRating","brands.BrandStatus","brands.created_at","users.UserName","users.UserPhone");
+        $Brands = $Brands->select("brands.IDBrand", "brands.IDUser", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandDescEn", "brands.BrandDescAr", "brands.BrandPolicyEn", "brands.BrandPolicyAr", "brands.BrandLogo", "brands.BrandNumber", "brands.BrandEmail", "brands.BrandRating", "brands.BrandStatus", "brands.created_at", "users.UserName", "users.UserPhone");
         $Pages = ceil($Brands->count() / 20);
         $Brands = $Brands->skip($IDPage)->take(20)->get();
         $Brands = BrandResource::collection($Brands);
-        $Response = array("Brands" => $Brands,"Pages"=>$Pages);
+        $Response = array("Brands" => $Brands, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BrandAdd(Request $request){
+    public function BrandAdd(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDUser = $request->IDUser;
         $BrandNameEn = $request->BrandNameEn;
@@ -117,13 +119,13 @@ class BrandController extends Controller
         $BrandEmail = $request->BrandEmail;
         $BrandDocuments = $request->BrandDocuments;
 
-        if(!$BrandNameEn){
+        if (!$BrandNameEn) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandNameAr){
+        if (!$BrandNameAr) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandNumber){
+        if (!$BrandNumber) {
             return RespondWithBadRequest(1);
         }
 
@@ -134,30 +136,30 @@ class BrandController extends Controller
             }
             $NextIDBrand = DB::select('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE  TABLE_NAME = "brands"')[0]->AUTO_INCREMENT;
             $BrandLogo = SaveImage($request->file('BrandLogo'), "brands", $NextIDBrand);
-        }else{
+        } else {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandDocuments){
-            foreach($BrandDocuments as $Document){
+        if ($BrandDocuments) {
+            foreach ($BrandDocuments as $Document) {
                 if (!in_array($Document->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
         }
 
-        $BrandRecord = Brand::where('BrandNameEn',$BrandNameEn)->orwhere("BrandNameAr",$BrandNameAr)->first();
-        if($BrandRecord){
+        $BrandRecord = Brand::where('BrandNameEn', $BrandNameEn)->orwhere("BrandNameAr", $BrandNameAr)->first();
+        if ($BrandRecord) {
             return RespondWithBadRequest(18);
         }
-        if($BrandEmail){
-            $BrandRecord = Brand::where('BrandEmail',$BrandEmail)->first();
-            if($BrandRecord){
+        if ($BrandEmail) {
+            $BrandRecord = Brand::where('BrandEmail', $BrandEmail)->first();
+            if ($BrandRecord) {
                 return RespondWithBadRequest(2);
             }
         }
-        $BrandRecord = Brand::where('BrandNumber',$BrandNumber)->first();
-        if($BrandRecord){
+        $BrandRecord = Brand::where('BrandNumber', $BrandNumber)->first();
+        if ($BrandRecord) {
             return RespondWithBadRequest(3);
         }
 
@@ -175,9 +177,9 @@ class BrandController extends Controller
         $Brand->BrandStatus = "PENDING";
         $Brand->save();
 
-        if($BrandDocuments){
-            foreach($BrandDocuments as $Document){
-                $Image = SaveImage($Document,"brands",$Brand->IDBrand);
+        if ($BrandDocuments) {
+            foreach ($BrandDocuments as $Document) {
+                $Image = SaveImage($Document, "brands", $Brand->IDBrand);
                 $BrandDocument = new BrandDocument;
                 $BrandDocument->IDBrand = $Brand->IDBrand;
                 $BrandDocument->BrandDocumentPath = $Image;
@@ -185,43 +187,45 @@ class BrandController extends Controller
             }
         }
 
-        $Desc = "Brand ".$BrandNameEn." was added";
-        ActionBackLog($Admin->IDUser,$Brand->IDBrand,"ADD_BRAND",$Desc);
+        $Desc = "Brand " . $BrandNameEn . " was added";
+        ActionBackLog($Admin->IDUser, $Brand->IDBrand, "ADD_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandStatus(Request $request){
+    public function BrandStatus(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $BrandStatus = $request->BrandStatus;
 
 
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandStatus){
+        if (!$BrandStatus) {
             return RespondWithBadRequest(1);
         }
 
         $Brand = Brand::find($IDBrand);
-        if(!$Brand){
+        if (!$Brand) {
             return RespondWithBadRequest(1);
         }
-        $Desc = "Brand status changed from ".$Brand->BrandStatus." to ".$BrandStatus;
+        $Desc = "Brand status changed from " . $Brand->BrandStatus . " to " . $BrandStatus;
         $Brand->BrandStatus = $BrandStatus;
         $Brand->save();
 
-        ActionBackLog($Admin->IDUser,$Brand->IDBrand,"EDIT_BRAND",$Desc);
+        ActionBackLog($Admin->IDUser, $Brand->IDBrand, "EDIT_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandEditPage($IDBrand){
-        $Brand = Brand::leftjoin("users","users.IDUser","brands.IDUser")->where("brands.IDBrand",$IDBrand)->select("brands.IDBrand","brands.IDUser","brands.BrandNameEn","brands.BrandNameAr","brands.BrandDescEn","brands.BrandDescAr","brands.BrandPolicyEn","brands.BrandPolicyAr","brands.BrandLogo","brands.BrandNumber","brands.BrandEmail","brands.BrandRating","brands.BrandStatus","brands.created_at","users.UserName","users.UserPhone")->first();
-        if(!$Brand){
+    public function BrandEditPage($IDBrand)
+    {
+        $Brand = Brand::leftjoin("users", "users.IDUser", "brands.IDUser")->where("brands.IDBrand", $IDBrand)->select("brands.IDBrand", "brands.IDUser", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandDescEn", "brands.BrandDescAr", "brands.BrandPolicyEn", "brands.BrandPolicyAr", "brands.BrandLogo", "brands.BrandNumber", "brands.BrandEmail", "brands.BrandRating", "brands.BrandStatus", "brands.created_at", "users.UserName", "users.UserPhone")->first();
+        if (!$Brand) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandContract = BrandContract::where("IDBrand",$IDBrand)->where("BrandContractStatus","ACTIVE")->first();
+        $BrandContract = BrandContract::where("IDBrand", $IDBrand)->where("BrandContractStatus", "ACTIVE")->first();
 
         $Brand->BrandLogo = ($Brand->BrandLogo) ? asset($Brand->BrandLogo) : '';
         $Brand->SalesName = ($Brand->UserName) ? $Brand->UserName : '';
@@ -233,14 +237,15 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Brand,
         );
         return $Response;
     }
 
-    public function BrandEdit(Request $request){
+    public function BrandEdit(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDUser = $request->IDUser;
         $IDBrand = $request->IDBrand;
@@ -257,60 +262,60 @@ class BrandController extends Controller
         $Desc = "";
 
         $Brand = Brand::find($IDBrand);
-        if(!$Brand){
+        if (!$Brand) {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandNameEn){
-            $BrandRecord = Brand::where("BrandNameEn",$BrandNameEn)->where("IDBrand","<>",$IDBrand)->first();
-            if($BrandRecord){
+        if ($BrandNameEn) {
+            $BrandRecord = Brand::where("BrandNameEn", $BrandNameEn)->where("IDBrand", "<>", $IDBrand)->first();
+            if ($BrandRecord) {
                 return RespondWithBadRequest(18);
             }
-            $Desc = "Brand english name changed from ".$Brand->BrandNameEn." to ".$BrandNameEn;
+            $Desc = "Brand english name changed from " . $Brand->BrandNameEn . " to " . $BrandNameEn;
             $Brand->BrandNameEn = $BrandNameEn;
         }
-        if($BrandNameAr){
-            $BrandRecord = Brand::where("BrandNameAr",$BrandNameAr)->where("IDBrand","<>",$IDBrand)->first();
-            if($BrandRecord){
+        if ($BrandNameAr) {
+            $BrandRecord = Brand::where("BrandNameAr", $BrandNameAr)->where("IDBrand", "<>", $IDBrand)->first();
+            if ($BrandRecord) {
                 return RespondWithBadRequest(18);
             }
-            $Desc = $Desc.", Brand arabic name changed from ".$Brand->BrandNameAr." to ".$BrandNameAr;
+            $Desc = $Desc . ", Brand arabic name changed from " . $Brand->BrandNameAr . " to " . $BrandNameAr;
             $Brand->BrandNameAr = $BrandNameAr;
         }
-        if($BrandEmail){
-            $BrandRecord = Brand::where("BrandEmail",$BrandEmail)->where("IDBrand","<>",$IDBrand)->first();
-            if($BrandRecord){
+        if ($BrandEmail) {
+            $BrandRecord = Brand::where("BrandEmail", $BrandEmail)->where("IDBrand", "<>", $IDBrand)->first();
+            if ($BrandRecord) {
                 return RespondWithBadRequest(2);
             }
-            $Desc = $Desc.", Brand email changed from ".$Brand->BrandEmail." to ".$BrandEmail;
+            $Desc = $Desc . ", Brand email changed from " . $Brand->BrandEmail . " to " . $BrandEmail;
             $Brand->BrandEmail = $BrandEmail;
         }
-        if($BrandNumber){
-            $BrandRecord = Brand::where("BrandNumber",$BrandNumber)->where("IDBrand","<>",$IDBrand)->first();
-            if($BrandRecord){
+        if ($BrandNumber) {
+            $BrandRecord = Brand::where("BrandNumber", $BrandNumber)->where("IDBrand", "<>", $IDBrand)->first();
+            if ($BrandRecord) {
                 return RespondWithBadRequest(3);
             }
-            $Desc = $Desc.", Brand phone changed from ".$Brand->BrandNumber." to ".$BrandNumber;
+            $Desc = $Desc . ", Brand phone changed from " . $Brand->BrandNumber . " to " . $BrandNumber;
             $Brand->BrandNumber = $BrandNumber;
         }
-        if($BrandDescEn){
-            $Desc = $Desc.", Brand english desc changed from ".$Brand->BrandDescEn." to ".$BrandDescEn;
+        if ($BrandDescEn) {
+            $Desc = $Desc . ", Brand english desc changed from " . $Brand->BrandDescEn . " to " . $BrandDescEn;
             $Brand->BrandDescEn = $BrandDescEn;
         }
-        if($BrandDescAr){
-            $Desc = $Desc.", Brand arabic desc changed from ".$Brand->BrandDescAr." to ".$BrandDescAr;
+        if ($BrandDescAr) {
+            $Desc = $Desc . ", Brand arabic desc changed from " . $Brand->BrandDescAr . " to " . $BrandDescAr;
             $Brand->BrandDescAr = $BrandDescAr;
         }
-        if($BrandPolicyEn){
-            $Desc = $Desc.", Brand english policy changed from ".$Brand->BrandPolicyEn." to ".$BrandPolicyEn;
+        if ($BrandPolicyEn) {
+            $Desc = $Desc . ", Brand english policy changed from " . $Brand->BrandPolicyEn . " to " . $BrandPolicyEn;
             $Brand->BrandPolicyEn = $BrandPolicyEn;
         }
-        if($BrandPolicyAr){
-            $Desc = $Desc.", Brand arabic policy changed from ".$Brand->BrandPolicyAr." to ".$BrandPolicyAr;
+        if ($BrandPolicyAr) {
+            $Desc = $Desc . ", Brand arabic policy changed from " . $Brand->BrandPolicyAr . " to " . $BrandPolicyAr;
             $Brand->BrandPolicyAr = $BrandPolicyAr;
         }
-        if($IDUser){
-            $Desc = $Desc.", Brand sales user changed from ".$Brand->IDUser." to ".$IDUser;
+        if ($IDUser) {
+            $Desc = $Desc . ", Brand sales user changed from " . $Brand->IDUser . " to " . $IDUser;
             $Brand->IDUser = $IDUser;
         }
 
@@ -319,77 +324,80 @@ class BrandController extends Controller
             if (!in_array($request->BrandLogo->extension(), $ImageExtArray)) {
                 return RespondWithBadRequest(15);
             }
-            if($Brand->BrandLogo){
+            if ($Brand->BrandLogo) {
                 $OldPhoto = substr($Brand->BrandLogo, 7);
                 Storage::disk('uploads')->delete($OldPhoto);
             }
             $BrandLogo = SaveImage($request->file('BrandLogo'), "brands", $IDBrand);
             $Brand->BrandLogo = $BrandLogo;
-            $Desc = $Desc.", Brand Logo changed";
+            $Desc = $Desc . ", Brand Logo changed";
         }
 
         $Brand->BrandStatus = "PENDING";
         $Brand->save();
 
-        if($BrandDocuments){
-            foreach($BrandDocuments as $Document){
+        if ($BrandDocuments) {
+            foreach ($BrandDocuments as $Document) {
                 if (!in_array($Document->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
-            foreach($BrandDocuments as $Document){
-                $Image = SaveImage($Document,"brands",$Brand->IDBrand);
+            foreach ($BrandDocuments as $Document) {
+                $Image = SaveImage($Document, "brands", $Brand->IDBrand);
                 $BrandDocument = new BrandDocument;
                 $BrandDocument->IDBrand = $Brand->IDBrand;
                 $BrandDocument->BrandDocumentPath = $Image;
                 $BrandDocument->save();
             }
-            $Desc = $Desc.", Brand gallery added";
+            $Desc = $Desc . ", Brand gallery added";
         }
 
-        ActionBackLog($Admin->IDUser,$Brand->IDBrand,"EDIT_BRAND",$Desc);
+        ActionBackLog($Admin->IDUser, $Brand->IDBrand, "EDIT_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandAjax(Request $request,Brand $Brands){
-        $Brands = Brand::leftjoin("users","users.IDUser","brands.IDUser")->where("brands.BrandStatus","ACTIVE")->select("brands.IDBrand","brands.BrandNameEn","brands.BrandNameAr","brands.BrandDescEn","brands.BrandDescAr","brands.BrandPolicyEn","brands.BrandPolicyAr","brands.BrandLogo","brands.BrandNumber","brands.BrandEmail","brands.BrandRating","brands.BrandStatus","brands.created_at","users.UserName","users.UserPhone")->get();
+    public function BrandAjax(Request $request, Brand $Brands)
+    {
+        $Brands = Brand::leftjoin("users", "users.IDUser", "brands.IDUser")->where("brands.BrandStatus", "ACTIVE")->select("brands.IDBrand", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandDescEn", "brands.BrandDescAr", "brands.BrandPolicyEn", "brands.BrandPolicyAr", "brands.BrandLogo", "brands.BrandNumber", "brands.BrandEmail", "brands.BrandRating", "brands.BrandStatus", "brands.created_at", "users.UserName", "users.UserPhone")->get();
         $Brands = BrandResource::collection($Brands);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Brands,
         );
         return $Response;
     }
 
-    public function BrandDocuments($IDBrand){
+    public function BrandDocuments($IDBrand)
+    {
         $Brand = Brand::find($IDBrand);
-        if(!$Brand){
+        if (!$Brand) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandDocuments = BrandDocument::where("IDBrand",$IDBrand)->where("BrandDocumentDeleted",0)->get();
-        foreach($BrandDocuments as $Document){
+        $BrandDocuments = BrandDocument::where("IDBrand", $IDBrand)->where("BrandDocumentDeleted", 0)->get();
+        foreach ($BrandDocuments as $Document) {
             $Document->BrandDocumentPath = asset($Document->BrandDocumentPath);
         }
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandDocuments,
         );
         return $Response;
     }
 
-    public function BrandDocumentRemove($IDBrandDocument){
+    public function BrandDocumentRemove($IDBrandDocument)
+    {
         $Admin = auth('user')->user();
         $BrandDocument = BrandDocument::find($IDBrandDocument);
-        if(!$BrandDocument){
+        if (!$BrandDocument) {
             return RespondWithBadRequest(1);
         }
 
@@ -400,47 +408,49 @@ class BrandController extends Controller
         $BrandDocument->save();
 
         $Desc = "Brand Document Removed";
-        ActionBackLog($Admin->IDUser,$BrandDocument->IDBrand,"EDIT_BRAND",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandDocument->IDBrand, "EDIT_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContactList(Request $request){
+    public function BrandContactList(Request $request)
+    {
         $IDBrand = $request->IDBrand;
         $SearchKey = $request->SearchKey;
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
 
-        $Brand = Brand::leftjoin("users","users.IDUser","brands.IDUser")->where("brands.IDBrand",$IDBrand)->first();
+        $Brand = Brand::leftjoin("users", "users.IDUser", "brands.IDUser")->where("brands.IDBrand", $IDBrand)->first();
         $SalesName = $Brand->UserName ? $Brand->UserName : '';
         $SalesPhone = $Brand->UserPhone ? $Brand->UserPhone : '';
-        $Sales = ["SalesName"=>$SalesName,"SalesPhone"=>$SalesPhone];
+        $Sales = ["SalesName" => $SalesName, "SalesPhone" => $SalesPhone];
 
-        $BrandContacts = BrandContact::where("IDBrand",$IDBrand)->where("BrandContactDeleted",0);
-        if($SearchKey) {
+        $BrandContacts = BrandContact::where("IDBrand", $IDBrand)->where("BrandContactDeleted", 0);
+        if ($SearchKey) {
             $Branches = $Branches->where(function ($query) use ($SearchKey) {
                 $query->where('BrandContactName', 'like', '%' . $SearchKey . '%')
-                ->orwhere('BrandContactPhone', 'like', '%' . $SearchKey . '%')
-                ->orwhere('BrandContactTitle', 'like', '%' . $SearchKey . '%');
+                    ->orwhere('BrandContactPhone', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('BrandContactTitle', 'like', '%' . $SearchKey . '%');
             });
         }
         $BrandContacts = $BrandContacts->get();
 
-        $Response = ["BrandContacts"=>$BrandContacts,"Sales"=>$Sales];
+        $Response = ["BrandContacts" => $BrandContacts, "Sales" => $Sales];
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response
         );
         return $Response;
     }
 
-    public function BrandContactDelete($IDBrandContact){
+    public function BrandContactDelete($IDBrandContact)
+    {
         $Admin = auth('user')->user();
         $BrandContact = BrandContact::find($IDBrandContact);
-        if(!$BrandContact){
+        if (!$BrandContact) {
             return RespondWithBadRequest(1);
         }
 
@@ -448,31 +458,32 @@ class BrandController extends Controller
         $BrandContact->save();
 
         $Desc = "Brand Contact Deleted";
-        ActionBackLog($Admin->IDUser,$BrandContact->IDBrandContact,"EDIT_BRAND_CONTACT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContact->IDBrandContact, "EDIT_BRAND_CONTACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContactAdd(Request $request){
+    public function BrandContactAdd(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $BrandContactName = $request->BrandContactName;
         $BrandContactPhone = $request->BrandContactPhone;
         $BrandContactTitle = $request->BrandContactTitle;
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContactName){
+        if (!$BrandContactName) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContactPhone){
+        if (!$BrandContactPhone) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContactTitle){
+        if (!$BrandContactTitle) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandContact = BrandContact::where("IDBrand",$IDBrand)->where("BrandContactPhone",$BrandContactPhone)->where("BrandContactDeleted",0)->first();
-        if($BrandContact){
+        $BrandContact = BrandContact::where("IDBrand", $IDBrand)->where("BrandContactPhone", $BrandContactPhone)->where("BrandContactDeleted", 0)->first();
+        if ($BrandContact) {
             return RespondWithBadRequest(3);
         }
 
@@ -483,74 +494,77 @@ class BrandController extends Controller
         $BrandContact->BrandContactName = $BrandContactName;
         $BrandContact->save();
 
-        $Desc = "Brand Contact ".$BrandContactPhone." was added";
-        ActionBackLog($Admin->IDUser,$BrandContact->IDBrandContact,"ADD_BRAND_CONTACT",$Desc);
+        $Desc = "Brand Contact " . $BrandContactPhone . " was added";
+        ActionBackLog($Admin->IDUser, $BrandContact->IDBrandContact, "ADD_BRAND_CONTACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContactEditPage($IDBrandContact){
-        $BrandContact = BrandContact::where("IDBrandContact",$IDBrandContact)->where("BrandContactDeleted",0)->first();
-        if(!$BrandContact) {
+    public function BrandContactEditPage($IDBrandContact)
+    {
+        $BrandContact = BrandContact::where("IDBrandContact", $IDBrandContact)->where("BrandContactDeleted", 0)->first();
+        if (!$BrandContact) {
             return RespondWithBadRequest(1);
         }
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandContact,
         );
         return $Response;
     }
 
-    public function BrandContactEdit(Request $request){
+    public function BrandContactEdit(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrandContact = $request->IDBrandContact;
         $BrandContactName = $request->BrandContactName;
         $BrandContactPhone = $request->BrandContactPhone;
         $BrandContactTitle = $request->BrandContactTitle;
         $Desc = "";
-        if(!$IDBrandContact){
+        if (!$IDBrandContact) {
             return RespondWithBadRequest(1);
         }
 
         $BrandContact = BrandContact::find($IDBrandContact);
-        if(!$BrandContact){
+        if (!$BrandContact) {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandContactName){
-            $Desc = "Brand contact name changed from ".$BrandContact->BrandContactName." to ".$BrandContactName;
+        if ($BrandContactName) {
+            $Desc = "Brand contact name changed from " . $BrandContact->BrandContactName . " to " . $BrandContactName;
             $BrandContact->BrandContactName = $BrandContactName;
         }
-        if($BrandContactTitle){
-            $Desc = $Desc.", Brand contact title changed from ".$BrandContact->BrandContactTitle." to ".$BrandContactTitle;
+        if ($BrandContactTitle) {
+            $Desc = $Desc . ", Brand contact title changed from " . $BrandContact->BrandContactTitle . " to " . $BrandContactTitle;
             $BrandContact->BrandContactTitle = $BrandContactTitle;
         }
-        if($BrandContactPhone){
-            $BrandContactRow = BrandContact::where("IDBrand",$BrandContact->IDBrand)->where("IDBrandContact","<>",$IDBrandContact)->where("BrandContactPhone",$BrandContactPhone)->where("BrandContactDeleted",0)->first();
-            if($BrandContactRow){
+        if ($BrandContactPhone) {
+            $BrandContactRow = BrandContact::where("IDBrand", $BrandContact->IDBrand)->where("IDBrandContact", "<>", $IDBrandContact)->where("BrandContactPhone", $BrandContactPhone)->where("BrandContactDeleted", 0)->first();
+            if ($BrandContactRow) {
                 return RespondWithBadRequest(3);
             }
-            $Desc = $Desc.", Brand contact phone changed from ".$BrandContact->BrandContactPhone." to ".$BrandContactPhone;
+            $Desc = $Desc . ", Brand contact phone changed from " . $BrandContact->BrandContactPhone . " to " . $BrandContactPhone;
             $BrandContact->BrandContactPhone = $BrandContactPhone;
         }
         $BrandContact->save();
 
-        ActionBackLog($Admin->IDUser,$BrandContact->IDBrandContact,"EDIT_BRAND_CONTACT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContact->IDBrandContact, "EDIT_BRAND_CONTACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandGallery(Request $request,BrandGallery $BrandGallery){
+    public function BrandGallery(Request $request, BrandGallery $BrandGallery)
+    {
         $IDBrand = $request->IDBrand;
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandGallery = $BrandGallery->where("IDBrand",$IDBrand)->where("BrandGalleryDeleted",0)->get();
-        foreach($BrandGallery as $Gallery){
-            if($Gallery->BrandGalleryType == "IMAGE"){
+        $BrandGallery = $BrandGallery->where("IDBrand", $IDBrand)->where("BrandGalleryDeleted", 0)->get();
+        foreach ($BrandGallery as $Gallery) {
+            if ($Gallery->BrandGalleryType == "IMAGE") {
                 $Gallery->BrandGalleryPath = ($Gallery->BrandGalleryPath) ? asset($Gallery->BrandGalleryPath) : '';
             }
         }
@@ -558,21 +572,22 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandGallery,
         );
         return $Response;
     }
 
-    public function BrandGalleryRemove($IDBrandGallery){
+    public function BrandGalleryRemove($IDBrandGallery)
+    {
         $Admin = auth('user')->user();
         $BrandGallery = BrandGallery::find($IDBrandGallery);
-        if(!$BrandGallery){
+        if (!$BrandGallery) {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandGallery->BrandGalleryType == "IMAGE"){
+        if ($BrandGallery->BrandGalleryType == "IMAGE") {
             $OldDocument = substr($BrandGallery->BrandGalleryPath, 7);
             Storage::disk('uploads')->delete($OldDocument);
         }
@@ -581,33 +596,34 @@ class BrandController extends Controller
         $BrandGallery->save();
 
         $Desc = "Brand Gallery Removed";
-        ActionBackLog($Admin->IDUser,$BrandGallery->IDBrand,"EDIT_BRAND",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandGallery->IDBrand, "EDIT_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    
-    public function BrandGalleryAdd(Request $request){
+
+    public function BrandGalleryAdd(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $BrandPhotos = $request->BrandPhotos;
         $BrandVideos = $request->BrandVideos;
 
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if($BrandPhotos){
-            foreach($BrandPhotos as $Photo){
+        if ($BrandPhotos) {
+            foreach ($BrandPhotos as $Photo) {
                 if (!in_array($Photo->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
         }
 
-        if($BrandPhotos){
-            foreach($BrandPhotos as $Photo){
-                $Image = SaveImage($Photo,"brands",$IDBrand);
+        if ($BrandPhotos) {
+            foreach ($BrandPhotos as $Photo) {
+                $Image = SaveImage($Photo, "brands", $IDBrand);
                 $BrandGallery = new BrandGallery;
                 $BrandGallery->IDBrand = $IDBrand;
                 $BrandGallery->BrandGalleryPath = $Image;
@@ -616,9 +632,9 @@ class BrandController extends Controller
             }
         }
 
-        if($BrandVideos){
-            if(count($BrandVideos)){
-                foreach($BrandVideos as $Video){
+        if ($BrandVideos) {
+            if (count($BrandVideos)) {
+                foreach ($BrandVideos as $Video) {
                     $BrandVideo = YoutubeEmbedUrl($Video);
                     $BrandGallery = new BrandGallery;
                     $BrandGallery->IDBrand = $IDBrand;
@@ -630,11 +646,12 @@ class BrandController extends Controller
         }
 
         $Desc = "Brand Gallery Added";
-        ActionBackLog($Admin->IDUser,$IDBrand,"EDIT_BRAND",$Desc);
+        ActionBackLog($Admin->IDUser, $IDBrand, "EDIT_BRAND", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContractList(Request $request,BrandContract $BrandContracts){
+    public function BrandContractList(Request $request, BrandContract $BrandContracts)
+    {
         $User = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $IDPage = $request->IDPage;
@@ -642,7 +659,7 @@ class BrandController extends Controller
         $BrandContractEndDate = $request->BrandContractEndDate;
         $BrandContractStatus = $request->BrandContractStatus;
 
-        if(!$User->IDBrand && !$IDBrand){
+        if (!$User->IDBrand && !$IDBrand) {
             return RespondWithBadRequest(1);
         }
 
@@ -652,37 +669,38 @@ class BrandController extends Controller
         } else {
             $IDPage = ($request->IDPage - 1) * 20;
         }
-        if($BrandContractStartDate){
-            $BrandContracts = $BrandContracts->where("BrandContractStartDate",">=",$BrandContractStartDate);
+        if ($BrandContractStartDate) {
+            $BrandContracts = $BrandContracts->where("BrandContractStartDate", ">=", $BrandContractStartDate);
         }
-        if($BrandContractEndDate){
-            $BrandContracts = $BrandContracts->where("BrandContractStartDate","<=",$BrandContractEndDate);
+        if ($BrandContractEndDate) {
+            $BrandContracts = $BrandContracts->where("BrandContractStartDate", "<=", $BrandContractEndDate);
         }
-        if($BrandContractStatus){
-            $BrandContracts = $BrandContracts->where("BrandContractStatus",$BrandContractStatus);
+        if ($BrandContractStatus) {
+            $BrandContracts = $BrandContracts->where("BrandContractStatus", $BrandContractStatus);
         }
-        if($User->IDBrand){
-            $BrandContracts = $BrandContracts->where("IDBrand",$User->IDBrand);
+        if ($User->IDBrand) {
+            $BrandContracts = $BrandContracts->where("IDBrand", $User->IDBrand);
         }
-        if($IDBrand){
-            $BrandContracts = $BrandContracts->where("IDBrand",$IDBrand);
+        if ($IDBrand) {
+            $BrandContracts = $BrandContracts->where("IDBrand", $IDBrand);
         }
 
         $Pages = ceil($BrandContracts->count() / 20);
         $BrandContracts = $BrandContracts->skip($IDPage)->take(20)->get();
-        $Response = array("Brands" => $BrandContracts,"Pages"=>$Pages);
+        $Response = array("Brands" => $BrandContracts, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BrandContractAdd(Request $request){
+    public function BrandContractAdd(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $BrandContractStartDate = $request->BrandContractStartDate;
@@ -691,22 +709,22 @@ class BrandController extends Controller
         $BrandContractMonths = $request->BrandContractMonths;
         $BrandContractDocuments = $request->BrandContractDocuments;
 
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContractStartDate){
+        if (!$BrandContractStartDate) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContractEndDate){
+        if (!$BrandContractEndDate) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandContractAmount){
+        if (!$BrandContractAmount) {
             return RespondWithBadRequest(1);
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if($BrandContractDocuments){
-            foreach($BrandContractDocuments as $Document){
+        if ($BrandContractDocuments) {
+            foreach ($BrandContractDocuments as $Document) {
                 if (!in_array($Document->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
@@ -725,7 +743,7 @@ class BrandController extends Controller
         $BrandContractStatus = "PENDING";
         $Today = new DateTime('now');
         $Today = $Today->format('Y-m-d H:i:s');
-        if($Today >= $BrandContractStartDate){
+        if ($Today >= $BrandContractStartDate) {
             $BrandContractStatus = "ACTIVE";
             $Brand = Brand::find($IDBrand);
             $Brand->BrandStatus = "ACTIVE";
@@ -741,9 +759,9 @@ class BrandController extends Controller
         $BrandContract->BrandContractStatus = $BrandContractStatus;
         $BrandContract->save();
 
-        if($BrandContractDocuments){
-            foreach($BrandContractDocuments as $Document){
-                $Image = SaveImage($Document,"brands",$IDBrand);
+        if ($BrandContractDocuments) {
+            foreach ($BrandContractDocuments as $Document) {
+                $Image = SaveImage($Document, "brands", $IDBrand);
                 $BrandContractDocument = new BrandContractDocument;
                 $BrandContractDocument->IDBrandContract = $BrandContract->IDBrandContract;
                 $BrandContractDocument->BrandContractDocumentPath = $Image;
@@ -752,27 +770,29 @@ class BrandController extends Controller
         }
 
         $Desc = "Brand Contract Added";
-        ActionBackLog($Admin->IDUser,$BrandContract->IDBrandContract,"ADD_BRAND_CONTRACT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContract->IDBrandContract, "ADD_BRAND_CONTRACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContractEditPage($IDBrandContract){
+    public function BrandContractEditPage($IDBrandContract)
+    {
         $BrandContract = BrandContract::find($IDBrandContract);
-        if(!$BrandContract){
+        if (!$BrandContract) {
             return RespondWithBadRequest(1);
         }
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandContract,
         );
         return $Response;
     }
 
-    public function BrandContractEdit(Request $request){
+    public function BrandContractEdit(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrandContract = $request->IDBrandContract;
         $BrandContractStartDate = $request->BrandContractStartDate;
@@ -783,11 +803,11 @@ class BrandController extends Controller
         $Desc = "";
 
         $BrandContract = BrandContract::find($IDBrandContract);
-        if(!$BrandContract){
+        if (!$BrandContract) {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandContractStartDate && $BrandContractEndDate){
+        if ($BrandContractStartDate && $BrandContractEndDate) {
             // $BrandContractRow = BrandContract::where('BrandContractStartDate',"<=",$BrandContractStartDate)->where("BrandContractEndDate",">=",$BrandContractStartDate)->whereIn("BrandContractStatus",["ACTIVE","PENDING"])->where("IDBrandContract","<>",$IDBrandContract)->first();
             // if($BrandContractRow){
             //     return RespondWithBadRequest(19);
@@ -797,8 +817,8 @@ class BrandController extends Controller
             //     return RespondWithBadRequest(19);
             // }
 
-            $Desc = "Brand Contract start date changed from ".$BrandContract->BrandContractStartDate." to ".$BrandContractStartDate;
-            $Desc = $Desc.", Brand Contract end date changed from ".$BrandContract->BrandContractEndDate." to ".$BrandContractEndDate;
+            $Desc = "Brand Contract start date changed from " . $BrandContract->BrandContractStartDate . " to " . $BrandContractStartDate;
+            $Desc = $Desc . ", Brand Contract end date changed from " . $BrandContract->BrandContractEndDate . " to " . $BrandContractEndDate;
 
             $BrandContract->BrandContractStartDate = $BrandContractStartDate;
             $BrandContract->BrandContractEndDate = $BrandContractEndDate;
@@ -809,72 +829,74 @@ class BrandController extends Controller
             $Today = new DateTime('now');
             $Today = $Today->format('Y-m-d H:i:s');
             $OldBrandContractStatus = $BrandContract->BrandContractStatus;
-            if($Today >= $BrandContractStartDate){
+            if ($Today >= $BrandContractStartDate) {
                 $BrandContract->BrandContractStatus = "ACTIVE";
                 $Brand->BrandStatus = "ACTIVE";
             }
-            if($OldBrandContractStatus == "ACTIVE" && $BrandContractStatus == "PENDING"){
+            if ($OldBrandContractStatus == "ACTIVE" && $BrandContractStatus == "PENDING") {
                 $Brand->BrandStatus = "INACTIVE";
             }
             $Brand->save();
         }
 
-        if($BrandContractAmount){
-            $Desc = $Desc.", Brand Contract amount changed from ".$BrandContract->BrandContractAmount." to ".$BrandContractAmount;
+        if ($BrandContractAmount) {
+            $Desc = $Desc . ", Brand Contract amount changed from " . $BrandContract->BrandContractAmount . " to " . $BrandContractAmount;
             $BrandContract->BrandContractAmount = $BrandContractAmount;
         }
-        if($BrandContractMonths){
-            $Desc = $Desc.", Brand Contract months changed from ".$BrandContract->BrandContractMonths." to ".$BrandContractMonths;
+        if ($BrandContractMonths) {
+            $Desc = $Desc . ", Brand Contract months changed from " . $BrandContract->BrandContractMonths . " to " . $BrandContractMonths;
             $BrandContract->BrandContractMonths = $BrandContractMonths;
         }
         $BrandContract->save();
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if($BrandContractDocuments){
-            foreach($BrandContractDocuments as $Document){
+        if ($BrandContractDocuments) {
+            foreach ($BrandContractDocuments as $Document) {
                 if (!in_array($Document->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
-            foreach($BrandContractDocuments as $Document){
-                $Image = SaveImage($Document,"brands",$BrandContract->IDBrand);
+            foreach ($BrandContractDocuments as $Document) {
+                $Image = SaveImage($Document, "brands", $BrandContract->IDBrand);
                 $BrandContractDocument = new BrandContractDocument;
                 $BrandContractDocument->IDBrandContract = $IDBrandContract;
                 $BrandContractDocument->BrandContractDocumentPath = $Image;
                 $BrandContractDocument->save();
             }
-            $Desc = $Desc.", Brand Contract docs added";
+            $Desc = $Desc . ", Brand Contract docs added";
         }
 
-        ActionBackLog($Admin->IDUser,$BrandContract->IDBrandContract,"EDIT_BRAND_CONTRACT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContract->IDBrandContract, "EDIT_BRAND_CONTRACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContractDocuments($IDBrandContract){
+    public function BrandContractDocuments($IDBrandContract)
+    {
         $BrandContract = BrandContract::find($IDBrandContract);
-        if(!$BrandContract){
+        if (!$BrandContract) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandContractDocuments = BrandContractDocument::where("IDBrandContract",$IDBrandContract)->where("BrandContractDocumentDeleted",0)->get();
-        foreach($BrandContractDocuments as $Document){
+        $BrandContractDocuments = BrandContractDocument::where("IDBrandContract", $IDBrandContract)->where("BrandContractDocumentDeleted", 0)->get();
+        foreach ($BrandContractDocuments as $Document) {
             $Document->BrandContractDocumentPath = asset($Document->BrandContractDocumentPath);
         }
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandContractDocuments,
         );
         return $Response;
     }
 
-    public function BrandContractDocumentRemove($IDBrandContractDocument){
+    public function BrandContractDocumentRemove($IDBrandContractDocument)
+    {
         $Admin = auth('user')->user();
         $BrandContractDocument = BrandContractDocument::find($IDBrandContractDocument);
-        if(!$BrandContractDocument){
+        if (!$BrandContractDocument) {
             return RespondWithBadRequest(1);
         }
 
@@ -885,11 +907,12 @@ class BrandController extends Controller
         $BrandContractDocument->save();
 
         $Desc = "Brand contract document removed";
-        ActionBackLog($Admin->IDUser,$BrandContractDocument->IDBrandContract,"EDIT_BRAND_CONTRACT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContractDocument->IDBrandContract, "EDIT_BRAND_CONTRACT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BranchList(Request $request,Branch $Branches){
+    public function BranchList(Request $request, Branch $Branches)
+    {
         $User = auth('user')->user();
         $IDPage = $request->IDPage;
         $SearchKey = $request->SearchKey;
@@ -903,46 +926,47 @@ class BrandController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $Branches = $Branches->leftjoin("areas","areas.IDArea","branches.IDArea")->leftjoin("cities","cities.IDCity","areas.IDCity")->leftjoin("brands","brands.IDBrand","branches.IDBrand");
-        if($SearchKey) {
+        $Branches = $Branches->leftjoin("areas", "areas.IDArea", "branches.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->leftjoin("brands", "brands.IDBrand", "branches.IDBrand");
+        if ($SearchKey) {
             $Branches = $Branches->where(function ($query) use ($SearchKey) {
                 $query->where('branches.BranchAddressEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('branches.BranchAddressAr', 'like', '%' . $SearchKey . '%')
-                ->orwhere('branches.BranchPhone', 'like', '%' . $SearchKey . '%');
+                    ->orwhere('branches.BranchAddressAr', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('branches.BranchPhone', 'like', '%' . $SearchKey . '%');
             });
         }
-        if($IDBrand){
-            $Branches = $Branches->where("branches.IDBrand",$IDBrand);
+        if ($IDBrand) {
+            $Branches = $Branches->where("branches.IDBrand", $IDBrand);
         }
-        if($User->IDRole == 2){
-            $Branches = $Branches->where("branches.IDBrand",$User->IDBrand);
+        if ($User->IDRole == 2) {
+            $Branches = $Branches->where("branches.IDBrand", $User->IDBrand);
         }
-        if($IDCity){
-            $Branches = $Branches->where("branches.IDCity",$IDCity);
+        if ($IDCity) {
+            $Branches = $Branches->where("branches.IDCity", $IDCity);
         }
-        if($IDArea){
-            $Branches = $Branches->where("branches.IDArea",$IDArea);
+        if ($IDArea) {
+            $Branches = $Branches->where("branches.IDArea", $IDArea);
         }
-        if($BranchStatus){
-            $Branches = $Branches->where("branches.BranchStatus",$BranchStatus);
+        if ($BranchStatus) {
+            $Branches = $Branches->where("branches.BranchStatus", $BranchStatus);
         }
 
         $Pages = ceil($Branches->count() / 20);
         $Branches = $Branches->skip($IDPage)->take(20)->get();
         $Branches = BranchResource::collection($Branches);
-        $Response = array("Branches" => $Branches,"Pages"=>$Pages);
+        $Response = array("Branches" => $Branches, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BranchAdd(Request $request){
+    public function BranchAdd(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $IDArea = $request->IDArea;
@@ -957,40 +981,40 @@ class BrandController extends Controller
         $UserPhone = $request->UserPhone;
         $UserPhoneFlag = $request->UserPhoneFlag;
 
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$IDArea){
+        if (!$IDArea) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchAddressEn){
+        if (!$BranchAddressEn) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchAddressAr){
+        if (!$BranchAddressAr) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchLatitude){
+        if (!$BranchLatitude) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchLongitude){
+        if (!$BranchLongitude) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchPhone){
+        if (!$BranchPhone) {
             return RespondWithBadRequest(1);
         }
 
-        if($UserName){
-            if(!$UserPhone){
+        if ($UserName) {
+            if (!$UserPhone) {
                 return RespondWithBadRequest(1);
             }
-            if(!$UserPhoneFlag){
+            if (!$UserPhoneFlag) {
                 return RespondWithBadRequest(1);
             }
-            if(!$UserPassword){
+            if (!$UserPassword) {
                 return RespondWithBadRequest(1);
             }
-            $UserRecord = User::where("UserPhone",$UserPhone)->where("UserDeleted",0)->first();
-            if($UserRecord){
+            $UserRecord = User::where("UserPhone", $UserPhone)->where("UserDeleted", 0)->first();
+            if ($UserRecord) {
                 return RespondWithBadRequest(3);
             }
         }
@@ -1006,7 +1030,7 @@ class BrandController extends Controller
         $Branch->BranchStatus = "PENDING";
         $Branch->save();
 
-        if($UserName){
+        if ($UserName) {
             $User = new User;
             $User->IDBrand = $IDBrand;
             $User->IDBranch = $Branch->IDBranch;
@@ -1020,57 +1044,59 @@ class BrandController extends Controller
             $User->save();
         }
 
-        $Desc = "Branch ".$BranchAddressEn." was added";
-        ActionBackLog($Admin->IDUser,$Branch->IDBranch,"ADD_BRANCH",$Desc);
+        $Desc = "Branch " . $BranchAddressEn . " was added";
+        ActionBackLog($Admin->IDUser, $Branch->IDBranch, "ADD_BRANCH", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BranchStatus(Request $request){
+    public function BranchStatus(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBranch = $request->IDBranch;
         $BranchStatus = $request->BranchStatus;
 
 
-        if(!$IDBranch){
+        if (!$IDBranch) {
             return RespondWithBadRequest(1);
         }
-        if(!$BranchStatus){
+        if (!$BranchStatus) {
             return RespondWithBadRequest(1);
         }
 
         $Branch = Branch::find($IDBranch);
-        if(!$Branch){
+        if (!$Branch) {
             return RespondWithBadRequest(1);
         }
-        $Desc = "Branch status changed from ".$Branch->BranchStatus." to ".$BranchStatus;
+        $Desc = "Branch status changed from " . $Branch->BranchStatus . " to " . $BranchStatus;
         $Branch->BranchStatus = $BranchStatus;
         $Branch->save();
 
-        $BranchUser = User::where("IDBranch",$IDBranch)->first();
-        if($BranchUser){
+        $BranchUser = User::where("IDBranch", $IDBranch)->first();
+        if ($BranchUser) {
             $BranchUser->UserStatus = $BranchStatus;
             $BranchUser->save();
         }
 
-        ActionBackLog($Admin->IDUser,$Branch->IDBranch,"EDIT_BRANCH",$Desc);
+        ActionBackLog($Admin->IDUser, $Branch->IDBranch, "EDIT_BRANCH", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BranchEditPage($IDBranch){
-        $Branch = Branch::leftjoin("areas","areas.IDArea","branches.IDArea")->leftjoin("cities","cities.IDCity","areas.IDCity")->leftjoin("brands","brands.IDBrand","branches.IDBrand")->where("branches.IDBranch",$IDBranch)->first();
-        if(!$Branch){
+    public function BranchEditPage($IDBranch)
+    {
+        $Branch = Branch::leftjoin("areas", "areas.IDArea", "branches.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->leftjoin("brands", "brands.IDBrand", "branches.IDBrand")->where("branches.IDBranch", $IDBranch)->first();
+        if (!$Branch) {
             return RespondWithBadRequest(1);
         }
 
-        $BranchUser = User::where("IDBranch",$IDBranch)->first();
+        $BranchUser = User::where("IDBranch", $IDBranch)->first();
 
         $User = auth('user')->user();
-        if($User){
+        if ($User) {
             $UserLanguage = AdminLanguage($User->UserLanguage);
-            $AreaName = "AreaName".$UserLanguage;
-            $CityName = "CityName".$UserLanguage;
-            $BrandName = "BrandName".$UserLanguage;
-        }else{
+            $AreaName = "AreaName" . $UserLanguage;
+            $CityName = "CityName" . $UserLanguage;
+            $BrandName = "BrandName" . $UserLanguage;
+        } else {
             $CityName = "CityNameEn";
             $AreaName = "AreaNameEn";
             $BrandName = "BrandNameEn";
@@ -1103,14 +1129,15 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Branch,
         );
         return $Response;
     }
 
-    public function BranchEdit(Request $request){
+    public function BranchEdit(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBranch = $request->IDBranch;
         $IDArea = $request->IDArea;
@@ -1127,52 +1154,52 @@ class BrandController extends Controller
         $UserPhoneFlag = $request->UserPhoneFlag;
 
         $Branch = Branch::find($IDBranch);
-        if(!$Branch){
+        if (!$Branch) {
             return RespondWithBadRequest(1);
         }
 
-        $BranchUser = User::where("IDBranch",$IDBranch)->first();
+        $BranchUser = User::where("IDBranch", $IDBranch)->first();
 
-        if($IDArea){
+        if ($IDArea) {
             $Desc = "Branch area changed";
             $Branch->IDArea = $IDArea;
         }
-        if($BranchAddressEn){
-            $Desc = $Desc.", Branch english address changed from ".$Branch->BranchAddressEn." to ".$BranchAddressEn;
+        if ($BranchAddressEn) {
+            $Desc = $Desc . ", Branch english address changed from " . $Branch->BranchAddressEn . " to " . $BranchAddressEn;
             $Branch->BranchAddressEn = $BranchAddressEn;
         }
-        if($BranchAddressAr){
-            $Desc = $Desc.", Branch arabic address changed from ".$Branch->BranchAddressAr." to ".$BranchAddressAr;
+        if ($BranchAddressAr) {
+            $Desc = $Desc . ", Branch arabic address changed from " . $Branch->BranchAddressAr . " to " . $BranchAddressAr;
             $Branch->BranchAddressAr = $BranchAddressAr;
         }
-        if($BranchLatitude){
-            $Desc = $Desc.", Branch latitude changed from ".$Branch->BranchLatitude." to ".$BranchLatitude;
+        if ($BranchLatitude) {
+            $Desc = $Desc . ", Branch latitude changed from " . $Branch->BranchLatitude . " to " . $BranchLatitude;
             $Branch->BranchLatitude = $BranchLatitude;
         }
-        if($BranchLongitude){
-            $Desc = $Desc.", Branch longitude changed from ".$Branch->BranchLongitude." to ".$BranchLongitude;
+        if ($BranchLongitude) {
+            $Desc = $Desc . ", Branch longitude changed from " . $Branch->BranchLongitude . " to " . $BranchLongitude;
             $Branch->BranchLongitude = $BranchLongitude;
         }
-        if($BranchPhone){
-            $Desc = $Desc.", Branch phone changed from ".$Branch->BranchPhone." to ".$BranchPhone;
+        if ($BranchPhone) {
+            $Desc = $Desc . ", Branch phone changed from " . $Branch->BranchPhone . " to " . $BranchPhone;
             $Branch->BranchPhone = $BranchPhone;
         }
 
-        if($BranchUser){
-            if($UserPhone){
-                $UserRecord = User::where("UserPhone",$UserPhone)->where("UserDeleted",0)->where("IDUser","<>",$BranchUser->IDUser)->first();
-                if($UserRecord){
+        if ($BranchUser) {
+            if ($UserPhone) {
+                $UserRecord = User::where("UserPhone", $UserPhone)->where("UserDeleted", 0)->where("IDUser", "<>", $BranchUser->IDUser)->first();
+                if ($UserRecord) {
                     return RespondWithBadRequest(3);
                 }
                 $BranchUser->UserPhone = $UserPhone;
             }
-            if($UserPhoneFlag){
+            if ($UserPhoneFlag) {
                 $BranchUser->UserPhoneFlag = $UserPhoneFlag;
             }
-            if($UserName){
+            if ($UserName) {
                 $BranchUser->UserName = $UserName;
             }
-            if($UserPassword){
+            if ($UserPassword) {
                 $BranchUser->UserPassword = Hash::make($UserPassword);
             }
             $BranchUser->UserStatus = "PENDING";
@@ -1182,15 +1209,16 @@ class BrandController extends Controller
         $Branch->BranchStatus = "PENDING";
         $Branch->save();
 
-        ActionBackLog($Admin->IDUser,$Branch->IDBranch,"EDIT_BRANCH",$Desc);
+        ActionBackLog($Admin->IDUser, $Branch->IDBranch, "EDIT_BRANCH", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BranchAjax(Request $request,Branch $Branches){
+    public function BranchAjax(Request $request, Branch $Branches)
+    {
         $IDBrand = $request->IDBrand;
-        $Branches = $Branches->leftjoin("areas","areas.IDArea","branches.IDArea")->leftjoin("cities","cities.IDCity","areas.IDCity")->leftjoin("brands","brands.IDBrand","branches.IDBrand")->where("branches.BranchStatus","ACTIVE");
-        if($IDBrand){
-            $Branches = $Branches->where("branches.IDBrand",$IDBrand);
+        $Branches = $Branches->leftjoin("areas", "areas.IDArea", "branches.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->leftjoin("brands", "brands.IDBrand", "branches.IDBrand")->where("branches.BranchStatus", "ACTIVE");
+        if ($IDBrand) {
+            $Branches = $Branches->where("branches.IDBrand", $IDBrand);
         }
         $Branches = $Branches->get();
         $Branches = BranchResource::collection($Branches);
@@ -1198,26 +1226,27 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Branches,
         );
         return $Response;
     }
 
-    public function BrandSocialMedia(Request $request){
+    public function BrandSocialMedia(Request $request)
+    {
         $IDBrand = $request->IDBrand;
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
 
-        $SocialMedia = SocialMedia::where("SocialMediaActive",1)->select("IDSocialMedia","SocialMediaName","SocialMediaIcon")->get();
-        foreach($SocialMedia as $Media){
-            $BrandSocialMedia = BrandSocialMedia::where("IDBrand",$IDBrand)->where("IDSocialMedia",$Media->IDSocialMedia)->select("BrandSocialMediaLinked","BrandSocialMediaLink")->first();
-            if($BrandSocialMedia){
+        $SocialMedia = SocialMedia::where("SocialMediaActive", 1)->select("IDSocialMedia", "SocialMediaName", "SocialMediaIcon")->get();
+        foreach ($SocialMedia as $Media) {
+            $BrandSocialMedia = BrandSocialMedia::where("IDBrand", $IDBrand)->where("IDSocialMedia", $Media->IDSocialMedia)->select("BrandSocialMediaLinked", "BrandSocialMediaLink")->first();
+            if ($BrandSocialMedia) {
                 $Media->BrandSocialMediaLinked = $BrandSocialMedia->BrandSocialMediaLinked;
                 $Media->BrandSocialMediaLink = $BrandSocialMedia->BrandSocialMediaLink;
-            }else{
+            } else {
                 $Media->BrandSocialMediaLinked = 0;
                 $Media->BrandSocialMediaLink = "";
             }
@@ -1227,44 +1256,46 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $SocialMedia,
         );
         return $Response;
     }
 
-    public function BrandSocialMediaStatus(Request $request){
+    public function BrandSocialMediaStatus(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $IDSocialMedia = $request->IDSocialMedia;
         $BrandSocialMediaLink = $request->BrandSocialMediaLink;
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$IDSocialMedia){
+        if (!$IDSocialMedia) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandSocialMedia = BrandSocialMedia::where("IDBrand",$IDBrand)->where("IDSocialMedia",$IDSocialMedia)->first();
-        if($BrandSocialMedia){
+        $BrandSocialMedia = BrandSocialMedia::where("IDBrand", $IDBrand)->where("IDSocialMedia", $IDSocialMedia)->first();
+        if ($BrandSocialMedia) {
             $BrandSocialMedia->BrandSocialMediaLinked = !$BrandSocialMedia->BrandSocialMediaLinked;
             $BrandSocialMedia->save();
             $Desc = "social media status changed ";
-        }else{
+        } else {
             $BrandSocialMedia = new BrandSocialMedia;
             $BrandSocialMedia->IDBrand = $IDBrand;
             $BrandSocialMedia->IDSocialMedia = $IDSocialMedia;
             $BrandSocialMedia->BrandSocialMediaLink = $BrandSocialMediaLink;
             $BrandSocialMedia->save();
-            $Desc = "social media added to brand with link ".$BrandSocialMediaLink;
+            $Desc = "social media added to brand with link " . $BrandSocialMediaLink;
         }
 
-        ActionBackLog($Admin->IDUser,$BrandSocialMedia->IDBrand,"EDIT_BRAND_SOCIAL",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandSocialMedia->IDBrand, "EDIT_BRAND_SOCIAL", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandProductList(Request $request,BrandProduct $BrandProducts){
+    public function BrandProductList(Request $request, BrandProduct $BrandProducts)
+    {
         $User = auth('user')->user();
         $IDPage = $request->IDPage;
         $SearchKey = $request->SearchKey;
@@ -1280,52 +1311,53 @@ class BrandController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $BrandProducts = $BrandProducts->leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand");
-        if($SearchKey) {
+        $BrandProducts = $BrandProducts->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
+        if ($SearchKey) {
             $BrandProducts = $BrandProducts->where(function ($query) use ($SearchKey) {
                 $query->where('brandproducts.BrandProductTitleEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductTitleAr', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductDescEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductDescAr', 'like', '%' . $SearchKey . '%');
+                    ->orwhere('brandproducts.BrandProductTitleAr', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brandproducts.BrandProductDescEn', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brandproducts.BrandProductDescAr', 'like', '%' . $SearchKey . '%');
             });
         }
-        if($IDBrand){
-            $BrandProducts = $BrandProducts->where("brandproducts.IDBrand",$IDBrand);
+        if ($IDBrand) {
+            $BrandProducts = $BrandProducts->where("brandproducts.IDBrand", $IDBrand);
         }
-        if($IDSubCategory){
-            $BrandProducts = $BrandProducts->where("brandproducts.IDSubCategory",$IDSubCategory);
+        if ($IDSubCategory) {
+            $BrandProducts = $BrandProducts->where("brandproducts.IDSubCategory", $IDSubCategory);
         }
-        if($BrandProductStatus){
-            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStatus",$BrandProductStatus);
+        if ($BrandProductStatus) {
+            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStatus", $BrandProductStatus);
         }
-        if($BrandProductStartDate){
-            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStartDate",">=",$BrandProductStartDate);
+        if ($BrandProductStartDate) {
+            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStartDate", ">=", $BrandProductStartDate);
         }
-        if($BrandProductEndDate){
-            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStartDate","<=",$BrandProductEndDate);
+        if ($BrandProductEndDate) {
+            $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStartDate", "<=", $BrandProductEndDate);
         }
-        if($User->IDRole == 2){
-            $BrandProducts = $BrandProducts->where("brands.IDBrand",$User->IDBrand);
+        if ($User->IDRole == 2) {
+            $BrandProducts = $BrandProducts->where("brands.IDBrand", $User->IDBrand);
         }
 
-        $BrandProducts = $BrandProducts->select("brandproducts.IDBrandProduct","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductDiscountType","brandproducts.BrandProductPoints","brandproducts.BrandProductUplinePoints","brandproducts.BrandProductReferralPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr");
+        $BrandProducts = $BrandProducts->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
 
         $Pages = ceil($BrandProducts->count() / 20);
         $BrandProducts = $BrandProducts->skip($IDPage)->take(20)->get();
         $BrandProducts = BrandProductResource::collection($BrandProducts);
-        $Response = array("BrandProducts" => $BrandProducts,"Pages"=>$Pages);
+        $Response = array("BrandProducts" => $BrandProducts, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BrandProductAdd(Request $request){
+    public function BrandProductAdd(Request $request)
+    {
         $User = auth('user')->user();
         $IDBrand = $request->IDBrand;
         $IDSubCategory = $request->IDSubCategory;
@@ -1334,9 +1366,11 @@ class BrandController extends Controller
         $BrandProductTitleAr = $request->BrandProductTitleAr;
         $BrandProductDescEn = $request->BrandProductDescEn;
         $BrandProductDescAr = $request->BrandProductDescAr;
+
         $BrandProductPrice = $request->BrandProductPrice;
         $BrandProductDiscount = $request->BrandProductDiscount;
         $BrandProductDiscountType = $request->BrandProductDiscountType;
+
         $BrandProductPoints = $request->BrandProductPoints;
         $BrandProductUplinePoints = $request->BrandProductUplinePoints;
         $BrandProductReferralPoints = $request->BrandProductReferralPoints;
@@ -1344,50 +1378,68 @@ class BrandController extends Controller
         $BrandProductEndDate = $request->BrandProductEndDate;
         $BrandProductGallery = $request->BrandProductGallery;
 
-        if($User->IDRole != 1){
+        $BrandProductInvoiceMin = $request->BrandProductInvoiceMin;
+        $BrandProductMaxDiscount = $request->BrandProductMaxDiscount;
+
+        if ($User->IDRole != 1) {
             $IDBrand = $User->IDBrand;
         }
-        if(!$IDBrand){
+        if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
-        if(!$IDSubCategory){
+        if (!$IDSubCategory) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductTitleEn){
+        if (!$BrandProductTitleEn) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductTitleAr){
+        if (!$BrandProductTitleAr) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductPrice){
+        if ($BrandProductDiscountType === "INVOICE") {
+            $BrandProductPrice = 0;
+            if (!$BrandProductPrice) {
+                return RespondWithBadRequest(1);
+            }
+        } else {
+            if (!$BrandProductPrice) {
+                return RespondWithBadRequest(1);
+            }
+        }
+        if (!$BrandProductDiscount) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductDiscount){
+        if (!$BrandProductDiscountType) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductDiscountType){
+        if ($BrandProductDiscountType === "INVOICE") {
+            if (!$BrandProductInvoiceMin) {
+                return RespondWithBadRequest(1);
+            }
+            if (!$BrandProductMaxDiscount) {
+                return RespondWithBadRequest(1);
+            }
+        }
+        if (!$BrandProductPoints) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductPoints){
-            return RespondWithBadRequest(1);
-        }
-        if(!$BrandProductReferralPoints){
+        if (!$BrandProductReferralPoints) {
             $BrandProductReferralPoints = 0;
         }
-        if(!$BrandProductUplinePoints){
+        if (!$BrandProductUplinePoints) {
             $BrandProductUplinePoints = 0;
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if($BrandProductGallery){
-            foreach($BrandProductGallery as $Photo){
+        if ($BrandProductGallery) {
+            foreach ($BrandProductGallery as $Photo) {
                 if (!in_array($Photo->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
         }
 
-        $BrandContract = BrandContract::where("IDBrand",$IDBrand)->where("BrandContractStatus","ACTIVE")->first();
+        $BrandContract = BrandContract::where("IDBrand", $IDBrand)->where("BrandContractStatus", "ACTIVE")->first();
 
         $BrandProduct = new BrandProduct;
         $BrandProduct->IDBrand = $IDBrand;
@@ -1399,6 +1451,11 @@ class BrandController extends Controller
         $BrandProduct->BrandProductPrice = $BrandProductPrice;
         $BrandProduct->BrandProductDiscount = $BrandProductDiscount;
         $BrandProduct->BrandProductDiscountType = $BrandProductDiscountType;
+
+        if ($BrandProductDiscountType === "INVOICE") {
+            $BrandProduct->BrandProductMaxDiscount = $BrandProductMaxDiscount;
+            $BrandProduct->BrandProductInvoiceMin = $BrandProductInvoiceMin;
+        }
         $BrandProduct->BrandProductPoints = $BrandProductPoints;
         $BrandProduct->BrandProductUplinePoints = $BrandProductUplinePoints;
         $BrandProduct->BrandProductReferralPoints = $BrandProductReferralPoints;
@@ -1407,9 +1464,9 @@ class BrandController extends Controller
         $BrandProduct->BrandProductStatus = "PENDING";
         $BrandProduct->save();
 
-        if($BrandProductGallery){
-            foreach($BrandProductGallery as $Photo){
-                $Image = SaveImage($Photo,"brandproducts",$BrandProduct->IDBrandProduct);
+        if ($BrandProductGallery) {
+            foreach ($BrandProductGallery as $Photo) {
+                $Image = SaveImage($Photo, "brandproducts", $BrandProduct->IDBrandProduct);
                 $BrandProductGallery = new BrandProductGallery;
                 $BrandProductGallery->IDBrandProduct = $BrandProduct->IDBrandProduct;
                 $BrandProductGallery->BrandProductPath = $Image;
@@ -1418,49 +1475,51 @@ class BrandController extends Controller
             }
         }
 
-        $Desc = "Brand product ".$BrandProductTitleEn." was added";
-        ActionBackLog($User->IDUser,$BrandProduct->IDBrandProduct,"ADD_BRAND_PRODUCT",$Desc);
+        $Desc = "Brand product " . $BrandProductTitleEn . " was added";
+        ActionBackLog($User->IDUser, $BrandProduct->IDBrandProduct, "ADD_BRAND_PRODUCT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandProductStatus(Request $request){
+    public function BrandProductStatus(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrandProduct = $request->IDBrandProduct;
         $BrandProductStatus = $request->BrandProductStatus;
 
-        if(!$IDBrandProduct){
+        if (!$IDBrandProduct) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandProductStatus){
+        if (!$BrandProductStatus) {
             return RespondWithBadRequest(1);
         }
 
         $BrandProduct = BrandProduct::find($IDBrandProduct);
-        if(!$BrandProduct){
+        if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
-        $Desc = "Brand Product status changed from ".$BrandProduct->BrandProductStatus." to ".$BrandProductStatus;
+        $Desc = "Brand Product status changed from " . $BrandProduct->BrandProductStatus . " to " . $BrandProductStatus;
         $BrandProduct->BrandProductStatus = $BrandProductStatus;
         $BrandProduct->save();
 
-        ActionBackLog($Admin->IDUser,$BrandProduct->IDBrandProduct,"EDIT_BRAND_PRODUCT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandProduct->IDBrandProduct, "EDIT_BRAND_PRODUCT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandProductEditPage($IDBrandProduct){
+    public function BrandProductEditPage($IDBrandProduct)
+    {
         $User = auth('user')->user();
-        $BrandProduct = BrandProduct::leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand")->where("brandproducts.IDBrandProduct",$IDBrandProduct);
-        if($User->IDRole != 1){
-            $BrandProduct = $BrandProduct->where("brandproducts.IDBrand",$User->IDBrand);
+        $BrandProduct = BrandProduct::leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("brandproducts.IDBrandProduct", $IDBrandProduct);
+        if ($User->IDRole != 1) {
+            $BrandProduct = $BrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
         }
-        $BrandProduct = $BrandProduct->select("brandproducts.IDBrandProduct","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductDiscountType","brandproducts.BrandProductPoints","brandproducts.BrandProductUplinePoints","brandproducts.BrandProductReferralPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr")->first();
-        if(!$BrandProduct){
+        $BrandProduct = $BrandProduct->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr")->first();
+        if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandProductGallery = BrandProductGallery::where("IDBrandProduct",$IDBrandProduct)->where("BrandProductDeleted",0)->get();
-        foreach($BrandProductGallery as $Gallery){
-            if($Gallery->BrandProductType == "IMAGE"){
+        $BrandProductGallery = BrandProductGallery::where("IDBrandProduct", $IDBrandProduct)->where("BrandProductDeleted", 0)->get();
+        foreach ($BrandProductGallery as $Gallery) {
+            if ($Gallery->BrandProductType == "IMAGE") {
                 $Gallery->BrandProductPath = ($Gallery->BrandProductPath) ? asset($Gallery->BrandProductPath) : '';
             }
         }
@@ -1470,21 +1529,22 @@ class BrandController extends Controller
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandProduct,
         );
         return $Response;
     }
 
-    public function BrandProductGalleryRemove($IDBrandProductGallery){
+    public function BrandProductGalleryRemove($IDBrandProductGallery)
+    {
         $Admin = auth('user')->user();
         $BrandProductGallery = BrandProductGallery::find($IDBrandProductGallery);
-        if(!$BrandProductGallery){
+        if (!$BrandProductGallery) {
             return RespondWithBadRequest(1);
         }
 
-        if($BrandProductGallery->BrandProductType == "IMAGE"){
+        if ($BrandProductGallery->BrandProductType == "IMAGE") {
             $OldDocument = substr($BrandProductGallery->BrandProductPath, 7);
             Storage::disk('uploads')->delete($OldDocument);
         }
@@ -1493,99 +1553,102 @@ class BrandController extends Controller
         $BrandProductGallery->save();
 
         $Desc = "Brand Product Gallery Removed";
-        ActionBackLog($Admin->IDUser,$BrandProductGallery->IDBrandProduct,"EDIT_BRAND_PRODUCT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandProductGallery->IDBrandProduct, "EDIT_BRAND_PRODUCT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandProductAjax(Request $request){
+    public function BrandProductAjax(Request $request)
+    {
         $User = auth('user')->user();
         $SearchKey = $request->SearchKey;
         $IDSubCategory = $request->IDSubCategory;
         $IDBrand = $request->IDBrand;
 
-        $BrandProducts = BrandProduct::leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand");
-        if($SearchKey) {
+        $BrandProducts = BrandProduct::leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
+        if ($SearchKey) {
             $BrandProducts = $BrandProducts->where(function ($query) use ($SearchKey) {
                 $query->where('brandproducts.BrandProductTitleEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductTitleAr', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductDescEn', 'like', '%' . $SearchKey . '%')
-                ->orwhere('brandproducts.BrandProductDescAr', 'like', '%' . $SearchKey . '%');
+                    ->orwhere('brandproducts.BrandProductTitleAr', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brandproducts.BrandProductDescEn', 'like', '%' . $SearchKey . '%')
+                    ->orwhere('brandproducts.BrandProductDescAr', 'like', '%' . $SearchKey . '%');
             });
         }
-        if($IDBrand){
-            $BrandProducts = $BrandProducts->where("brandproducts.IDBrand",$IDBrand);
+        if ($IDBrand) {
+            $BrandProducts = $BrandProducts->where("brandproducts.IDBrand", $IDBrand);
         }
-        if($IDSubCategory){
-            $BrandProducts = $BrandProducts->where("brandproducts.IDSubCategory",$IDSubCategory);
+        if ($IDSubCategory) {
+            $BrandProducts = $BrandProducts->where("brandproducts.IDSubCategory", $IDSubCategory);
         }
-        $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStatus","ACTIVE");
-        $BrandProducts = $BrandProducts->select("brandproducts.IDBrandProduct","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductDiscountType","brandproducts.BrandProductPoints","brandproducts.BrandProductUplinePoints","brandproducts.BrandProductReferralPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr");
+        $BrandProducts = $BrandProducts->where("brandproducts.BrandProductStatus", "ACTIVE");
+        $BrandProducts = $BrandProducts->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $BrandProducts = $BrandProducts->get();
         $BrandProducts = BrandProductResource::collection($BrandProducts);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandProducts,
         );
         return $Response;
     }
 
-    public function BrandProductBranches(Request $request){
+    public function BrandProductBranches(Request $request)
+    {
         $User = auth('user')->user();
         $UserLanguage = AdminLanguage($User->UserLanguage);
         $IDBrandProduct = $request->IDBrandProduct;
-        if(!$IDBrandProduct){
+        if (!$IDBrandProduct) {
             return RespondWithBadRequest(1);
         }
 
         $BrandProduct = BrandProduct::find($IDBrandProduct);
-        if(!$BrandProduct){
+        if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
 
         $BrandProductBranches = [];
-        $AreaName = "AreaName".$UserLanguage;
-        $BranchAddress = "BranchAddress".$UserLanguage;
-        $Branches = Branch::leftjoin("areas","areas.IDArea","branches.IDArea")->where("branches.IDBrand",$BrandProduct->IDBrand)->where("branches.BranchStatus","ACTIVE")->get();
-        foreach($Branches as $Branch){
+        $AreaName = "AreaName" . $UserLanguage;
+        $BranchAddress = "BranchAddress" . $UserLanguage;
+        $Branches = Branch::leftjoin("areas", "areas.IDArea", "branches.IDArea")->where("branches.IDBrand", $BrandProduct->IDBrand)->where("branches.BranchStatus", "ACTIVE")->get();
+        foreach ($Branches as $Branch) {
             $ProductBranchStatus = 0;
-            $BrandProductBranch = BrandProductBranch::where("IDBrandProduct",$IDBrandProduct)->where("IDBranch",$Branch->IDBranch)->first();
-            if($BrandProductBranch){
-                if($BrandProductBranch->ProductBranchLinked){
+            $BrandProductBranch = BrandProductBranch::where("IDBrandProduct", $IDBrandProduct)->where("IDBranch", $Branch->IDBranch)->first();
+            if ($BrandProductBranch) {
+                if ($BrandProductBranch->ProductBranchLinked) {
                     $ProductBranchStatus = 1;
                 }
             }
 
-            $ProductBranch = ["IDBranch" => $Branch->IDBranch,"AreaName" => $Branch->$AreaName,"BranchAddress" => $Branch->$BranchAddress,"ProductBranchStatus" => $ProductBranchStatus];
-            array_push($BrandProductBranches,$ProductBranch);
+            $ProductBranch = ["IDBranch" => $Branch->IDBranch, "AreaName" => $Branch->$AreaName, "BranchAddress" => $Branch->$BranchAddress, "ProductBranchStatus" => $ProductBranchStatus];
+            array_push($BrandProductBranches, $ProductBranch);
         }
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $BrandProductBranches,
         );
         return $Response;
     }
 
-    public function BrandProductBranchStatus(Request $request){
+    public function BrandProductBranchStatus(Request $request)
+    {
         $User = auth('user')->user();
         $IDBranch = $request->IDBranch;
         $IDBrandProduct = $request->IDBrandProduct;
-        if(!$IDBrandProduct){
+        if (!$IDBrandProduct) {
             return RespondWithBadRequest(1);
         }
-        if(!$IDBranch){
+        if (!$IDBranch) {
             return RespondWithBadRequest(1);
         }
 
-        $BrandProductBranch = BrandProductBranch::where("IDBrandProduct",$IDBrandProduct)->where("IDBranch",$IDBranch)->first();
-        if($BrandProductBranch){
+        $BrandProductBranch = BrandProductBranch::where("IDBrandProduct", $IDBrandProduct)->where("IDBranch", $IDBranch)->first();
+        if ($BrandProductBranch) {
             $BrandProductBranch->ProductBranchLinked = !$BrandProductBranch->ProductBranchLinked;
             $BrandProductBranch->save();
             return RespondWithSuccessRequest(8);
@@ -1599,7 +1662,8 @@ class BrandController extends Controller
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandRatingList(Request $request,BrandRating $BrandRatings){
+    public function BrandRatingList(Request $request, BrandRating $BrandRatings)
+    {
         $IDBrand = $request->IDBrand;
         $IDPage = $request->IDPage;
         $BrandRatingStatus = $request->BrandRatingStatus;
@@ -1609,53 +1673,54 @@ class BrandController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $BrandRatings = $BrandRatings->leftjoin("clients","clients.IDClient","brandratings.IDClient")->leftjoin("brands","brands.IDBrand","brandratings.IDBrand");
-        if($BrandRatingStatus){
-            $BrandRatings = $BrandRatings->where("brandratings.BrandRatingStatus",$BrandRatingStatus);
+        $BrandRatings = $BrandRatings->leftjoin("clients", "clients.IDClient", "brandratings.IDClient")->leftjoin("brands", "brands.IDBrand", "brandratings.IDBrand");
+        if ($BrandRatingStatus) {
+            $BrandRatings = $BrandRatings->where("brandratings.BrandRatingStatus", $BrandRatingStatus);
         }
-        if($IDBrand){
-            $BrandRatings = $BrandRatings->where("brandratings.IDBrand",$IDBrand);
+        if ($IDBrand) {
+            $BrandRatings = $BrandRatings->where("brandratings.IDBrand", $IDBrand);
         }
 
-        $BrandRatings = $BrandRatings->select("brandratings.IDBrandRating","brandratings.IDBrand","brandratings.BrandRating","brandratings.BrandReview","brandratings.BrandRatingStatus","brandratings.created_at","clients.ClientName","clients.ClientPhone","brands.BrandNameEn","brands.BrandNameAr");
+        $BrandRatings = $BrandRatings->select("brandratings.IDBrandRating", "brandratings.IDBrand", "brandratings.BrandRating", "brandratings.BrandReview", "brandratings.BrandRatingStatus", "brandratings.created_at", "clients.ClientName", "clients.ClientPhone", "brands.BrandNameEn", "brands.BrandNameAr");
 
         $Pages = ceil($BrandRatings->count() / 20);
-        $BrandRatings = $BrandRatings->orderby("brandratings.IDBrandRating","DESC")->skip($IDPage)->take(20)->get();
+        $BrandRatings = $BrandRatings->orderby("brandratings.IDBrandRating", "DESC")->skip($IDPage)->take(20)->get();
         $BrandRatings = BrandRatingResource::collection($BrandRatings);
-        $Response = array("BrandRatings" => $BrandRatings,"Pages"=>$Pages);
+        $Response = array("BrandRatings" => $BrandRatings, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BrandRatingStatus(Request $request){
+    public function BrandRatingStatus(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrandRating = $request->IDBrandRating;
         $BrandRatingStatus = $request->BrandRatingStatus;
-        if(!$IDBrandRating){
+        if (!$IDBrandRating) {
             return RespondWithBadRequest(1);
         }
-        if(!$BrandRatingStatus){
+        if (!$BrandRatingStatus) {
             return RespondWithBadRequest(1);
         }
 
         $BrandRating = BrandRating::find($IDBrandRating);
-        $Desc = "Brand rating changed from ".$BrandRating->BrandRatingStatus." to ".$BrandRatingStatus;
+        $Desc = "Brand rating changed from " . $BrandRating->BrandRatingStatus . " to " . $BrandRatingStatus;
         $BrandRating->BrandRatingStatus = $BrandRatingStatus;
         $BrandRating->save();
 
-        ActionBackLog($Admin->IDUser,$BrandRating->IDBrandRating,"EDIT_BRAND_RATING",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandRating->IDBrandRating, "EDIT_BRAND_RATING", $Desc);
         return RespondWithSuccessRequest(8);
-
     }
 
-    public function BrandProductEdit(Request $request){
+    public function BrandProductEdit(Request $request)
+    {
         $Admin = auth('user')->user();
         $IDBrandProduct = $request->IDBrandProduct;
         $BrandProductTitleEn = $request->BrandProductTitleEn;
@@ -1674,136 +1739,138 @@ class BrandController extends Controller
         $Desc = "";
 
         $BrandProduct = BrandProduct::find($IDBrandProduct);
-        if(!$BrandProduct){
+        if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        if($BrandProductGallery){
-            foreach($BrandProductGallery as $Photo){
+        if ($BrandProductGallery) {
+            foreach ($BrandProductGallery as $Photo) {
                 if (!in_array($Photo->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
             }
         }
 
-        if($BrandProductTitleEn){
-            $Desc = "Brand Product english title changed from ".$BrandProduct->BrandProductTitleEn." to ".$BrandProductTitleEn;
+        if ($BrandProductTitleEn) {
+            $Desc = "Brand Product english title changed from " . $BrandProduct->BrandProductTitleEn . " to " . $BrandProductTitleEn;
             $BrandProduct->BrandProductTitleEn = $BrandProductTitleEn;
         }
-        if($BrandProductTitleAr){
-            $Desc = $Desc.", Brand Product arabic title changed from ".$BrandProduct->BrandProductTitleAr." to ".$BrandProductTitleAr;
+        if ($BrandProductTitleAr) {
+            $Desc = $Desc . ", Brand Product arabic title changed from " . $BrandProduct->BrandProductTitleAr . " to " . $BrandProductTitleAr;
             $BrandProduct->BrandProductTitleAr = $BrandProductTitleAr;
         }
-        if($BrandProductDescEn){
-            $Desc = $Desc.", Brand Product english desc changed from ".$BrandProduct->BrandProductDescEn." to ".$BrandProductDescEn;
+        if ($BrandProductDescEn) {
+            $Desc = $Desc . ", Brand Product english desc changed from " . $BrandProduct->BrandProductDescEn . " to " . $BrandProductDescEn;
             $BrandProduct->BrandProductDescEn = $BrandProductDescEn;
         }
-        if($BrandProductDescAr){
-            $Desc = $Desc.", Brand Product arabic desc changed from ".$BrandProduct->BrandProductDescAr." to ".$BrandProductDescAr;
+        if ($BrandProductDescAr) {
+            $Desc = $Desc . ", Brand Product arabic desc changed from " . $BrandProduct->BrandProductDescAr . " to " . $BrandProductDescAr;
             $BrandProduct->BrandProductDescAr = $BrandProductDescAr;
         }
-        if($BrandProductPoints){
-            $Desc = $Desc.", Brand Product points changed from ".$BrandProduct->BrandProductPoints." to ".$BrandProductPoints;
+        if ($BrandProductPoints) {
+            $Desc = $Desc . ", Brand Product points changed from " . $BrandProduct->BrandProductPoints . " to " . $BrandProductPoints;
             $BrandProduct->BrandProductPoints = $BrandProductPoints;
         }
-        if($BrandProductUplinePoints){
-            $Desc = $Desc.", Brand Product upline points changed from ".$BrandProduct->BrandProductUplinePoints." to ".$BrandProductUplinePoints;
+        if ($BrandProductUplinePoints) {
+            $Desc = $Desc . ", Brand Product upline points changed from " . $BrandProduct->BrandProductUplinePoints . " to " . $BrandProductUplinePoints;
             $BrandProduct->BrandProductUplinePoints = $BrandProductUplinePoints;
         }
-        if($BrandProductReferralPoints){
-            $Desc = $Desc.", Brand Product referral points changed from ".$BrandProduct->BrandProductReferralPoints." to ".$BrandProductReferralPoints;
+        if ($BrandProductReferralPoints) {
+            $Desc = $Desc . ", Brand Product referral points changed from " . $BrandProduct->BrandProductReferralPoints . " to " . $BrandProductReferralPoints;
             $BrandProduct->BrandProductReferralPoints = $BrandProductReferralPoints;
         }
-        if($BrandProductPrice){
-            $Desc = $Desc.", Brand Product price changed from ".$BrandProduct->BrandProductPrice." to ".$BrandProductPrice;
+        if ($BrandProductPrice) {
+            $Desc = $Desc . ", Brand Product price changed from " . $BrandProduct->BrandProductPrice . " to " . $BrandProductPrice;
             $BrandProduct->BrandProductPrice = $BrandProductPrice;
         }
-        if($BrandProductDiscount || $BrandProductDiscount == 0){
-            $Desc = $Desc.", Brand Product discount changed from ".$BrandProduct->BrandProductDiscount." to ".$BrandProductDiscount;
+        if ($BrandProductDiscount || $BrandProductDiscount == 0) {
+            $Desc = $Desc . ", Brand Product discount changed from " . $BrandProduct->BrandProductDiscount . " to " . $BrandProductDiscount;
             $BrandProduct->BrandProductDiscount = $BrandProductDiscount;
         }
-        if($BrandProductDiscountType){
-            $Desc = $Desc.", Brand Product discount type changed from ".$BrandProduct->BrandProductDiscountType." to ".$BrandProductDiscountType;
+        if ($BrandProductDiscountType) {
+            $Desc = $Desc . ", Brand Product discount type changed from " . $BrandProduct->BrandProductDiscountType . " to " . $BrandProductDiscountType;
             $BrandProduct->BrandProductDiscountType = $BrandProductDiscountType;
         }
-        if($BrandProductStartDate){
-            $BrandContract = BrandContract::where("IDBrand",$BrandProduct->IDBrand)->whereIn("BrandContractStatus",["ACTIVE","PENDING"])->where("BrandContractStartDate","<=",$BrandProductStartDate)->where("BrandContractEndDate",">=",$BrandProductStartDate)->first();
-            if(!$BrandContract){
+        if ($BrandProductStartDate) {
+            $BrandContract = BrandContract::where("IDBrand", $BrandProduct->IDBrand)->whereIn("BrandContractStatus", ["ACTIVE", "PENDING"])->where("BrandContractStartDate", "<=", $BrandProductStartDate)->where("BrandContractEndDate", ">=", $BrandProductStartDate)->first();
+            if (!$BrandContract) {
                 return RespondWithBadRequest(31);
             }
-            $Desc = $Desc.", Brand Product start date changed from ".$BrandProduct->BrandProductStartDate." to ".$BrandProductStartDate;
+            $Desc = $Desc . ", Brand Product start date changed from " . $BrandProduct->BrandProductStartDate . " to " . $BrandProductStartDate;
             $BrandProduct->BrandProductStartDate = $BrandProductStartDate;
         }
-        if($BrandProductEndDate){
-            $BrandContract = BrandContract::where("IDBrand",$BrandProduct->IDBrand)->whereIn("BrandContractStatus",["ACTIVE","PENDING"])->where("BrandContractStartDate","<=",$BrandProductEndDate)->where("BrandContractEndDate",">=",$BrandProductEndDate)->first();
-            if(!$BrandContract){
+        if ($BrandProductEndDate) {
+            $BrandContract = BrandContract::where("IDBrand", $BrandProduct->IDBrand)->whereIn("BrandContractStatus", ["ACTIVE", "PENDING"])->where("BrandContractStartDate", "<=", $BrandProductEndDate)->where("BrandContractEndDate", ">=", $BrandProductEndDate)->first();
+            if (!$BrandContract) {
                 return RespondWithBadRequest(31);
             }
-            $Desc = $Desc.", Brand Product end date changed from ".$BrandProduct->BrandProductEndDate." to ".$BrandProductEndDate;
+            $Desc = $Desc . ", Brand Product end date changed from " . $BrandProduct->BrandProductEndDate . " to " . $BrandProductEndDate;
             $BrandProduct->BrandProductEndDate = $BrandProductEndDate;
         }
-        
+
         $BrandProduct->BrandProductStatus = "PENDING";
         $BrandProduct->save();
 
-        if($BrandProductGallery){
-            foreach($BrandProductGallery as $Photo){
-                $Image = SaveImage($Photo,"brandproducts",$IDBrandProduct);
+        if ($BrandProductGallery) {
+            foreach ($BrandProductGallery as $Photo) {
+                $Image = SaveImage($Photo, "brandproducts", $IDBrandProduct);
                 $BrandProductGallery = new BrandProductGallery;
                 $BrandProductGallery->IDBrandProduct = $IDBrandProduct;
                 $BrandProductGallery->BrandProductPath = $Image;
                 $BrandProductGallery->BrandProductType = "IMAGE";
                 $BrandProductGallery->save();
             }
-            $Desc = $Desc.", Brand Product gallery added";
+            $Desc = $Desc . ", Brand Product gallery added";
         }
 
-        ActionBackLog($Admin->IDUser,$BrandProduct->IDBrandProduct,"EDIT_BRAND_PRODUCT",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandProduct->IDBrandProduct, "EDIT_BRAND_PRODUCT", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
-    public function BrandContactUsList(Request $request,BrandContactUs $BrandContactUs){
+    public function BrandContactUsList(Request $request, BrandContactUs $BrandContactUs)
+    {
         $IDPage = $request->IDPage;
-        if(!$IDPage) {
+        if (!$IDPage) {
             $IDPage = 0;
-        }else{
+        } else {
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $BrandContactUs = $BrandContactUs->leftjoin("users","users.IDUser","brandcontactus.IDUser");
-        $BrandContactUs = $BrandContactUs->select("brandcontactus.IDBrandContactUs","brandcontactus.BrandName","brandcontactus.ClientName","brandcontactus.Phone","brandcontactus.Email","brandcontactus.City","brandcontactus.Area","brandcontactus.Address","brandcontactus.Category","brandcontactus.Message","brandcontactus.Latitude","brandcontactus.Longitude","brandcontactus.Status","users.UserName","brandcontactus.created_at");
+        $BrandContactUs = $BrandContactUs->leftjoin("users", "users.IDUser", "brandcontactus.IDUser");
+        $BrandContactUs = $BrandContactUs->select("brandcontactus.IDBrandContactUs", "brandcontactus.BrandName", "brandcontactus.ClientName", "brandcontactus.Phone", "brandcontactus.Email", "brandcontactus.City", "brandcontactus.Area", "brandcontactus.Address", "brandcontactus.Category", "brandcontactus.Message", "brandcontactus.Latitude", "brandcontactus.Longitude", "brandcontactus.Status", "users.UserName", "brandcontactus.created_at");
 
         $Pages = ceil($BrandContactUs->count() / 20);
-        $BrandContactUs = $BrandContactUs->orderby("IDBrandContactUs","DESC")->skip($IDPage)->take(20)->get();
-        $Response = array("BrandContactUs" => $BrandContactUs,"Pages"=>$Pages);
+        $BrandContactUs = $BrandContactUs->orderby("IDBrandContactUs", "DESC")->skip($IDPage)->take(20)->get();
+        $Response = array("BrandContactUs" => $BrandContactUs, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Response,
         );
         return $Response;
     }
 
-    public function BrandContactUsStatus($IDBrandContactUs){
+    public function BrandContactUsStatus($IDBrandContactUs)
+    {
         $Admin = auth('user')->user();
         $BrandContactUs = BrandContactUs::find($IDBrandContactUs);
-        if(!$BrandContactUs){
+        if (!$BrandContactUs) {
             return RespondWithBadRequest(1);
         }
-        if($BrandContactUs->Status == "READ"){
+        if ($BrandContactUs->Status == "READ") {
             return RespondWithBadRequest(1);
         }
-        
+
         $BrandContactUs->IDUser = $Admin->IDUser;
         $BrandContactUs->Status = "READ";
         $BrandContactUs->save();
 
         $Desc = "Seen & Read";
-        ActionBackLog($Admin->IDUser,$BrandContactUs->IDBrandContactUs,"EDIT_BRAND_CONTACTUS",$Desc);
+        ActionBackLog($Admin->IDUser, $BrandContactUs->IDBrandContactUs, "EDIT_BRAND_CONTACTUS", $Desc);
         return RespondWithSuccessRequest(8);
     }
 }

@@ -163,7 +163,6 @@ class BrandController extends Controller
         if (!$User) {
             return RespondWithBadRequest(10);
         }
-
         $ClientBrandProductSerial = $request->ClientBrandProductSerial;
         if (!$ClientBrandProductSerial) {
             return RespondWithBadRequest(1);
@@ -174,7 +173,6 @@ class BrandController extends Controller
         $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
         $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProduct = $ClientBrandProduct->first();
-        return $ClientBrandProduct;
         if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
         }
@@ -208,6 +206,7 @@ class BrandController extends Controller
 
     public function QRCodeUse(Request $request)
     {
+
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
@@ -230,12 +229,13 @@ class BrandController extends Controller
         }
         $now = Carbon::now();
         $last24Hours = $now->subDay();
-
+        $Today = new DateTime('now');
+        $Today = $Today->format('Y-m-d H:i:s');
         $ClientBrandProductBefore24 = ClientBrandProduct::where('created_at', '>=', $last24Hours)
             ->where("ClientBrandProductStatus", "USED")
-            ->orderBy('created_at', 'desc')
+            ->orderBy('UsedAt', 'desc')
             ->get();
-        if(count($ClientBrandProductBefore24) == 2){
+        if (count($ClientBrandProductBefore24) == 2) {
             return RespondWithBadRequest(56);
         }
         if ($ClientBrandProduct->ClientBrandProductStatus == "USED") {
@@ -247,14 +247,33 @@ class BrandController extends Controller
 
         $ClientBrandProduct->IDUser = $User->IDUser;
         $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
+        if ($BrandProduct->BrandProductDiscountType === "INVOICE") {
+            $InvoiceValue = $request->InvoiceValue;
+            if (!$InvoiceValue) {
+                return RespondWithBadRequest(1);
+            }
+            $DiscountValue = ($InvoiceValue * $BrandProduct->BrandProductDiscount / 100);
+            $Amount = $InvoiceValue - ($InvoiceValue * $BrandProduct->BrandProductDiscount / 100);
+            if ($DiscountValue > $BrandProduct->BrandProductMaxDiscount) {
+                $DiscountValue = $BrandProduct->BrandProductMaxDiscount;
+                $Amount = $InvoiceValue - $BrandProduct->BrandProductMaxDiscount;
+            }
+            if ($InvoiceValue < $BrandProduct->BrandProductInvoiceMin) {
+                return RespondWithBadRequest(57);
+            }
+            $ClientBrandProduct->ProductDiscount = $DiscountValue;
+            $ClientBrandProduct->ProductTotalAmount = $Amount;
+            $ClientBrandProduct->ProductPrice = $InvoiceValue;
+        }
+        $ClientBrandProduct->UsedAt = $now;
         $ClientBrandProduct->save();
 
         $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted", 0)->first();
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
-        $Today = new DateTime('now');
-        $Today = $Today->format('Y-m-d H:i:s');
+
         $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(1);

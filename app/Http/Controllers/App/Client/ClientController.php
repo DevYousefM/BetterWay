@@ -1815,9 +1815,11 @@ class ClientController extends Controller
 
         if ($BrandProduct->BrandProductDiscountType == "PERCENT") {
             $Amount = $BrandProduct->BrandProductPrice - ($BrandProduct->BrandProductPrice * $BrandProduct->BrandProductDiscount / 100);
-        } else {
+        } else if ($BrandProduct->BrandProductDiscountType == "VALUE") {
             $Amount = $BrandProduct->BrandProductPrice - $BrandProduct->BrandProductDiscount;
-        }
+        } else if ($BrandProduct->BrandProductDiscountType == "INVOICE") {
+            $Amount = 0;
+        };
 
         if ($Client->ClientBalance < $Amount && $IDPaymentMethod != 1) {
             return RespondWithBadRequest(26);
@@ -1831,19 +1833,29 @@ class ClientController extends Controller
 
         $ClientBrandProduct = new ClientBrandProduct;
         $ClientBrandProduct->IDClient = $Client->IDClient;
-        $ClientBrandProduct->IDBrandProduct = $IDBrandProduct;
-        $ClientBrandProduct->ProductPrice = $BrandProduct->BrandProductPrice;
-        if ($BrandProduct->BrandProductDiscountType == "PERCENT") {
-            $Amount = $BrandProduct->BrandProductPrice - ($BrandProduct->BrandProductPrice * $BrandProduct->BrandProductDiscount / 100);
-        } else {
-            $Amount = $BrandProduct->BrandProductPrice - $BrandProduct->BrandProductDiscount;
+
+        $Brand = Brand::where("IDBrand", $BrandProduct->IDBrand)->where("BrandStatus", "ACTIVE")->first();
+        if (!$Brand) {
+            return RespondWithBadRequest(10);
         }
-        $ClientBrandProduct->ProductDiscount = $BrandProduct->BrandProductPrice - $Amount;
-        $ClientBrandProduct->ProductTotalAmount = $Amount;
+        $ClientBrandProduct->IDUser = $Brand->IDUser;
+        $ClientBrandProduct->IDBrandProduct = $IDBrandProduct;
+        if ($BrandProduct->BrandProductDiscountType == "INVOICE") {
+            $ClientBrandProduct->ProductPrice = 0;
+            $ClientBrandProduct->ProductDiscount = 0;
+            $ClientBrandProduct->ProductTotalAmount = 0;
+        } else {
+            $ClientBrandProduct->ProductTotalAmount = $Amount;
+            $ClientBrandProduct->ProductPrice = $BrandProduct->BrandProductPrice;
+            $ClientBrandProduct->ProductDiscount = $BrandProduct->BrandProductPrice - $Amount;
+        }
+
         if ($IDPaymentMethod == 1) {
             $ClientBrandProduct->ClientBrandProductStatus = "PENDING";
         }
         $ClientBrandProduct->ClientBrandProductSerial = $ClientBrandProductSerial;
+        // return $ClientBrandProduct;
+
         $ClientBrandProduct->save();
 
         $BatchNumber = "#BP" . $ClientBrandProduct->IDClientBrandProduct;
@@ -1854,7 +1866,6 @@ class ClientController extends Controller
         if ($IDPaymentMethod == 1) {
             $Amount = 0;
         }
-        // AdjustLedger($Client, -$Amount, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "WALLET", "PAYMENT", $BatchNumber);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
