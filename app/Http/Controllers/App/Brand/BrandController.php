@@ -44,14 +44,15 @@ use DB;
 class BrandController extends Controller
 {
 
-   public function UserLogin(Request $request){
+    public function UserLogin(Request $request)
+    {
         if ($request->Filled('UserAppLanguage')) {
             $UserAppLanguage = $request->UserAppLanguage;
-        }else{
+        } else {
             $UserAppLanguage = "ar";
         }
 
-        Session::put('ClientAppLanguage',$UserAppLanguage);
+        Session::put('ClientAppLanguage', $UserAppLanguage);
         App::setLocale($UserAppLanguage);
 
         $User = auth('user')->user();
@@ -66,14 +67,14 @@ class BrandController extends Controller
 
             $UserName = $request->UserName;
 
-            if($UserName[0] == "+"){
+            if ($UserName[0] == "+") {
                 $Credentials = [
                     'UserPhone' => $UserName,
                     'UserDeleted' => 0,
                     'IDRole' => 2,
                     'password' => $request->Password
                 ];
-            }else{
+            } else {
                 $Credentials = [
                     'UserEmail' => $UserName,
                     'UserDeleted' => 0,
@@ -81,7 +82,6 @@ class BrandController extends Controller
                     'password' => $request->Password
                 ];
             }
-
             $AccessToken = CreateToken($Credentials, 'user');
             if (!$AccessToken) {
                 return RespondWithBadRequest(6);
@@ -109,10 +109,10 @@ class BrandController extends Controller
             $User->UserLanguage = $request->UserAppLanguage;
         }
 
-        if($User->UserStatus == "INACTIVE"){
+        if ($User->UserStatus == "INACTIVE") {
             return RespondWithBadRequest(17);
         }
-        if($User->UserStatus == "PENDING"){
+        if ($User->UserStatus == "PENDING") {
             return RespondWithBadRequest(36);
         }
 
@@ -120,33 +120,35 @@ class BrandController extends Controller
         $IDAPICode = 7;
         $response_code = 200;
         $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
-        $response = array('IDUser' => $User->IDUser,'IDBrand' => $User->IDBrand, 'UserPhone' => $User->UserPhone , 'UserName' => $User->UserName, 'UserEmail' => $User->UserEmail,'UserStatus' => $User->UserStatus,"UserLanguage"=>$User->UserLanguage,"IDRole"=>$User->IDRole ,'AccessToken'=>$AccessToken);
-        $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.'.$APICode->IDApiCode) , 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
+        $response = array('IDUser' => $User->IDUser, 'IDBrand' => $User->IDBrand, 'UserPhone' => $User->UserPhone, 'UserName' => $User->UserName, 'UserEmail' => $User->UserEmail, 'UserStatus' => $User->UserStatus, "UserLanguage" => $User->UserLanguage, "IDRole" => $User->IDRole, 'AccessToken' => $AccessToken);
+        $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;
     }
 
-    public function ChangeLanguage(Request $request){
+    public function ChangeLanguage(Request $request)
+    {
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
         }
 
         $UserAppLanguage = $request->UserAppLanguage;
-        if(!$UserAppLanguage){
+        if (!$UserAppLanguage) {
             return RespondWithBadRequest(1);
         }
 
         $User->UserLanguage = $UserAppLanguage;
         $User->save();
 
-        Session::put('ClientAppLanguage',$UserAppLanguage);
+        Session::put('ClientAppLanguage', $UserAppLanguage);
         App::setLocale($UserAppLanguage);
 
         return RespondWithSuccessRequest(8);
     }
 
-    public function UserLogout(){
+    public function UserLogout()
+    {
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
@@ -155,126 +157,150 @@ class BrandController extends Controller
         return RespondWithSuccessRequest(8);
     }
 
-    public function QRCodeScan(Request $request){
+    public function QRCodeScan(Request $request)
+    {
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
         }
 
         $ClientBrandProductSerial = $request->ClientBrandProductSerial;
-        if(!$ClientBrandProductSerial){
+        if (!$ClientBrandProductSerial) {
             return RespondWithBadRequest(1);
         }
 
-        $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts","brandproducts.IDBrandProduct","clientbrandproducts.IDBrandProduct")->leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand");
-        $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial",$ClientBrandProductSerial);
-        $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand",$User->IDBrand);
-        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct","clientbrandproducts.ClientBrandProductSerial","clientbrandproducts.ClientBrandProductStatus","clientbrandproducts.created_at","clientbrandproducts.updated_at","brandproducts.IDBrandProduct","brandproducts.IDBrand","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","brands.BrandLogo","brands.BrandRating","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr");
+        $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
+        $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial", $ClientBrandProductSerial);
+        $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
+        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProduct = $ClientBrandProduct->first();
-        if(!$ClientBrandProduct){
+        return $ClientBrandProduct;
+        if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
         }
 
-        if($ClientBrandProduct->ClientBrandProductStatus == "USED"){
+        if ($ClientBrandProduct->ClientBrandProductStatus == "USED") {
             return RespondWithBadRequest(21);
         }
-        if($ClientBrandProduct->ClientBrandProductStatus == "EXPIRED"){
+        if ($ClientBrandProduct->ClientBrandProductStatus == "EXPIRED") {
             return RespondWithBadRequest(22);
         }
 
-        $BrandProductGallery = BrandProductGallery::where("IDBrandProduct",$ClientBrandProduct->IDBrandProduct)->where("BrandProductDeleted",0)->select("BrandProductPath","BrandProductType")->get();
-        foreach($BrandProductGallery as $Gallery){
-            if($Gallery->BrandProductType == "IMAGE"){
+        $BrandProductGallery = BrandProductGallery::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductDeleted", 0)->select("BrandProductPath", "BrandProductType")->get();
+        foreach ($BrandProductGallery as $Gallery) {
+            if ($Gallery->BrandProductType == "IMAGE") {
                 $Gallery->BrandProductPath = ($Gallery->BrandProductPath) ? asset($Gallery->BrandProductPath) : '';
             }
         }
         $ClientBrandProduct->BrandProductGallery = $BrandProductGallery;
-        
+
         $ClientBrandProduct = ClientBrandProductResource::collection([$ClientBrandProduct])[0];
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $ClientBrandProduct
         );
         return $Response;
     }
 
-    public function QRCodeUse(Request $request){
+    public function QRCodeUse(Request $request)
+    {
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
         }
 
         $ClientBrandProductSerial = $request->ClientBrandProductSerial;
-        if(!$ClientBrandProductSerial){
+        if (!$ClientBrandProductSerial) {
             return RespondWithBadRequest(1);
         }
 
-        $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts","brandproducts.IDBrandProduct","clientbrandproducts.IDBrandProduct")->leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand");
-        $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial",$ClientBrandProductSerial);
-        $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand",$User->IDBrand);
-        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct","clientbrandproducts.ClientBrandProductSerial","clientbrandproducts.ClientBrandProductStatus","clientbrandproducts.created_at","clientbrandproducts.updated_at","brandproducts.IDBrandProduct","brandproducts.IDBrand","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","brands.BrandLogo","brands.BrandRating","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr");
+        $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
+        $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial", $ClientBrandProductSerial);
+        $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
+        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct","clientbrandproducts.IDClient", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProduct = $ClientBrandProduct->first();
-        if(!$ClientBrandProduct){
+
+        if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
         }
 
-        if($ClientBrandProduct->ClientBrandProductStatus == "USED"){
+        if ($ClientBrandProduct->ClientBrandProductStatus == "USED") {
             return RespondWithBadRequest(21);
         }
-        if($ClientBrandProduct->ClientBrandProductStatus == "EXPIRED"){
+        if ($ClientBrandProduct->ClientBrandProductStatus == "EXPIRED") {
             return RespondWithBadRequest(22);
         }
 
         $ClientBrandProduct->IDUser = $User->IDUser;
         $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        // return  $ClientBrandProduct;
         $ClientBrandProduct->save();
 
+        $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted",0)->first();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+        $Today = new DateTime('now');
+        $Today = $Today->format('Y-m-d H:i:s');
+        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
+        if (!$BrandProduct) {
+            return RespondWithBadRequest(1);
+        }
+        $BatchNumber = "#BP" . $ClientBrandProduct->IDClientBrandProduct;
+        $TimeFormat = new DateTime('now');
+        $Time = $TimeFormat->format('H');
+        $Time = $Time . $TimeFormat->format('i');
+        $BatchNumber = $BatchNumber . $Time;
+        AdjustLedger($Client, 0, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "CASH", "PAYMENT", $BatchNumber);
         return RespondWithSuccessRequest(8);
     }
 
-    public function ClientBrandProducts(Request $request){
+    public function ClientBrandProducts(Request $request)
+    {
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
         }
 
         $UserName = $request->UserName;
-        if(!$UserName){
+        if (!$UserName) {
             return RespondWithBadRequest(1);
         }
 
-        $Client = Client::where("ClientPhone",$UserName)->orwhere("ClientAppID",$UserName)->first();
-        if(!$Client){
+        $Client = Client::where("ClientPhone", $UserName)->orwhere("ClientAppID", $UserName)->first();
+        if (!$Client) {
             return RespondWithBadRequest(23);
         }
 
-        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts","brandproducts.IDBrandProduct","clientbrandproducts.IDBrandProduct")->leftjoin("subcategories","subcategories.IDSubCategory","brandproducts.IDSubCategory")->leftjoin("brands","brands.IDBrand","brandproducts.IDBrand")->leftjoin("clients","clients.IDClient","clientbrandproducts.IDClient");
-        $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus","ACTIVE");
-        $ClientBrandProducts = $ClientBrandProducts->where(function ($query) use ($UserName) { $query->where('clients.ClientPhone', $UserName)->orwhere('clients.ClientAppID', $UserName);});
-        $ClientBrandProducts = $ClientBrandProducts->where("brandproducts.IDBrand",$User->IDBrand);
-        $ClientBrandProducts = $ClientBrandProducts->select("clientbrandproducts.IDClientBrandProduct","clientbrandproducts.ClientBrandProductSerial","clientbrandproducts.ClientBrandProductStatus","clientbrandproducts.created_at","clientbrandproducts.updated_at","brandproducts.IDBrandProduct","brandproducts.IDBrand","brandproducts.BrandProductTitleEn","brandproducts.BrandProductTitleAr","brandproducts.BrandProductDescEn","brandproducts.BrandProductDescAr","brandproducts.BrandProductPrice","brandproducts.BrandProductDiscount","brandproducts.BrandProductPoints","brandproducts.BrandProductStatus","brandproducts.BrandProductStartDate","brandproducts.BrandProductEndDate","brandproducts.created_at","brands.BrandNameEn","brands.BrandNameAr","brands.BrandLogo","brands.BrandRating","subcategories.SubCategoryNameEn","subcategories.SubCategoryNameAr");
+        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->leftjoin("clients", "clients.IDClient", "clientbrandproducts.IDClient");
+        $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", "ACTIVE");
+        $ClientBrandProducts = $ClientBrandProducts->where(function ($query) use ($UserName) {
+            $query->where('clients.ClientPhone', $UserName)->orwhere('clients.ClientAppID', $UserName);
+        });
+        $ClientBrandProducts = $ClientBrandProducts->where("brandproducts.IDBrand", $User->IDBrand);
+        $ClientBrandProducts = $ClientBrandProducts->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProducts = $ClientBrandProducts->get();
 
-        foreach($ClientBrandProducts as $Product){
-            $BrandProductGallery = BrandProductGallery::where("IDBrandProduct",$Product->IDBrandProduct)->where("BrandProductDeleted",0)->select("BrandProductPath","BrandProductType")->get();
-            foreach($BrandProductGallery as $Gallery){
-                if($Gallery->BrandProductType == "IMAGE"){
+        foreach ($ClientBrandProducts as $Product) {
+            $BrandProductGallery = BrandProductGallery::where("IDBrandProduct", $Product->IDBrandProduct)->where("BrandProductDeleted", 0)->select("BrandProductPath", "BrandProductType")->get();
+            foreach ($BrandProductGallery as $Gallery) {
+                if ($Gallery->BrandProductType == "IMAGE") {
                     $Gallery->BrandProductPath = ($Gallery->BrandProductPath) ? asset($Gallery->BrandProductPath) : '';
                 }
             }
             $Product->BrandProductGallery = $BrandProductGallery;
         }
-        
+
         $ClientBrandProducts = ClientBrandProductResource::collection($ClientBrandProducts);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
-            'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $ClientBrandProducts
         );

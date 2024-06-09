@@ -368,8 +368,7 @@ class ClientController extends Controller
             $PlanNetworkPath = explode("-", $PlanNetworkPath);
             if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
                 return RespondWithBadRequest(33);
-            }       
-            
+            }
         }
 
         $ClientPrivacy = 1;
@@ -1833,6 +1832,14 @@ class ClientController extends Controller
         $ClientBrandProduct = new ClientBrandProduct;
         $ClientBrandProduct->IDClient = $Client->IDClient;
         $ClientBrandProduct->IDBrandProduct = $IDBrandProduct;
+        $ClientBrandProduct->ProductPrice = $BrandProduct->BrandProductPrice;
+        if ($BrandProduct->BrandProductDiscountType == "PERCENT") {
+            $Amount = $BrandProduct->BrandProductPrice - ($BrandProduct->BrandProductPrice * $BrandProduct->BrandProductDiscount / 100);
+        } else {
+            $Amount = $BrandProduct->BrandProductPrice - $BrandProduct->BrandProductDiscount;
+        }
+        $ClientBrandProduct->ProductDiscount = $BrandProduct->BrandProductPrice - $Amount;
+        $ClientBrandProduct->ProductTotalAmount = $Amount;
         if ($IDPaymentMethod == 1) {
             $ClientBrandProduct->ClientBrandProductStatus = "PENDING";
         }
@@ -1847,7 +1854,7 @@ class ClientController extends Controller
         if ($IDPaymentMethod == 1) {
             $Amount = 0;
         }
-        AdjustLedger($Client, -$Amount, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "WALLET", "PAYMENT", $BatchNumber);
+        // AdjustLedger($Client, -$Amount, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "WALLET", "PAYMENT", $BatchNumber);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
