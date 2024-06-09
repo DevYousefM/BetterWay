@@ -218,16 +218,26 @@ class BrandController extends Controller
             return RespondWithBadRequest(1);
         }
 
+
         $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
         $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial", $ClientBrandProductSerial);
         $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
-        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct","clientbrandproducts.IDClient", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
+        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.IDClient", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProduct = $ClientBrandProduct->first();
 
         if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
         }
+        $now = Carbon::now();
+        $last24Hours = $now->subDay();
 
+        $ClientBrandProductBefore24 = ClientBrandProduct::where('created_at', '>=', $last24Hours)
+            ->where("ClientBrandProductStatus", "USED")
+            ->orderBy('created_at', 'desc')
+            ->get();
+        if(count($ClientBrandProductBefore24) == 2){
+            return RespondWithBadRequest(56);
+        }
         if ($ClientBrandProduct->ClientBrandProductStatus == "USED") {
             return RespondWithBadRequest(21);
         }
@@ -237,10 +247,9 @@ class BrandController extends Controller
 
         $ClientBrandProduct->IDUser = $User->IDUser;
         $ClientBrandProduct->ClientBrandProductStatus = "USED";
-        // return  $ClientBrandProduct;
         $ClientBrandProduct->save();
 
-        $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted",0)->first();
+        $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted", 0)->first();
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
