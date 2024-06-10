@@ -19,6 +19,7 @@ class ClientBrandProductResource extends JsonResource
         }else{
             $BrandProductTitle = "BrandProductTitleEn";
             $BrandProductDesc = "BrandProductDescEn";
+            $BrandProductDiscountType = "BrandProductDiscountType";
             $SubCategoryName = "SubCategoryNameEn";
             $BrandName = "BrandNameEn";
         }
@@ -36,6 +37,7 @@ class ClientBrandProductResource extends JsonResource
             'BrandRating'                => $this->BrandRating,
             'BrandProductPrice'          => $this->BrandProductPrice,
             'BrandProductDiscount'       => $this->BrandProductDiscount,
+            'BrandProductDiscountType'       => $this->BrandProductDiscountType,
             'BrandProductPoints'         => $this->BrandProductPoints,
             'BrandProductStartDate'      => $this->BrandProductStartDate,
             'BrandProductEndDate'        => $this->BrandProductEndDate,
