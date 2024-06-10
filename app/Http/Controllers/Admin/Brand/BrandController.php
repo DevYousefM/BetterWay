@@ -1398,9 +1398,6 @@ class BrandController extends Controller
         }
         if ($BrandProductDiscountType === "INVOICE") {
             $BrandProductPrice = 0;
-            if (!$BrandProductPrice) {
-                return RespondWithBadRequest(1);
-            }
         } else {
             if (!$BrandProductPrice) {
                 return RespondWithBadRequest(1);
