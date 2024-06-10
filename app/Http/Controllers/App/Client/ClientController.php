@@ -1805,7 +1805,16 @@ class ClientController extends Controller
 
         $Today = new DateTime('now');
         $Today = $Today->format('Y-m-d H:i:s');
-
+        
+        $now = Carbon::now();
+        $last24Hours = $now->subDay();
+        $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
+            ->where("ClientBrandProductStatus", "USED")
+            ->get();
+        if (count($ClientBrandProductBefore24) == 2) {
+            return RespondWithBadRequest(56);
+        }
+        
         $IDBrandProduct = $request->IDBrandProduct;
         $IDPaymentMethod = $request->IDPaymentMethod;
         $BrandProduct = BrandProduct::where("IDBrandProduct", $IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
