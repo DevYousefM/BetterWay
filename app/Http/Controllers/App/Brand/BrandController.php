@@ -302,16 +302,16 @@ class BrandController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(23);
         }
-
+        
         $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->leftjoin("clients", "clients.IDClient", "clientbrandproducts.IDClient");
-        $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", "ACTIVE");
+        $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", "PENDING");
         $ClientBrandProducts = $ClientBrandProducts->where(function ($query) use ($UserName) {
-            $query->where('clients.ClientPhone', $UserName)->orwhere('clients.ClientAppID', $UserName);
-        });
+                $query->where('clients.ClientPhone', $UserName)->orwhere('clients.ClientAppID', $UserName);
+            });
         $ClientBrandProducts = $ClientBrandProducts->where("brandproducts.IDBrand", $User->IDBrand);
         $ClientBrandProducts = $ClientBrandProducts->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProducts = $ClientBrandProducts->get();
-
+        
         foreach ($ClientBrandProducts as $Product) {
             $BrandProductGallery = BrandProductGallery::where("IDBrandProduct", $Product->IDBrandProduct)->where("BrandProductDeleted", 0)->select("BrandProductPath", "BrandProductType")->get();
             foreach ($BrandProductGallery as $Gallery) {
@@ -321,7 +321,6 @@ class BrandController extends Controller
             }
             $Product->BrandProductGallery = $BrandProductGallery;
         }
-
         $ClientBrandProducts = ClientBrandProductResource::collection($ClientBrandProducts);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
