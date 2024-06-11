@@ -3422,7 +3422,7 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
-        AdjustLedger($Client, -$PlanProduct->PlanProductPrice, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
+        AdjustLedger($Client, -$PlanProduct->PlanProductPrice, $PlanProduct->PlanProductRewardPoints, 0, 0, null, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
 
         return RespondWithSuccessRequest(8);
     }
