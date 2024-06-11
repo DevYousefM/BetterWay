@@ -13,5 +13,4 @@ Route::middleware('userapi')->prefix('user')->group(function () {
     Route::post('/qrcode/scan', [BrandController::class, 'QRCodeScan']);
     Route::post('/qrcode/use', [BrandController::class, 'QRCodeUse']);
     Route::post('/client/products', [BrandController::class, 'ClientBrandProducts']);
-
 });
