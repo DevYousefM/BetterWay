@@ -1813,15 +1813,6 @@ class ClientController extends Controller
         if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
-        $now = Carbon::now();
-        $last24Hours = $now->subDay();
-        $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
-            ->where("ClientBrandProductStatus", "USED")
-            ->where("IDBrandProduct", $IDBrandProduct)
-            ->get();
-        if (count($ClientBrandProductBefore24) == 2) {
-            return RespondWithBadRequest(56);
-        }
 
         if ($BrandProduct->BrandProductDiscountType == "PERCENT") {
             $Amount = $BrandProduct->BrandProductPrice - ($BrandProduct->BrandProductPrice * $BrandProduct->BrandProductDiscount / 100);
