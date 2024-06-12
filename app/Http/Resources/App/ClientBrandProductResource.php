@@ -8,15 +8,16 @@ use Illuminate\Support\Facades\Log;
 class ClientBrandProductResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
-        if($Client){
+        if ($Client) {
             $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $BrandProductTitle = "BrandProductTitle".$ClientLanguage;
-            $BrandProductDesc = "BrandProductDesc".$ClientLanguage;
-            $SubCategoryName = "SubCategoryName".$ClientLanguage;
-            $BrandName = "BrandName".$ClientLanguage;
-        }else{
+            $BrandProductTitle = "BrandProductTitle" . $ClientLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $ClientLanguage;
+            $SubCategoryName = "SubCategoryName" . $ClientLanguage;
+            $BrandName = "BrandName" . $ClientLanguage;
+        } else {
             $BrandProductTitle = "BrandProductTitleEn";
             $BrandProductDesc = "BrandProductDescEn";
             $BrandProductDiscountType = "BrandProductDiscountType";
@@ -37,7 +38,8 @@ class ClientBrandProductResource extends JsonResource
             'BrandRating'                => $this->BrandRating,
             'BrandProductPrice'          => $this->BrandProductPrice,
             'BrandProductDiscount'       => $this->BrandProductDiscount,
-            'BrandProductDiscountType'       => $this->BrandProductDiscountType,
+            'BrandProductDiscountType'   => $this->BrandProductDiscountType,
+            'BrandProductInvoiceMin'     => $this->BrandProductInvoiceMin,
             'BrandProductPoints'         => $this->BrandProductPoints,
             'BrandProductStartDate'      => $this->BrandProductStartDate,
             'BrandProductEndDate'        => $this->BrandProductEndDate,
