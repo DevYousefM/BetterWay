@@ -8,21 +8,26 @@ use Illuminate\Support\Facades\Log;
 class BrandProductResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
-        if($Client){
+        if ($Client) {
             $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $BrandProductTitle = "BrandProductTitle".$ClientLanguage;
-            $BrandProductDesc = "BrandProductDesc".$ClientLanguage;
-            $SubCategoryName = "SubCategoryName".$ClientLanguage;
-            $BrandName = "BrandName".$ClientLanguage;
-        }else{
+            $BrandProductTitle = "BrandProductTitle" . $ClientLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $ClientLanguage;
+            $SubCategoryName = "SubCategoryName" . $ClientLanguage;
+            $BrandName = "BrandName" . $ClientLanguage;
+        } else {
             $BrandProductTitle = "BrandProductTitleEn";
             $BrandProductDesc = "BrandProductDescEn";
             $SubCategoryName = "SubCategoryNameEn";
             $BrandName = "BrandNameEn";
         }
 
+        $BrandProductDiscount = $this->BrandProductDiscount;
+        if ($this->BrandProductDiscountType === "VALUE") {
+            $BrandProductDiscount = round(($BrandProductDiscount / $this->BrandProductPrice) * 100);
+        }
 
         return [
             'IDBrandProduct'                  => $this->IDBrandProduct,
@@ -35,7 +40,8 @@ class BrandProductResource extends JsonResource
             'BrandLogo'                       => ($this->BrandLogo) ? asset($this->BrandLogo) : '',
             'BrandRating'                     => $this->BrandRating,
             'BrandProductPrice'               => $this->BrandProductPrice,
-            'BrandProductDiscount'            => $this->BrandProductDiscount,
+            'BrandProductDiscount'            => $BrandProductDiscount,
+            'BrandProductDiscountType'        => $this->BrandProductDiscountType,
             'BrandProductPoints'              => $this->BrandProductPoints,
             'BrandProductUplinePoints'        => $this->BrandProductUplinePoints,
             'BrandProductReferralPoints'      => $this->BrandProductReferralPoints,
