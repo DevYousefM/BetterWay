@@ -116,11 +116,16 @@ class BrandController extends Controller
             return RespondWithBadRequest(36);
         }
 
+        $Brand = Brand::where('IDBrand', $User->IDBrand)->first();
+        if (!$Brand) {
+            return RespondWithBadRequest(1);
+        }
+
         $Success = true;
         $IDAPICode = 7;
         $response_code = 200;
         $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
-        $response = array('IDUser' => $User->IDUser, 'IDBrand' => $User->IDBrand, 'UserPhone' => $User->UserPhone, 'UserName' => $User->UserName, 'UserEmail' => $User->UserEmail, 'UserStatus' => $User->UserStatus, "UserLanguage" => $User->UserLanguage, "IDRole" => $User->IDRole, 'AccessToken' => $AccessToken);
+        $response = array('IDUser' => $User->IDUser, 'IDBrand' => $User->IDBrand, 'BrandLogo' => ($Brand->BrandLogo) ? asset($Brand->BrandLogo) : '', 'UserPhone' => $User->UserPhone, 'UserName' => $User->UserName, 'UserEmail' => $User->UserEmail, 'UserStatus' => $User->UserStatus, "UserLanguage" => $User->UserLanguage, "IDRole" => $User->IDRole, 'AccessToken' => $AccessToken);
         $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;
@@ -171,7 +176,7 @@ class BrandController extends Controller
         $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
         $ClientBrandProduct = $ClientBrandProduct->where("clientbrandproducts.ClientBrandProductSerial", $ClientBrandProductSerial);
         $ClientBrandProduct = $ClientBrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
-        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct", "brandproducts.BrandProductDiscountType","brandproducts.BrandProductInvoiceMin", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
+        $ClientBrandProduct = $ClientBrandProduct->select("clientbrandproducts.IDClientBrandProduct", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductInvoiceMin", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
         $ClientBrandProduct = $ClientBrandProduct->first();
         if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
@@ -233,9 +238,9 @@ class BrandController extends Controller
         $now = Carbon::now();
         $last24Hours = $now->subDay();
         $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
-        ->where("ClientBrandProductStatus", "USED")
-        ->where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)
-        ->get();
+            ->where("ClientBrandProductStatus", "USED")
+            ->where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)
+            ->get();
 
         if (count($ClientBrandProductBefore24) == 2) {
             return RespondWithBadRequest(56);
