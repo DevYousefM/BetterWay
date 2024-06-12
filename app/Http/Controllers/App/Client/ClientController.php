@@ -84,6 +84,7 @@ use DateInterval;
 use Response;
 use Cookie;
 use DB;
+use Nette\Utils\Random;
 
 class ClientController extends Controller
 {
@@ -1807,18 +1808,30 @@ class ClientController extends Controller
         $Today = $Today->format('Y-m-d H:i:s');
 
 
+
         $IDBrandProduct = $request->IDBrandProduct;
         $IDPaymentMethod = $request->IDPaymentMethod;
         $BrandProduct = BrandProduct::where("IDBrandProduct", $IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
+        // return $IDBrandProduct;
+        $now = Carbon::now();
+        $last24Hours = $now->subDay();
 
-        if ($BrandProduct->BrandProductDiscountType == "PERCENT") {
+        $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
+            ->where("ClientBrandProductStatus", "USED")
+            ->where("IDBrandProduct", $IDBrandProduct)
+            ->get();
+
+        if (count($ClientBrandProductBefore24) == 2) {
+            return RespondWithBadRequest(56);
+        }
+        if ($BrandProduct->BrandProductDiscountType === "PERCENT") {
             $Amount = $BrandProduct->BrandProductPrice - ($BrandProduct->BrandProductPrice * $BrandProduct->BrandProductDiscount / 100);
-        } else if ($BrandProduct->BrandProductDiscountType == "VALUE") {
+        } else if ($BrandProduct->BrandProductDiscountType === "VALUE") {
             $Amount = $BrandProduct->BrandProductPrice - $BrandProduct->BrandProductDiscount;
-        } else if ($BrandProduct->BrandProductDiscountType == "INVOICE") {
+        } else if ($BrandProduct->BrandProductDiscountType === "INVOICE") {
             $Amount = 0;
         };
 
@@ -1826,11 +1839,11 @@ class ClientController extends Controller
             return RespondWithBadRequest(26);
         }
 
-        $NextID = DB::select('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE  TABLE_NAME = "clientbrandproducts"')[0]->AUTO_INCREMENT;
+        $RandomNum = mt_rand(1000, 9999);
         $TimeFormat = new DateTime('now');
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
-        $ClientBrandProductSerial = $NextID . $Time;
+        $ClientBrandProductSerial = $RandomNum . $Time;
 
         $ClientBrandProduct = new ClientBrandProduct;
         $ClientBrandProduct->IDClient = $Client->IDClient;

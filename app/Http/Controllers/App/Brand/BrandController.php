@@ -229,12 +229,14 @@ class BrandController extends Controller
         }
         $Today = new DateTime('now');
         $Today = $Today->format('Y-m-d H:i:s');
+        
         $now = Carbon::now();
         $last24Hours = $now->subDay();
         $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
-            ->where("ClientBrandProductStatus", "USED")
-            ->where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)
-            ->get();
+        ->where("ClientBrandProductStatus", "USED")
+        ->where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)
+        ->get();
+
         if (count($ClientBrandProductBefore24) == 2) {
             return RespondWithBadRequest(56);
         }
@@ -266,7 +268,7 @@ class BrandController extends Controller
             $ClientBrandProduct->ProductTotalAmount = $Amount;
             $ClientBrandProduct->ProductPrice = $InvoiceValue;
         }
-        $ClientBrandProduct->UsedAt = $now;
+        $ClientBrandProduct->UsedAt = $Today;
         $ClientBrandProduct->save();
 
         $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted", 0)->first();
