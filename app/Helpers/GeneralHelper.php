@@ -232,7 +232,7 @@ function GetCoForClient($Client)
         if ($getClient->IDPosition) {
             $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
             if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
-                $CoForClient = $getClient;
+                $CoForClient = ["IDClient" => $getClient->IDClient, "ClientName" => $getClient->ClientName, "ClientNameArabic" => $getClient->ClientNameArabic];
                 break;
             }
         }
