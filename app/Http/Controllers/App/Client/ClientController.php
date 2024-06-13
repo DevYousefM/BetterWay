@@ -743,9 +743,12 @@ class ClientController extends Controller
             $PositionName = $Position->$PositionLanguageName;
         }
 
+        $CoForClient = GetCoForClient($Client);
+
         $response_code = 200;
         $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
-        $response = array('IDClient' => $Client->IDClient, 'ClientPhone' => $Client->ClientPhone, 'ClientPhoneFlag' => $Client->ClientPhoneFlag, 'ClientName' => $Client->ClientName, 'ClientEmail' => $Client->ClientEmail, 'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '', 'ClientCoverImage' => ($Client->ClientCoverImage) ? asset($Client->ClientCoverImage) : '', 'ClientStatus' => $Client->ClientStatus, "FlowStatus" => $FlowStatus, 'ClientBalance' => $Client->ClientBalance, "ClientGender" => $Client->ClientGender, "PositionName" => $PositionName, 'AccessToken' => $AccessToken);
+
+        $response = array('IDClient' => $Client->IDClient, 'Co' => $CoForClient, 'ClientPhone' => $Client->ClientPhone, 'ClientPhoneFlag' => $Client->ClientPhoneFlag, 'ClientName' => $Client->ClientName, 'ClientEmail' => $Client->ClientEmail, 'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '', 'ClientCoverImage' => ($Client->ClientCoverImage) ? asset($Client->ClientCoverImage) : '', 'ClientStatus' => $Client->ClientStatus, "FlowStatus" => $FlowStatus, 'ClientBalance' => $Client->ClientBalance, "ClientGender" => $Client->ClientGender, "PositionName" => $PositionName, 'AccessToken' => $AccessToken);
         $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;
@@ -1011,9 +1014,42 @@ class ClientController extends Controller
             $PositionName = $Position->$PositionLanguageName;
         }
 
+        $CoForClient = GetCoForClient($Client);
+
         $response_code = 200;
         $APICode = APICode::where('IDAPICode', 7)->first();
-        $response = array('IDClient' => $Client->IDClient, 'ClientPhone' => $ClientPhone, 'ClientPhoneFlag' => $Client->ClientPhoneFlag, 'ClientName' => $Client->ClientName, 'LoginBy' => $Client->LoginBy, 'ClientEmail' => $Client->ClientEmail, 'ClientPicture' => $Client->ClientPicture, "ClientCoverImage" => $Client->ClientCoverImage, 'CityName' => $CityName, 'IDCity' => $City->IDCity, "ClientNationality" => $ClientNationality, "ClientPosition" => $ClientPosition, "AreaName" => $AreaName, "IDArea" => $Client->IDArea, 'ClientStatus' => $Client->ClientStatus, 'ClientLeftPoints' => $Client->ClientLeftPoints, 'ClientRightPoints' => $Client->ClientRightPoints, 'ClientLeftNumber' => $Client->ClientLeftNumber, 'ClientRightNumber' => $Client->ClientRightNumber, "ClientBirthDate" => $Client->ClientBirthDate, "ClientNationalID" => $Client->ClientNationalID, "ClientPrivacy" => $Client->ClientPrivacy, 'ClientBalance' => $Client->ClientBalance, "ClientGender" => $Client->ClientGender, "ClientNationalIDImage" => $Client->ClientNationalIDImage, "ClientContract" => $Client->ClientContract, "PositionName" => $PositionName, "ClientImages" => $ClientImages, "ClientVideos" => $ClientVideos, 'AccessToken' => $AccessToken);
+        $response = array(
+            'IDClient' => $Client->IDClient,
+            'ClientPhone' => $ClientPhone,
+            'ClientPhoneFlag' => $Client->ClientPhoneFlag,
+            'ClientName' => $Client->ClientName,
+            'Co' => $CoForClient,
+            'LoginBy' => $Client->LoginBy,
+            'ClientEmail' => $Client->ClientEmail,
+            'ClientPicture' => $Client->ClientPicture,
+            "ClientCoverImage" => $Client->ClientCoverImage,
+            'CityName' => $CityName, 'IDCity' => $City->IDCity,
+            "ClientNationality" => $ClientNationality,
+            "ClientPosition" => $ClientPosition,
+            "AreaName" => $AreaName,
+            "IDArea" => $Client->IDArea,
+            'ClientStatus' => $Client->ClientStatus,
+            'ClientLeftPoints' => $Client->ClientLeftPoints,
+            'ClientRightPoints' => $Client->ClientRightPoints,
+            'ClientLeftNumber' => $Client->ClientLeftNumber,
+            'ClientRightNumber' => $Client->ClientRightNumber,
+            "ClientBirthDate" => $Client->ClientBirthDate,
+            "ClientNationalID" => $Client->ClientNationalID,
+            "ClientPrivacy" => $Client->ClientPrivacy,
+            'ClientBalance' => $Client->ClientBalance,
+            "ClientGender" => $Client->ClientGender,
+            "ClientNationalIDImage" => $Client->ClientNationalIDImage,
+            "ClientContract" => $Client->ClientContract,
+            "PositionName" => $PositionName,
+            "ClientImages" => $ClientImages,
+            "ClientVideos" => $ClientVideos,
+            'AccessToken' => $AccessToken
+        );
         $response_array = array('Success' => true, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;
@@ -1829,7 +1865,7 @@ class ClientController extends Controller
         $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
             ->where("ClientBrandProductStatus", "USED")
             ->where("IDBrandProduct", $IDBrandProduct)
-            ->where("IDClient",$Client->IDClient)
+            ->where("IDClient", $Client->IDClient)
             ->get();
 
         if (count($ClientBrandProductBefore24) == 2) {

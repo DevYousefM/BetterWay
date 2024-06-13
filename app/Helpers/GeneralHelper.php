@@ -14,6 +14,7 @@ use App\V1\Client\Client;
 use App\V1\Client\ClientLedger;
 use App\V1\Client\ClientNotification;
 use App\V1\Client\ClientNotificationDetail;
+use App\V1\Client\Position;
 use App\V1\Plan\Plan;
 use App\V1\Plan\PlanNetwork;
 use App\V1\Plan\PlanProduct;
@@ -30,13 +31,14 @@ use LaravelFCM\Facades\FCM;
 // use DateTime;
 // use DateInterval;
 
-function RespondWithBadRequest($Code, $Variable = Null){
+function RespondWithBadRequest($Code, $Variable = Null)
+{
     $ClientAppLanguage = LocalAppLanguage();
     $APICode = APICode::where('IDApiCode', $Code)->first();
-    if($ClientAppLanguage == "En"){
-        $ApiMsg = __('apicodes.'.$APICode->IDApiCode) . $Variable;
-    }else{
-        $ApiMsg = $Variable . __('apicodes.'.$APICode->IDApiCode);
+    if ($ClientAppLanguage == "En") {
+        $ApiMsg = __('apicodes.' . $APICode->IDApiCode) . $Variable;
+    } else {
+        $ApiMsg = $Variable . __('apicodes.' . $APICode->IDApiCode);
     }
     $response = new stdClass();
     $response_array = array(
@@ -50,14 +52,15 @@ function RespondWithBadRequest($Code, $Variable = Null){
     return $response;
 }
 
-function RespondWithSuccessRequest($Code){
+function RespondWithSuccessRequest($Code)
+{
 
     //bad or invalid request missing some params
     $response = new stdClass();
     $APICode = APICode::where('IDApiCode', $Code)->first();
     $response_array = array(
         'Success' => true,
-        'ApiMsg' => __('apicodes.'.$APICode->IDApiCode),
+        'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
         'ApiCode' => $APICode->IDApiCode,
         'Response' => $response,
     );
@@ -66,18 +69,20 @@ function RespondWithSuccessRequest($Code){
     return $response;
 }
 
-function LocalAppLanguage(){
+function LocalAppLanguage()
+{
     $ClientAppLanguage = app()->getLocale();
-    if($ClientAppLanguage == "ar"){
+    if ($ClientAppLanguage == "ar") {
         $ClientAppLanguage = "Ar";
     }
-    if($ClientAppLanguage == "en"){
+    if ($ClientAppLanguage == "en") {
         $ClientAppLanguage = "En";
     }
     return $ClientAppLanguage;
 }
 
-function YoutubeEmbedUrl($URL) {
+function YoutubeEmbedUrl($URL)
+{
     return preg_replace(
         "/\s*[a-zA-Z\/\/:\.]*youtu(be.com\/watch\?v=|.be\/)([a-zA-Z0-9\-_]+)([a-zA-Z0-9\/\*\-\_\?\&\;\%\=\.]*)/i",
         "www.youtube.com/embed/$2\ ",
@@ -85,69 +90,74 @@ function YoutubeEmbedUrl($URL) {
     );
 }
 
-function AdminLanguage($AdminLanguage){
-    if($AdminLanguage == "ar"){
+function AdminLanguage($AdminLanguage)
+{
+    if ($AdminLanguage == "ar") {
         $AdminLanguage = "Ar";
     }
-    if($AdminLanguage == "en"){
+    if ($AdminLanguage == "en") {
         $AdminLanguage = "En";
     }
     return $AdminLanguage;
 }
 
-function TimeZoneAdjust($Date,$CountryZone){
-    if(!$Date){
+function TimeZoneAdjust($Date, $CountryZone)
+{
+    if (!$Date) {
         return Null;
     }
-    if($CountryZone == 0){
+    if ($CountryZone == 0) {
         return $Date;
     }
     $Zone = $CountryZone[0];
     $Time = $CountryZone[1];
     $Time = $Time * 3600;
     $Date = new DateTime($Date);
-    if($Zone == "-"){
+    if ($Zone == "-") {
         $Date = $Date->sub(new DateInterval('PT' . $Time . 'S'));
-    }else{
+    } else {
         $Date = $Date->add(new DateInterval('PT' . $Time . 'S'));
     }
     $Date = $Date->format('Y-m-d H:i:s');
     return $Date;
 }
 
-function AdjustDateTime($Date,$Minutes,$Operation){
-    if(!$Date){
+function AdjustDateTime($Date, $Minutes, $Operation)
+{
+    if (!$Date) {
         return Null;
     }
     $Time = $Minutes * 60;
     $Date = new DateTime($Date);
-    if($Operation == "SUB"){
+    if ($Operation == "SUB") {
         $Date = $Date->sub(new DateInterval('PT' . $Time . 'S'));
-    }else{
+    } else {
         $Date = $Date->add(new DateInterval('PT' . $Time . 'S'));
     }
     $Date = $Date->format('Y-m-d H:i:s');
     return $Date;
 }
 
-function DaysList($Date){
+function DaysList($Date)
+{
     $CurrentDay = strtoupper(date('l', strtotime($Date)));
-    $PreviousDate = AdjustDateTime($Date,1440,"SUB");
+    $PreviousDate = AdjustDateTime($Date, 1440, "SUB");
     $PreviousDay = strtoupper(date('l', strtotime($PreviousDate)));
-    $NextDate = AdjustDateTime($Date,1440,"ADD");
+    $NextDate = AdjustDateTime($Date, 1440, "ADD");
     $NextDay = strtoupper(date('l', strtotime($NextDate)));
     $PreviousDate = substr($PreviousDate, 0, 10);
     $Date = substr($Date, 0, 10);
     $NextDate = substr($NextDate, 0, 10);
-    $DaysList = [$PreviousDay,$CurrentDay,$NextDay];
-    $DateList = array($PreviousDay=>$PreviousDate,$CurrentDay=>$Date,$NextDay=>$NextDate);
-    $Response = array("DaysList"=>$DaysList,"DateList"=>$DateList);
+    $DaysList = [$PreviousDay, $CurrentDay, $NextDay];
+    $DateList = array($PreviousDay => $PreviousDate, $CurrentDay => $Date, $NextDay => $NextDate);
+    $Response = array("DaysList" => $DaysList, "DateList" => $DateList);
     return $Response;
 }
 
-function LedgerBatchNumber(){
+function LedgerBatchNumber()
+{
     $NextLedgerID = DB::select('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE  TABLE_NAME = "ledger"')[0]->AUTO_INCREMENT;
-    if(!$NextLedgerID){
+    if (!$NextLedgerID) {
         $NextLedgerID = DB::select('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE  TABLE_NAME = "ledger"')[1]->AUTO_INCREMENT;
     }
     $TimeFormat = new DateTime('now');
@@ -172,14 +182,16 @@ function CreateToken($credentials, $guard)
 }
 
 
-function GeneralSettings($GeneralSettingName){
+function GeneralSettings($GeneralSettingName)
+{
     $GeneralSettingValue = GeneralSetting::where('GeneralSettingName', $GeneralSettingName)->first()->GeneralSettingValue;
     return $GeneralSettingValue;
 }
 
 
 ///// create verification Number
-function CreateVerificationCode(){
+function CreateVerificationCode()
+{
     $chars = '123456789';
     $count = strlen($chars);
     $result = "";
@@ -190,17 +202,18 @@ function CreateVerificationCode(){
     return $result;
 }
 
-function GetCity($Client){
-    if(!$Client){
+function GetCity($Client)
+{
+    if (!$Client) {
         $IP = \Request::ip();
-        $Data = \Location::get($IP); 
-        $City = City::where("CityNameEn",$Data->cityName)->where("CityActive",1)->first();
-        if(!$City){
-            $Country = Country::where("CountryCode",$Data->countryCode)->where("CountryActive",1)->first();
-            if(!$Country){
-                $Country = Country::where("CountryCode","SA")->first();
+        $Data = \Location::get($IP);
+        $City = City::where("CityNameEn", $Data->cityName)->where("CityActive", 1)->first();
+        if (!$City) {
+            $Country = Country::where("CountryCode", $Data->countryCode)->where("CountryActive", 1)->first();
+            if (!$Country) {
+                $Country = Country::where("CountryCode", "SA")->first();
             }
-            $City = City::where("IDCountry",$Country->IDCountry)->where("CityActive",1)->first();
+            $City = City::where("IDCountry", $Country->IDCountry)->where("CityActive", 1)->first();
         }
         return $City;
     }
@@ -209,15 +222,34 @@ function GetCity($Client){
     return $City;
 }
 
-function AdjustLedger($Client,$Amount,$RewardPoints,$ReferralPoints,$UplinePoints,$PlanNetwork,$Source,$Destination,$Type,$BatchNumber){
+function GetCoForClient($Client)
+{
+    $ClientPlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
+    $IDsInPath = explode('-', $ClientPlanNetwork->PlanNetworkPath);
+    $CoForClient = null;
+    foreach ($IDsInPath as $id) {
+        $getClient = Client::where("IDClient", $id)->first();
+        if ($getClient->IDPosition) {
+            $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
+            if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
+                $CoForClient = $getClient;
+                break;
+            }
+        }
+    }
+    return $CoForClient;
+}
+
+function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplinePoints, $PlanNetwork, $Source, $Destination, $Type, $BatchNumber)
+{
     $PlanProductPoints = 0;
-    if($Destination == "PLAN_PRODUCT" && $Type != "UPGRADE"){
+    if ($Destination == "PLAN_PRODUCT" && $Type != "UPGRADE") {
         $PlanProduct = PlanProduct::find($PlanNetwork->IDPlanProduct);
         $PlanProductPoints = $PlanProduct->PlanProductPoints;
         $ChildPosition = $PlanNetwork->PlanNetworkPosition;
     }
-    
-    if($Amount || $RewardPoints){
+
+    if ($Amount || $RewardPoints) {
         $ClientLedger = new ClientLedger;
         $ClientLedger->IDClient = $Client->IDClient;
         $ClientLedger->ClientLedgerAmount = abs($Amount);
@@ -238,11 +270,11 @@ function AdjustLedger($Client,$Amount,$RewardPoints,$ReferralPoints,$UplinePoint
 
     $Client->save();
 
-    if($PlanNetwork){
-        if($PlanNetwork->IDReferralClient){
+    if ($PlanNetwork) {
+        if ($PlanNetwork->IDReferralClient) {
             $Client = Client::find($PlanNetwork->IDReferralClient);
 
-            if($Amount && $RewardPoints){
+            if ($Amount && $RewardPoints) {
                 $ClientLedger = new ClientLedger;
                 $ClientLedger->IDClient = $Client->IDClient;
                 $ClientLedger->ClientLedgerPoints = $ReferralPoints;
@@ -253,20 +285,20 @@ function AdjustLedger($Client,$Amount,$RewardPoints,$ReferralPoints,$UplinePoint
                 $ClientLedger->ClientLedgerType = "REFERRAL";
                 $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
                 $ClientLedger->save();
-        
+
                 $Client->ClientRewardPoints = $Client->ClientRewardPoints + $ReferralPoints;
             }
 
             $Client->save();
         }
-    
-        if($PlanNetwork->PlanNetworkPath){
+
+        if ($PlanNetwork->PlanNetworkPath) {
             $IDParentClients = explode("-", $PlanNetwork->PlanNetworkPath);
             $IDParentClients = array_reverse($IDParentClients);
-            foreach($IDParentClients as $IDParentClient){
+            foreach ($IDParentClients as $IDParentClient) {
                 $Client = Client::find($IDParentClient);
 
-                if($Amount && $RewardPoints){
+                if ($Amount && $RewardPoints) {
                     $ClientLedger = new ClientLedger;
                     $ClientLedger->IDClient = $Client->IDClient;
                     $ClientLedger->ClientLedgerPoints = $UplinePoints;
@@ -277,18 +309,18 @@ function AdjustLedger($Client,$Amount,$RewardPoints,$ReferralPoints,$UplinePoint
                     $ClientLedger->ClientLedgerType = "UPLINE";
                     $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
                     $ClientLedger->save();
-            
+
                     $Client->ClientRewardPoints = $Client->ClientRewardPoints + $UplinePoints;
                 }
 
-                if($PlanProductPoints){
-                    if($ChildPosition == "LEFT"){
+                if ($PlanProductPoints) {
+                    if ($ChildPosition == "LEFT") {
                         $Client->ClientLeftNumber++;
                         $Client->ClientTotalNumber++;
                         $Client->ClientLeftPoints = $Client->ClientLeftPoints + $PlanProductPoints;
                         $Client->ClientTotalPoints = $Client->ClientTotalPoints + $PlanProductPoints;
                     }
-                    if($ChildPosition == "RIGHT"){
+                    if ($ChildPosition == "RIGHT") {
                         $Client->ClientRightNumber++;
                         $Client->ClientTotalNumber++;
                         $Client->ClientRightPoints = $Client->ClientRightPoints + $PlanProductPoints;
@@ -297,19 +329,20 @@ function AdjustLedger($Client,$Amount,$RewardPoints,$ReferralPoints,$UplinePoint
                 }
 
                 $Client->save();
-                $ChildPosition = PlanNetwork::where("IDClient",$IDParentClient)->first()->PlanNetworkPosition;
+                $ChildPosition = PlanNetwork::where("IDClient", $IDParentClient)->first()->PlanNetworkPosition;
             }
         }
     }
 }
 
-function ProductBranches($IDLink,$Client,$Type){
-    if($Client){
+function ProductBranches($IDLink, $Client, $Type)
+{
+    if ($Client) {
         $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-        $BranchAddress = "BranchAddress".$ClientLanguage;
-        $AreaName = "AreaName".$ClientLanguage;
-        $CityName = "CityName".$ClientLanguage;
-    }else{
+        $BranchAddress = "BranchAddress" . $ClientLanguage;
+        $AreaName = "AreaName" . $ClientLanguage;
+        $CityName = "CityName" . $ClientLanguage;
+    } else {
         $BranchAddress = "BranchAddressEn";
         $AreaName = "AreaNameEn";
         $CityName = "CityNameEn";
@@ -319,30 +352,31 @@ function ProductBranches($IDLink,$Client,$Type){
     $TempList = [];
     $IDCity = 0;
     $CityNameTemp = "";
-    if($Type == "BRAND"){
-        $Branches = Branch::leftjoin("areas","areas.IDArea","branches.IDArea")->leftjoin("cities","cities.IDCity","areas.IDCity")->where("branches.IDBrand",$IDLink)->where("branches.BranchStatus","ACTIVE")->orderby("areas.IDCity")->get();
+    if ($Type == "BRAND") {
+        $Branches = Branch::leftjoin("areas", "areas.IDArea", "branches.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->where("branches.IDBrand", $IDLink)->where("branches.BranchStatus", "ACTIVE")->orderby("areas.IDCity")->get();
     }
-    if($Type == "PRODUCT"){
-        $Branches = BrandProductBranch::leftjoin("branches","branches.IDBranch","brandproductbranches.IDBranch")->leftjoin("areas","areas.IDArea","branches.IDArea")->leftjoin("cities","cities.IDCity","areas.IDCity")->where("brandproductbranches.IDBrandProduct",$IDLink)->where("brandproductbranches.ProductBranchLinked",1)->where("branches.BranchStatus","ACTIVE")->orderby("areas.IDCity")->get();
+    if ($Type == "PRODUCT") {
+        $Branches = BrandProductBranch::leftjoin("branches", "branches.IDBranch", "brandproductbranches.IDBranch")->leftjoin("areas", "areas.IDArea", "branches.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->where("brandproductbranches.IDBrandProduct", $IDLink)->where("brandproductbranches.ProductBranchLinked", 1)->where("branches.BranchStatus", "ACTIVE")->orderby("areas.IDCity")->get();
     }
-    foreach($Branches as $Branch){
-        if($IDCity && $IDCity != $Branch->IDCity){
-            $Temp = ["CityName" => $CityNameTemp,"Branches" => $TempList];
-            array_push($AllBranches,$Temp);
+    foreach ($Branches as $Branch) {
+        if ($IDCity && $IDCity != $Branch->IDCity) {
+            $Temp = ["CityName" => $CityNameTemp, "Branches" => $TempList];
+            array_push($AllBranches, $Temp);
         }
-        $Temp = ["AreaName" => $Branch->$AreaName,"BranchAddress" => $Branch->$BranchAddress,"BranchLatitude" => $Branch->BranchLatitude,"BranchLongitude" => $Branch->BranchLongitude,"BranchPhone" => $Branch->BranchPhone];
-        array_push($TempList,$Temp);
+        $Temp = ["AreaName" => $Branch->$AreaName, "BranchAddress" => $Branch->$BranchAddress, "BranchLatitude" => $Branch->BranchLatitude, "BranchLongitude" => $Branch->BranchLongitude, "BranchPhone" => $Branch->BranchPhone];
+        array_push($TempList, $Temp);
         $CityNameTemp = $Branch->$CityName;
         $IDCity = $Branch->IDCity;
     }
-    if(count($TempList)){
-        $Temp = ["CityName" => $CityNameTemp,"Branches" => $TempList];
-        array_push($AllBranches,$Temp);
+    if (count($TempList)) {
+        $Temp = ["CityName" => $CityNameTemp, "Branches" => $TempList];
+        array_push($AllBranches, $Temp);
     }
     return $AllBranches;
 }
 
-function RandomPassword() {
+function RandomPassword()
+{
     $min = 1;
     $max = 9;
     $random_number1 = rand($min, $max);
@@ -416,7 +450,8 @@ function RandomPassword() {
     return $main_no;
 }
 
-function BaseUrl(){
+function BaseUrl()
+{
     $myUrl = "";
     if (isset($_SERVER['HTTPS'])) $myUrl .= "https://";
     else $myUrl .= "http://";
@@ -424,7 +459,8 @@ function BaseUrl(){
     return $myUrl . $_SERVER['SERVER_NAME'];
 }
 
-function SplitForwardList($entities){
+function SplitForwardList($entities)
+{
     //split into arabic and english lists
     //only for passengers but drivers can used it to fake format thier tokens (they are by default arabic anyways)
     $forward = [];
@@ -433,26 +469,27 @@ function SplitForwardList($entities){
     $forwardTokenHMSEn = [];
     $forwardTokenHMSAr = [];
     $Clients = $entities;
-    foreach($Clients as $Client){
-        if($Client){
+    foreach ($Clients as $Client) {
+        if ($Client) {
             $forward[$Client->IDClient] = $Client->ClientDeviceToken;
-            if($Client->ClientMobileService == 'HMS'){
-                if($Client->ClientAppLanguage == 'EN'){
+            if ($Client->ClientMobileService == 'HMS') {
+                if ($Client->ClientAppLanguage == 'EN') {
                     array_push($forwardTokenHMSEn, $Client->ClientDeviceToken);
-                }else{
+                } else {
                     array_push($forwardTokenHMSAr, $Client->ClientDeviceToken);
                 }
-            }else{
-                if($Client->ClientAppLanguage == 'EN'){
+            } else {
+                if ($Client->ClientAppLanguage == 'EN') {
                     array_push($forwardTokenEn, $Client->ClientDeviceToken);
-                }else{
+                } else {
                     array_push($forwardTokenAr, $Client->ClientDeviceToken);
                 }
             }
         }
     }
-    $forwardList = ['forwardList'=> $forward,
-    'forwardTokenEn'=>$forwardTokenEn, 'forwardTokenAr'=>$forwardTokenAr,'forwardTokenHMSEn'=>$forwardTokenHMSEn, 'forwardTokenHMSAr'=>$forwardTokenHMSAr
+    $forwardList = [
+        'forwardList' => $forward,
+        'forwardTokenEn' => $forwardTokenEn, 'forwardTokenAr' => $forwardTokenAr, 'forwardTokenHMSEn' => $forwardTokenHMSEn, 'forwardTokenHMSAr' => $forwardTokenHMSAr
     ];
     return $forwardList;
 }
@@ -487,7 +524,7 @@ function FirebaseDownStreamNotify($forwardList, $payload)
     }
 
     $dataBuilder = new PayloadDataBuilder();
-    $dataBuilder->addData(['NotificationType' => $payload['NotificationType'],'Screen' => $payload['Screen'], 'IDData' => $payload['IDData'], 'DataType' => $payload['DataType'],'FilePath'=>$FilePath, 'Message' => $payload['notifyBodyEn']]);
+    $dataBuilder->addData(['NotificationType' => $payload['NotificationType'], 'Screen' => $payload['Screen'], 'IDData' => $payload['IDData'], 'DataType' => $payload['DataType'], 'FilePath' => $FilePath, 'Message' => $payload['notifyBodyEn']]);
     $data = $dataBuilder->build();
 
     $notificationEn = null;
@@ -560,12 +597,14 @@ function FirebaseDownStreamNotify($forwardList, $payload)
 }
 
 
-function SaveImage($File, $FolderName, $ID){
+function SaveImage($File, $FolderName, $ID)
+{
     return "uploads/" . Storage::disk('uploads')->put($FolderName . "/" . $ID, $File);
 }
 
 
-function ActionBackLog($IDUser, $IDLink , $ActionBackLogType, $ActionBackLogDesc){
+function ActionBackLog($IDUser, $IDLink, $ActionBackLogType, $ActionBackLogDesc)
+{
     $ActionBackLog = new ActionBackLog();
     $ActionBackLog->IDUser                  = $IDUser;
     $ActionBackLog->IDLink                  = $IDLink;
@@ -575,7 +614,8 @@ function ActionBackLog($IDUser, $IDLink , $ActionBackLogType, $ActionBackLogDesc
 }
 
 
-function my_random6_number() {
+function my_random6_number()
+{
     $min = 1;
     $max = 9;
     $random_number1 = rand($min, $max);
@@ -649,25 +689,27 @@ function my_random6_number() {
     return $main_no;
 }
 
-function EnumValues($Table,$Column){
-    $Type = DB::select( DB::raw("SHOW COLUMNS FROM ".$Table." WHERE Field = '".$Column."'") )[0]->Type;
+function EnumValues($Table, $Column)
+{
+    $Type = DB::select(DB::raw("SHOW COLUMNS FROM " . $Table . " WHERE Field = '" . $Column . "'"))[0]->Type;
     preg_match('/^enum\((.*)\)$/', $Type, $Matches);
     $Enum = array();
-    foreach( explode(',', $Matches[1]) as $Value ){
-      $V = trim( $Value, "'" );
-      array_push($Enum, $V);
+    foreach (explode(',', $Matches[1]) as $Value) {
+        $V = trim($Value, "'");
+        array_push($Enum, $V);
     }
     return $Enum;
 }
 
 
-function SMSMsegat($ClientPhone,$Message){
+function SMSMsegat($ClientPhone, $Message)
+{
 
     $SMSMsegatUserName = GeneralSettings("SMSMsegatUserName");
     $SMSMsegatAPIKey = GeneralSettings("SMSMsegatAPIKey");
     $SMSMsegatSender = GeneralSettings("SMSMsegatSender");
 
-    $Fields = '{"userName": "'.$SMSMsegatUserName.'", "apiKey": "'.$SMSMsegatAPIKey.'", "userSender": "'.$SMSMsegatSender.'", "numbers": "'.$ClientPhone.'", "msg": "'.$Message.'"}';
+    $Fields = '{"userName": "' . $SMSMsegatUserName . '", "apiKey": "' . $SMSMsegatAPIKey . '", "userSender": "' . $SMSMsegatSender . '", "numbers": "' . $ClientPhone . '", "msg": "' . $Message . '"}';
 
     $Headers = array();
     $Headers[] = 'Cache-control: no-cache';
@@ -683,11 +725,10 @@ function SMSMsegat($ClientPhone,$Message){
     curl_setopt($curl, CURLOPT_URL, "https://www.msegat.com/gw/sendsms.php");
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, $Headers );
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $Headers);
     $response = curl_exec($curl);
 
     curl_close($curl);
 
     log::info($response);
 }
-
