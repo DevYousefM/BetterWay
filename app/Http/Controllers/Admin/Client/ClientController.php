@@ -295,8 +295,6 @@ class ClientController extends Controller
             $Client->ClientLeftNumber = $PreviousClient->ClientLeftNumber;
             $Client->ClientRightNumber = $PreviousClient->ClientRightNumber;
         }
-        // Give a position to client
-        $Client->IDPosition = $request->IDPosition;
         $Client->save();
 
         if ($ClientNationalID) {
@@ -502,6 +500,7 @@ class ClientController extends Controller
         }
 
         $IDReferralClient = $ReferralClient->IDClient;
+        $Client = Client::find($IDClient);
 
         if ($Upline) {
             $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
@@ -521,6 +520,12 @@ class ClientController extends Controller
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
             }
+
+            if (count($PlanNetworkPath) === 2) {
+                $CoPosition = Position::where("PositionTitleEn")->first();
+                if ($CoPosition)
+                    $Client->IDPosition = $CoPosition->IDPosition;
+            }
         }
         $PlanProduct = PlanProduct::find($IDPlanProduct);
         if (!$PlanProduct) {
@@ -535,6 +540,7 @@ class ClientController extends Controller
 
 
         $IDReferral = $ReferralClient->IDClient;
+
         if ($Upline) {
             $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
                 $query->where('ClientAppID', $Upline)
@@ -651,7 +657,6 @@ class ClientController extends Controller
             $Counter++;
         }
 
-        $Client = Client::find($IDClient);
 
         $Client->IDReferral = $IDReferralClient;
         $Client->IDUpline = $IDParentClient;
@@ -891,8 +896,7 @@ class ClientController extends Controller
                     } else {
                         AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
                     }
-                    
-                }else{
+                } else {
                     return RespondWithBadRequest(26);
                 }
             }

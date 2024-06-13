@@ -329,7 +329,8 @@ class ClientController extends Controller
         }
 
         $IDReferralClient = $ReferralClient->IDClient;
-
+        
+        $Client = new Client;
         if ($Upline) {
             $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
             $IDParentClient = $ParentClient->IDClient;
@@ -347,6 +348,11 @@ class ClientController extends Controller
             }
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
+            }
+            if (count($PlanNetworkPath) === 2) {
+                $CoPosition = Position::where("PositionTitleEn")->first();
+                if ($CoPosition)
+                    $Client->IDPosition = $CoPosition->IDPosition;
             }
         }
         if (!$Upline) {
@@ -415,7 +421,6 @@ class ClientController extends Controller
         $Time = $Time . $TimeFormat->format('i');
         $ClientAppID = "0" . $NextIDClient . $Time;
 
-        $Client = new Client;
         $Client->ClientAppID = $ClientAppID;
         $Client->ClientEmail = $ClientEmail;
         $Client->IDNationality = $IDNationality;
