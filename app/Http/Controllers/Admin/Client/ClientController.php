@@ -72,6 +72,7 @@ use DateInterval;
 use Response;
 use Cookie;
 use DB;
+use Facade\FlareClient\Http\Exceptions\BadResponse;
 use Paytabscom\Laravel_paytabs\Facades\paypage;
 
 class ClientController extends Controller
@@ -1091,11 +1092,18 @@ class ClientController extends Controller
     public function ClientPositionUpdate(Request $request)
     {
         $Admin = auth('user')->user();
+
+        if(!$Admin){
+            return RespondWithBadRequest(1);
+        }
+
         $IDClient = $request->IDClient;
         $IDPosition = $request->IDPosition;
+        
         if (!$IDClient) {
             return RespondWithBadRequest(1);
         }
+        
         if (!$IDPosition) {
             return RespondWithBadRequest(1);
         }
