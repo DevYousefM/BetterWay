@@ -85,6 +85,7 @@ use Response;
 use Cookie;
 use DB;
 use Nette\Utils\Random;
+use PDO;
 
 class ClientController extends Controller
 {
@@ -985,7 +986,13 @@ class ClientController extends Controller
         $ClientPosition = ($ClientPosition) ? $ClientPosition : '';
         $ClientNationalIDImage = ClientDocument::where("IDClient", $Client->IDClient)->where("ClientDocumentType", "NATIONAL_ID")->where("ClientDocumentDeleted", 0)->first();
         $ClientContract = ClientDocument::where("IDClient", $Client->IDClient)->where("ClientDocumentType", "CONTRACT")->where("ClientDocumentDeleted", 0)->first();
-        $Client->ClientNationalIDImage = ($ClientNationalIDImage->ClientDocumentPath) ? asset($ClientNationalIDImage->ClientDocumentPath) : '';
+
+        if ($ClientNationalIDImage) {
+            $Client->ClientNationalIDImage = ($ClientNationalIDImage->ClientDocumentPath) ? asset($ClientNationalIDImage->ClientDocumentPath) : '';
+        } else {
+            $Client->ClientNationalIDImage = '';
+        }
+
         $Client->ClientContract = '';
         if ($ClientContract) {
             $Client->ClientContract = ($ClientContract->ClientDocumentPath) ? asset($ClientContract->ClientDocumentPath) : '';
@@ -1815,13 +1822,14 @@ class ClientController extends Controller
         if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
-        // return $IDBrandProduct;
+
         $now = Carbon::now();
         $last24Hours = $now->subDay();
 
         $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
             ->where("ClientBrandProductStatus", "USED")
             ->where("IDBrandProduct", $IDBrandProduct)
+            ->where("IDClient",$Client->IDClient)
             ->get();
 
         if (count($ClientBrandProductBefore24) == 2) {

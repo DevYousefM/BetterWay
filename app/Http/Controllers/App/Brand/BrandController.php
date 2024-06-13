@@ -232,6 +232,12 @@ class BrandController extends Controller
         if (!$ClientBrandProduct) {
             return RespondWithBadRequest(1);
         }
+
+        $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted", 0)->first();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+        
         $Today = new DateTime('now');
         $Today = $Today->format('Y-m-d H:i:s');
 
@@ -240,6 +246,7 @@ class BrandController extends Controller
         $ClientBrandProductBefore24 = ClientBrandProduct::where('UsedAt', '>=', $last24Hours)
             ->where("ClientBrandProductStatus", "USED")
             ->where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)
+            ->where("IDClient", $Client->IDClient)
             ->get();
 
         if (count($ClientBrandProductBefore24) == 2) {
@@ -276,10 +283,6 @@ class BrandController extends Controller
         $ClientBrandProduct->UsedAt = $Today;
         $ClientBrandProduct->save();
 
-        $Client = Client::where("IDClient", $ClientBrandProduct->IDClient)->where("ClientDeleted", 0)->first();
-        if (!$Client) {
-            return RespondWithBadRequest(10);
-        }
 
         $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
