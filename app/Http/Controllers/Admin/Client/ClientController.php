@@ -478,7 +478,10 @@ class ClientController extends Controller
             $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
                 $query->where('ClientAppID', $Upline)
                     ->orwhere('ClientEmail', $Upline)
-                    ->orwhere('ClientPhone', $Upline);
+                    ->orwhere(
+                        'ClientPhone',
+                        $Upline[0] == "0" ? "+2" . $Upline : $Upline
+                    );
             })->first();
 
             if (!$ParentClient) {
@@ -492,7 +495,10 @@ class ClientController extends Controller
         $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
             $query->where('ClientAppID', $Referral)
                 ->orwhere('ClientEmail', $Referral)
-                ->orwhere('ClientPhone', $Referral);
+                ->orwhere(
+                    'ClientPhone',
+                    $Referral[0] == "0" ? "+2" . $Referral : $Referral
+                );
         })->first();
 
         if (!$ReferralClient) {
@@ -522,7 +528,7 @@ class ClientController extends Controller
             }
 
             if (count($PlanNetworkPath) === 2) {
-                $CoPosition = Position::where("PositionTitleEn")->first();
+                $CoPosition = Position::whereRaw('LOWER(`PositionTitleEn`) = ?', ['co'])->first();
                 if ($CoPosition)
                     $Client->IDPosition = $CoPosition->IDPosition;
             }

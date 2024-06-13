@@ -329,7 +329,7 @@ class ClientController extends Controller
         }
 
         $IDReferralClient = $ReferralClient->IDClient;
-        
+
         $Client = new Client;
         if ($Upline) {
             $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
@@ -350,7 +350,7 @@ class ClientController extends Controller
                 return RespondWithBadRequest(34);
             }
             if (count($PlanNetworkPath) === 2) {
-                $CoPosition = Position::where("PositionTitleEn")->first();
+                $CoPosition = Position::whereRaw('LOWER(`PositionTitleEn`) = ?', ['co'])->first();
                 if ($CoPosition)
                     $Client->IDPosition = $CoPosition->IDPosition;
             }
