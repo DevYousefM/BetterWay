@@ -317,7 +317,7 @@ class ClientController extends Controller
                 $ClientDocument->save();
             }
         }
-        
+
         if ($ClientPassportImage) {
             $ClientDocument = new ClientDocument;
             $ClientDocument->IDClient = $Client->IDClient;
@@ -849,16 +849,55 @@ class ClientController extends Controller
 
         $Client = Client::find($IDClient);
 
-        $BatchNumber = "#SA" . $IDClient;
-        $TimeFormat = new DateTime('now');
-        $Time = $TimeFormat->format('H');
-        $Time = $Time . $TimeFormat->format('i');
-        $BatchNumber = $BatchNumber . $Time;
-        $Desc = "Client balance changed from  " . $Client->ClientBalance . " to " . $Client->ClientBalance + $Amount;
-        if ($Amount >= 0) {
-            AdjustLedger($Client, $Amount, 0, 0, 0, Null, "ADMIN", "WALLET", "ADJUST", $BatchNumber);
+
+        if ($Client) {
+            $firstClient = Client::orderBy('IDClient', 'asc')->first();
+            if ($Client->IDClient === $firstClient->IDClient) {
+                $BatchNumber = "#SA" . $IDClient;
+                $TimeFormat = new DateTime('now');
+                $Time = $TimeFormat->format('H');
+                $Time = $Time . $TimeFormat->format('i');
+                $BatchNumber = $BatchNumber . $Time;
+                $Desc = "Client balance changed from  " . $Client->ClientBalance . " to " . $Client->ClientBalance + $Amount;
+                if ($Amount >= 0) {
+                    AdjustLedger($Client, $Amount, 0, 0, 0, Null, "ADMIN", "WALLET", "ADJUST", $BatchNumber);
+                } else {
+                    AdjustLedger($Client, $Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
+                }
+            } else {
+                if ($firstClient->ClientBalance >= $Amount) {
+                    // Give Client
+                    $BatchNumber = "#SA" . $IDClient;
+                    $TimeFormat = new DateTime('now');
+                    $Time = $TimeFormat->format('H');
+                    $Time = $Time . $TimeFormat->format('i');
+                    $BatchNumber = $BatchNumber . $Time;
+                    $Desc = "Client balance changed from  " . $Client->ClientBalance . " to " . $Client->ClientBalance + $Amount;
+                    if ($Amount >= 0) {
+                        AdjustLedger($Client, $Amount, 0, 0, 0, Null, "ADMIN", "WALLET", "ADJUST", $BatchNumber);
+                    } else {
+                        AdjustLedger($Client, $Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
+                    }
+
+                    // Decrease First Client Balance
+                    $BatchNumber = "#SA" . $firstClient->IDClient;
+                    $TimeFormat = new DateTime('now');
+                    $Time = $TimeFormat->format('H');
+                    $Time = $Time . $TimeFormat->format('i');
+                    $BatchNumber = $BatchNumber . $Time;
+                    $Desc = "Client balance changed from  " . $firstClient->ClientBalance . " to " . $firstClient->ClientBalance - $Amount;
+                    if ($Amount >= 0) {
+                        AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "ADMIN", "Client " . $Client->ClientName . " WALLET", "ADJUST", $BatchNumber);
+                    } else {
+                        AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
+                    }
+                    
+                }else{
+                    return RespondWithBadRequest(26);
+                }
+            }
         } else {
-            AdjustLedger($Client, $Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
+            return RespondWithBadRequest(23);
         }
 
         $CompanyLedger = new CompanyLedger;
@@ -1093,17 +1132,17 @@ class ClientController extends Controller
     {
         $Admin = auth('user')->user();
 
-        if(!$Admin){
+        if (!$Admin) {
             return RespondWithBadRequest(1);
         }
 
         $IDClient = $request->IDClient;
         $IDPosition = $request->IDPosition;
-        
+
         if (!$IDClient) {
             return RespondWithBadRequest(1);
         }
-        
+
         if (!$IDPosition) {
             return RespondWithBadRequest(1);
         }
