@@ -161,9 +161,6 @@ class ClientController extends Controller
         } else {
             return RespondWithBadRequest(54);
         }
-
-
-
         if ($request->Filled('ClientNameArabic')) {
             $ClientNameArabic = $request->ClientNameArabic;
         } else {
@@ -269,7 +266,6 @@ class ClientController extends Controller
         $Client->ClientAppID = $ClientAppID;
         $Client->ClientEmail = $ClientEmail;
         $Client->IDArea = $IDArea;
-
         $Client->ClientPhone = $ClientPhone;
         $Client->ClientPhoneFlag = $ClientPhoneFlag;
         $Client->LoginBy = $LoginBy;
@@ -298,6 +294,8 @@ class ClientController extends Controller
             $Client->ClientLeftNumber = $PreviousClient->ClientLeftNumber;
             $Client->ClientRightNumber = $PreviousClient->ClientRightNumber;
         }
+        // Give a position to client
+        $Client->IDPosition = $request->IDPosition;
         $Client->save();
 
         if ($ClientNationalID) {

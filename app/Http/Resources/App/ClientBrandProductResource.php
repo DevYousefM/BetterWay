@@ -40,6 +40,7 @@ class ClientBrandProductResource extends JsonResource
             'BrandProductDiscount'       => $this->BrandProductDiscount,
             'BrandProductDiscountType'   => $this->BrandProductDiscountType,
             'BrandProductInvoiceMin'     => $this->BrandProductInvoiceMin,
+            'BrandProductMaxDiscount'     => $this->BrandProductMaxDiscount,
             'BrandProductPoints'         => $this->BrandProductPoints,
             'BrandProductStartDate'      => $this->BrandProductStartDate,
             'BrandProductEndDate'        => $this->BrandProductEndDate,
