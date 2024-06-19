@@ -20,11 +20,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->job(new BonanzaEnd)->everyMinute();
-        // $schedule->job(new EventEnd)->hourly();
-        // $schedule->job(new BonanzaEnd)->daily();
-        // $schedule->job(new ChequeCycle)->daily();
-        // $schedule->job(new ProductRenewal)->daily();
+        $schedule->job(new BonanzaEnd)->everyMinute();
+        $schedule->job(new EventEnd)->hourly();
+        $schedule->job(new BonanzaEnd)->daily();
+        $schedule->job(new ChequeCycle)->daily();
+        $schedule->job(new ProductRenewal)->daily();
         $schedule->command('client:get-registered-14-days-ago')->everyMinute();
     }
 
