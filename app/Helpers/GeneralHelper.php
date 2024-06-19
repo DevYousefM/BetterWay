@@ -11,6 +11,7 @@ use App\V1\General\GeneralSetting;
 use App\V1\Brand\Branch;
 use App\V1\Brand\BrandProductBranch;
 use App\V1\Client\Client;
+use App\V1\Client\ClientFriend;
 use App\V1\Client\ClientLedger;
 use App\V1\Client\ClientNotification;
 use App\V1\Client\ClientNotificationDetail;
@@ -225,19 +226,29 @@ function GetCity($Client)
 function GetCoForClient($Client)
 {
     $ClientPlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
-    $IDsInPath = explode('-', $ClientPlanNetwork->PlanNetworkPath);
-    $CoForClient = null;
-    foreach ($IDsInPath as $id) {
-        $getClient = Client::where("IDClient", $id)->first();
-        if ($getClient->IDPosition) {
-            $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
-            if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
-                $CoForClient = ["IDClient" => $getClient->IDClient, "ClientName" => $getClient->ClientName, "ClientNameArabic" => $getClient->ClientNameArabic];
-                break;
+    if ($ClientPlanNetwork) {
+        $IDsInPath = explode('-', $ClientPlanNetwork->PlanNetworkPath);
+        $CoForClient = null;
+        foreach ($IDsInPath as $id) {
+            $getClient = Client::where("IDClient", $id)->first();
+            if ($getClient->IDPosition) {
+                $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
+                $clientFriend = ClientFriend::where("IDClient", $getClient->IDClient)->whereNotIn("ClientFriendStatus", ["REMOVED", "REJECTED"])->first();
+                if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
+                    $CoForClient = [
+                        "IDClient" => $getClient->IDClient,
+                        "ClientName" => $getClient->ClientName,
+                        "ClientNameArabic" => $getClient->ClientNameArabic,
+                        "IDClientFriend" => $clientFriend ? $clientFriend->IDClientFriend : null
+                    ];
+                    break;
+                }
             }
         }
+        return $CoForClient;
+    } else {
+        return null;
     }
-    return $CoForClient;
 }
 
 function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplinePoints, $PlanNetwork, $Source, $Destination, $Type, $BatchNumber)
