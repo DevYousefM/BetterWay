@@ -442,7 +442,6 @@ class ClientController extends Controller
         $Client->ClientAppLanguage = $ClientAppLanguage;
         $Client->ClientAppVersion = $ClientAppVersion;
         $Client->ClientMobileService = $ClientMobileService;
-        $Client->ClientStatus = "ACTIVE";
         $Client->VerificationCode = CreateVerificationCode();
         $Client->save();
 
@@ -464,8 +463,23 @@ class ClientController extends Controller
         $AccessToken = CreateToken($Credentials, 'client')['accessToken'];
 
         $APICode = APICode::where('IDAPICode', 5)->first();
-        $response = array('IDClient' => $Client->IDClient, 'ClientAppID' => $ClientAppID, 'ClientPhone' => $ClientPhone, 'ClientPhoneFlag' => $ClientPhoneFlag, 'ClientName' => $ClientName, 'ClientEmail' => $ClientEmail, 'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '', 'ClientPrivacy' => $Client->ClientPrivacy, "IDArea" => $IDArea, 'ClientBalance' => 0, 'ClientStatus' => "ACTIVE", 'AccessToken' => $AccessToken);
-        $response_array = array('Success' => true, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
+        $response = array(
+            'IDClient' => $Client->IDClient,
+            'ClientAppID' => $ClientAppID,
+            'ClientPhone' => $ClientPhone,
+            'ClientPhoneFlag' => $ClientPhoneFlag,
+            'ClientName' => $ClientName,
+            'ClientEmail' => $ClientEmail,
+            'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
+            'ClientPrivacy' => $Client->ClientPrivacy, "IDArea" => $IDArea,
+            'ClientBalance' => 0,
+            'ClientStatus' => "PENDING",
+            'AccessToken' => $AccessToken
+        );
+        $response_array = array(
+            'Success' => true,
+            'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response
+        );
         $response = Response::json($response_array, $response_code);
         return $response;
     }
@@ -476,7 +490,6 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
-
         $IDClient = $Client->IDClient;
         if ($request->Filled('ClientGender')) {
             $ClientGender = $request->ClientGender;
@@ -731,7 +744,10 @@ class ClientController extends Controller
         }
 
         $FlowStatus = "PRODUCT";
-        if ($Client->ClientNationalID) {
+        if ($Client->ClientStatus == "PENDING") {
+            $FlowStatus = "PRODUCT";
+        }
+        if ($Client->ClientNationalID || $Client->ClientPassport) {
             $FlowStatus = "HOME";
         } else {
             $PlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
@@ -753,7 +769,22 @@ class ClientController extends Controller
         $response_code = 200;
         $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
 
-        $response = array('IDClient' => $Client->IDClient, 'Co' => $CoForClient, 'ClientPhone' => $Client->ClientPhone, 'ClientPhoneFlag' => $Client->ClientPhoneFlag, 'ClientName' => $Client->ClientName, 'ClientEmail' => $Client->ClientEmail, 'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '', 'ClientCoverImage' => ($Client->ClientCoverImage) ? asset($Client->ClientCoverImage) : '', 'ClientStatus' => $Client->ClientStatus, "FlowStatus" => $FlowStatus, 'ClientBalance' => $Client->ClientBalance, "ClientGender" => $Client->ClientGender, "PositionName" => $PositionName, 'AccessToken' => $AccessToken);
+        $response = array(
+            'IDClient' => $Client->IDClient,
+            'Co' => $CoForClient,
+            'ClientPhone' => $Client->ClientPhone,
+            'ClientPhoneFlag' => $Client->ClientPhoneFlag,
+            'ClientName' => $Client->ClientName,
+            'ClientEmail' => $Client->ClientEmail,
+            'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
+            'ClientCoverImage' => ($Client->ClientCoverImage) ? asset($Client->ClientCoverImage) : '',
+            'ClientStatus' => $Client->ClientStatus,
+            "FlowStatus" => $FlowStatus,
+            'ClientBalance' => $Client->ClientBalance,
+            "ClientGender" => $Client->ClientGender,
+            "PositionName" => $PositionName,
+            'AccessToken' => $AccessToken
+        );
         $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;
@@ -1883,10 +1914,6 @@ class ClientController extends Controller
         } else if ($BrandProduct->BrandProductDiscountType === "INVOICE") {
             $Amount = 0;
         };
-
-        if ($Client->ClientBalance < $Amount && $IDPaymentMethod != 1) {
-            return RespondWithBadRequest(26);
-        }
 
         $RandomNum = mt_rand(1000, 9999);
         $TimeFormat = new DateTime('now');
@@ -3471,6 +3498,9 @@ class ClientController extends Controller
         $CompanyLedger->save();
 
         $Client = Client::find($IDClient);
+        $Client->ClientStatus = "ACTIVE";
+        $Client->save();
+
         $BatchNumber = "#PN" . $PlanNetwork->IDPlanNetwork;
         $TimeFormat = new DateTime('now');
         $Time = $TimeFormat->format('H');

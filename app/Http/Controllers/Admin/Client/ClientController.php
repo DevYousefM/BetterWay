@@ -337,7 +337,18 @@ class ClientController extends Controller
         ActionBackLog($Admin->IDUser, $Client->IDClient, "ADD_CLIENT", $Desc);
 
         $APICode = APICode::where('IDAPICode', 5)->first();
-        $response = array('IDClient' => $Client->IDClient, 'ClientAppID' => $ClientAppID, 'ClientPhone' => $ClientPhone, 'ClientPhoneFlag' => $ClientPhoneFlag, 'ClientName' => $ClientName, 'ClientEmail' => $ClientEmail, 'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '', 'ClientPrivacy' => $Client->ClientPrivacy, "IDArea" => $IDArea, 'ClientBalance' => 0, "ClientGender" => $ClientGender, 'ClientStatus' => "INACTIVE");
+        $response = array(
+            'IDClient' => $Client->IDClient,
+            'ClientAppID' => $ClientAppID,
+            'ClientPhone' => $ClientPhone,
+            'ClientPhoneFlag' => $ClientPhoneFlag,
+            'ClientName' => $ClientName,
+            'ClientEmail' => $ClientEmail,
+            'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
+            'ClientPrivacy' => $Client->ClientPrivacy,
+            "IDArea" => $IDArea,
+            'ClientBalance' => 0, "ClientGender" => $ClientGender, 'ClientStatus' => "INACTIVE"
+        );
         $response_array = array('Success' => true, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
         return $response;

@@ -231,12 +231,16 @@ function GetCoForClient($Client)
         $CoForClient = null;
         foreach ($IDsInPath as $id) {
             $getClient = Client::where("IDClient", $id)->first();
-            if ($getClient->IDPosition) {
-                $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
-                $clientFriend = ClientFriend::where("IDClient", $getClient->IDClient)->whereNotIn("ClientFriendStatus", ["REMOVED", "REJECTED"])->first();
-                if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
-                    $CoForClient = $getClient;
-                    break;
+            if ($getClient) {
+                if ($getClient->IDPosition) {
+                    $getPosition = Position::where("IDPosition", $getClient->IDPosition)->first();
+                    $clientFriend = ClientFriend::where("IDClient", $getClient->IDClient)->whereNotIn("ClientFriendStatus", ["REMOVED", "REJECTED"])->first();
+                    if (strcasecmp($getPosition->PositionTitleEn, "CO") === 0) {
+                        $CoForClient = $getClient;
+                        $CoForClient["Position"] = $getPosition;
+                        $CoForClient["IDClientFriend"] = $clientFriend ? $clientFriend->IDClientFriend : null;
+                        break;
+                    }
                 }
             }
         }
