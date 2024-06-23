@@ -1740,6 +1740,29 @@ class BrandController extends Controller
             return RespondWithBadRequest(1);
         }
 
+        $BrandProductInvoiceMin = $request->BrandProductInvoiceMin;
+        $BrandProductMaxDiscount = $request->BrandProductMaxDiscount;
+        
+        if ($BrandProductDiscountType === "INVOICE") {
+            $BrandProductPrice = 0;
+        } else {
+            if (!$BrandProductPrice) {
+                return RespondWithBadRequest(1);
+            }
+        }
+        if ($BrandProductDiscountType === "INVOICE") {
+            if (!$BrandProductInvoiceMin) {
+                return RespondWithBadRequest(1);
+            }
+            if (!$BrandProductMaxDiscount) {
+                return RespondWithBadRequest(1);
+            }
+        }
+        if ($BrandProductDiscountType === "INVOICE") {
+            $BrandProduct->BrandProductMaxDiscount = $BrandProductMaxDiscount;
+            $BrandProduct->BrandProductInvoiceMin = $BrandProductInvoiceMin;
+        }
+
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
         if ($BrandProductGallery) {
             foreach ($BrandProductGallery as $Photo) {

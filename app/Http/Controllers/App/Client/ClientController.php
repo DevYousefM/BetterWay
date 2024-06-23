@@ -623,6 +623,7 @@ class ClientController extends Controller
         $Client->ClientIDAddress = $ClientIDAddress;
         $Client->ClientLatitude = $ClientLatitude;
         $Client->ClientLongitude = $ClientLongitude;
+        $Client->ClientStatus = "ACTIVE";
         $Client->save();
 
         if ($ClientNationalIDImage) {
@@ -771,6 +772,7 @@ class ClientController extends Controller
 
         $response = array(
             'IDClient' => $Client->IDClient,
+            "ClientAppID"=>$Client->ClientAppID,
             'Co' => $CoForClient,
             'ClientPhone' => $Client->ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
@@ -1059,6 +1061,7 @@ class ClientController extends Controller
             'ClientPhone' => $ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
             'ClientName' => $Client->ClientName,
+            "ClientAppID"=>$Client->ClientAppID,
             'Co' => $CoForClient,
             'LoginBy' => $Client->LoginBy,
             'ClientEmail' => $Client->ClientEmail,
