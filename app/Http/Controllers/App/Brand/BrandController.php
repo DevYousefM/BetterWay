@@ -195,7 +195,9 @@ class BrandController extends Controller
             }
         }
         $ClientBrandProduct->BrandProductGallery = $BrandProductGallery;
-
+        if ($this->BrandProductDiscountType === "VALUE") {
+            $BrandProductDiscount = round(($BrandProductDiscount / $this->BrandProductPrice) * 100);
+        }
         $ClientBrandProduct = ClientBrandProductResource::collection([$ClientBrandProduct])[0];
 
         $APICode = APICode::where('IDAPICode', 8)->first();

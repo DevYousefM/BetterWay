@@ -469,8 +469,8 @@ class ClientController extends Controller
             $Upline = NULL;
         }
 
-        if ($request->Filled('Position')) {
-            $PlanNetworkPosition = $request->Position;
+        if ($request->Filled('PlanNetworkPosition')) {
+            $PlanNetworkPosition = $request->PlanNetworkPosition;
         } else {
             $PlanNetworkPosition = "LEFT";
         }
@@ -678,6 +678,7 @@ class ClientController extends Controller
         $Client->IDReferral = $IDReferralClient;
         $Client->IDUpline = $IDParentClient;
         $Client->NetworkPosition = $PlanNetworkPosition;
+        $Client->ClientStatus = "ACTIVE";
 
         $BatchNumber = "#PN" . $PlanNetwork->IDPlanNetwork;
         $TimeFormat = new DateTime('now');

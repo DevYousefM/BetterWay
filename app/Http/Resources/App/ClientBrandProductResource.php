@@ -24,7 +24,11 @@ class ClientBrandProductResource extends JsonResource
             $SubCategoryName = "SubCategoryNameEn";
             $BrandName = "BrandNameEn";
         }
-
+        if ($this->BrandProductDiscountType === "VALUE") {
+            $BrandProductDiscount = round(($this->BrandProductDiscount / $this->BrandProductPrice) * 100);
+        }else{
+            $BrandProductDiscount = $this->BrandProductDiscount;
+        }
 
         return [
             'IDBrandProduct'             => $this->IDBrandProduct,
@@ -37,7 +41,7 @@ class ClientBrandProductResource extends JsonResource
             'BrandLogo'                  => ($this->BrandLogo) ? asset($this->BrandLogo) : '',
             'BrandRating'                => $this->BrandRating,
             'BrandProductPrice'          => $this->BrandProductPrice,
-            'BrandProductDiscount'       => $this->BrandProductDiscount,
+            'BrandProductDiscount'       => $BrandProductDiscount,
             'BrandProductDiscountType'   => $this->BrandProductDiscountType,
             'BrandProductInvoiceMin'     => $this->BrandProductInvoiceMin,
             'BrandProductMaxDiscount'     => $this->BrandProductMaxDiscount,

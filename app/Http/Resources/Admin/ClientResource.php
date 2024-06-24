@@ -5,28 +5,34 @@ namespace App\Http\Resources\Admin;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
 use App\V1\Client\Client;
+use App\V1\General\Nationality;
 use App\V1\Plan\Plan;
 use App\V1\Plan\PlanNetwork;
 
 class ClientResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $User = auth('user')->user();
-        if($User){
+        if ($User) {
             $UserLanguage = AdminLanguage($User->UserLanguage);
-            $AreaName = "AreaName".$UserLanguage;
-            $CityName = "CityName".$UserLanguage;
-            $PlanName = "PlanName".$UserLanguage;
-            $PositionTitle = "PositionTitle".$UserLanguage;
+            $AreaName = "AreaName" . $UserLanguage;
+            $CityName = "CityName" . $UserLanguage;
+            $PlanName = "PlanName" . $UserLanguage;
+            $PositionTitle = "PositionTitle" . $UserLanguage;
         }
 
         $ClientPicture = $this->ClientPicture;
-        if($this->ClientPrivacy && $User->IDRole != 1){
+        if ($this->ClientPrivacy && $User->IDRole != 1) {
             $ClientPicture = Null;
         }
 
-        $ReferralNumber = PlanNetwork::where("IDReferralClient",$this->IDClient)->count();
+        $ReferralNumber = PlanNetwork::where("IDReferralClient", $this->IDClient)->count();
+        $Nationality = Nationality::find($this->IDNationality);
+        $ClientAppLanguage = LocalAppLanguage();
+        $ClientNationality = "NationalityName" . $ClientAppLanguage;
+        $ClientNationality = $Nationality->$ClientNationality;
 
         return [
             'IDClient'               => $this->IDClient,
@@ -55,7 +61,7 @@ class ClientResource extends JsonResource
             'ClientPassport'         => $this->ClientPassport,
             'ClientCurrentAddress'   => $this->ClientCurrentAddress,
             'ClientIDAddress'        => $this->ClientIDAddress,
-            'ClientNationality'      => $this->ClientNationality,
+            'ClientNationality'      => $ClientNationality,
             'ContractCompleted'      => $this->ClientContractCompleted,
             'PositionTitle'          => ($this->$PositionTitle) ? $this->$PositionTitle : '',
             'CityName'               => $this->$CityName,

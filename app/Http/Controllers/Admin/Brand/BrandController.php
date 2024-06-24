@@ -1509,7 +1509,7 @@ class BrandController extends Controller
         if ($User->IDRole != 1) {
             $BrandProduct = $BrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
         }
-        $BrandProduct = $BrandProduct->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr")->first();
+        $BrandProduct = $BrandProduct->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductInvoiceMin", "brandproducts.BrandProductMaxDiscount", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr")->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(1);
         }
@@ -1724,9 +1724,11 @@ class BrandController extends Controller
         $BrandProductTitleAr = $request->BrandProductTitleAr;
         $BrandProductDescEn = $request->BrandProductDescEn;
         $BrandProductDescAr = $request->BrandProductDescAr;
+
         $BrandProductPrice = $request->BrandProductPrice;
         $BrandProductDiscount = $request->BrandProductDiscount;
         $BrandProductDiscountType = $request->BrandProductDiscountType;
+
         $BrandProductPoints = $request->BrandProductPoints;
         $BrandProductUplinePoints = $request->BrandProductUplinePoints;
         $BrandProductReferralPoints = $request->BrandProductReferralPoints;
@@ -1742,9 +1744,9 @@ class BrandController extends Controller
 
         $BrandProductInvoiceMin = $request->BrandProductInvoiceMin;
         $BrandProductMaxDiscount = $request->BrandProductMaxDiscount;
-        
+
         if ($BrandProductDiscountType === "INVOICE") {
-            $BrandProductPrice = 0;
+            $BrandProduct->BrandProductPrice = 0;
         } else {
             if (!$BrandProductPrice) {
                 return RespondWithBadRequest(1);
@@ -1761,6 +1763,9 @@ class BrandController extends Controller
         if ($BrandProductDiscountType === "INVOICE") {
             $BrandProduct->BrandProductMaxDiscount = $BrandProductMaxDiscount;
             $BrandProduct->BrandProductInvoiceMin = $BrandProductInvoiceMin;
+        } else {
+            $BrandProduct->BrandProductMaxDiscount = null;
+            $BrandProduct->BrandProductInvoiceMin = null;
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
@@ -1800,9 +1805,11 @@ class BrandController extends Controller
             $Desc = $Desc . ", Brand Product referral points changed from " . $BrandProduct->BrandProductReferralPoints . " to " . $BrandProductReferralPoints;
             $BrandProduct->BrandProductReferralPoints = $BrandProductReferralPoints;
         }
-        if ($BrandProductPrice) {
-            $Desc = $Desc . ", Brand Product price changed from " . $BrandProduct->BrandProductPrice . " to " . $BrandProductPrice;
-            $BrandProduct->BrandProductPrice = $BrandProductPrice;
+        if ($BrandProductDiscountType !== "INVOICE") {
+            if ($BrandProductPrice) {
+                $Desc = $Desc . ", Brand Product price changed from " . $BrandProduct->BrandProductPrice . " to " . $BrandProductPrice;
+                $BrandProduct->BrandProductPrice = $BrandProductPrice;
+            }
         }
         if ($BrandProductDiscount || $BrandProductDiscount == 0) {
             $Desc = $Desc . ", Brand Product discount changed from " . $BrandProduct->BrandProductDiscount . " to " . $BrandProductDiscount;
