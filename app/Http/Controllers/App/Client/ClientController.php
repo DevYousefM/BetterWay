@@ -379,8 +379,12 @@ class ClientController extends Controller
             }
         }
 
-        $ClientPrivacy = 1;
-        $IDNationality = 1;
+        if ($request->Filled('ClientPrivacy')) {
+            $ClientPrivacy = $request->ClientPrivacy;
+        } else {
+            $ClientPrivacy = 1;
+        }
+        $IDNationality = Nationality::first();
         $IDArea = 1;
         if ($LoginBy == "MANUAL") {
             $ClientRecord = Client::where('ClientPhone', $ClientPhone)->where("ClientDeleted", 0)->first();
@@ -555,7 +559,7 @@ class ClientController extends Controller
         }
         if ($request->Filled('ClientPrivacy')) {
             $ClientPrivacy = $request->ClientPrivacy;
-            $Client->ClientPrivacy = $ClientPrivacy;
+            $Client->ClientPrivacy = intval($ClientPrivacy);
         }
         if ($request->Filled('ClientPassport')) {
             $ClientPassport = $request->ClientPassport;
@@ -772,7 +776,7 @@ class ClientController extends Controller
 
         $response = array(
             'IDClient' => $Client->IDClient,
-            "ClientAppID"=>$Client->ClientAppID,
+            "ClientAppID" => $Client->ClientAppID,
             'Co' => $CoForClient,
             'ClientPhone' => $Client->ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
@@ -1061,7 +1065,7 @@ class ClientController extends Controller
             'ClientPhone' => $ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
             'ClientName' => $Client->ClientName,
-            "ClientAppID"=>$Client->ClientAppID,
+            "ClientAppID" => $Client->ClientAppID,
             'Co' => $CoForClient,
             'LoginBy' => $Client->LoginBy,
             'ClientEmail' => $Client->ClientEmail,
@@ -1424,7 +1428,7 @@ class ClientController extends Controller
         $Brands = Brand::where("BrandStatus", "ACTIVE")->limit(4)->get();
         $Brands = BrandResource::collection($Brands);
 
-        $Categories = Category::where("CategoryActive", 1)->limit(4)->get();
+        $Categories = Category::where("CategoryActive", 1)->where("CategoryType", "PROJECT")->limit(4)->get();
         $Categories = CategoryResource::collection($Categories);
 
         $BrandProducts = BrandProduct::leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand");
@@ -1616,7 +1620,7 @@ class ClientController extends Controller
 
     public function Categories(Request $request)
     {
-        $Categories = Category::where("CategoryActive", 1)->get();
+        $Categories = Category::where("CategoryActive", 1)->where("CategoryType", "PROJECT")->get();
         $Categories = CategoryResource::collection($Categories);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -1633,11 +1637,16 @@ class ClientController extends Controller
     {
         $IDCategory = $request->IDCategory;
 
-        $SubCategories = SubCategory::where("SubCategoryActive", 1);
+        $query = SubCategory::where("SubCategoryActive", 1)
+            ->leftJoin("categories", "categories.IDCategory", "=", "subcategories.IDCategory")
+            ->where("categories.CategoryType", "PROJECT")
+            ->select('subcategories.*', 'categories.*');
+
         if ($IDCategory) {
-            $SubCategories = $SubCategories->where("IDCategory", $IDCategory);
+            $query = $query->where("subcategories.IDCategory", $IDCategory);
         }
-        $SubCategories = $SubCategories->get();
+
+        $SubCategories = $query->get();
         $SubCategories = SubCategoryResource::collection($SubCategories);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
