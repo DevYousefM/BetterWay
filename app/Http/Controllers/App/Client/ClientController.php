@@ -384,7 +384,7 @@ class ClientController extends Controller
         } else {
             $ClientPrivacy = 1;
         }
-        $IDNationality = Nationality::first();
+        $IDNationality = Nationality::first()->IDNationality;
         $IDArea = 1;
         if ($LoginBy == "MANUAL") {
             $ClientRecord = Client::where('ClientPhone', $ClientPhone)->where("ClientDeleted", 0)->first();
