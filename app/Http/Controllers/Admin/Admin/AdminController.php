@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Admin;
 
 header('Content-type: application/json');
 
+use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Admin\EventResource;
 use App\Http\Resources\Admin\ToolResource;
@@ -15,6 +16,7 @@ use App\Http\Resources\Admin\CategoryResource;
 use App\Http\Resources\Admin\SubCategoryResource;
 use App\Http\Resources\Admin\AdvertisementResource;
 use App\V1\User\User;
+use App\Notification;
 use App\V1\User\Role;
 use App\V1\User\RoleSection;
 use App\V1\User\ActionBackLog;
@@ -62,6 +64,8 @@ class AdminController extends Controller
     public function AdminLogin(Request $request)
     {
         $User = auth('user')->user();
+
+
         if (!$User) {
             //case 2: no token sent or token has expired or invalid
             if (!$request->filled('UserName')) {
@@ -98,13 +102,20 @@ class AdminController extends Controller
             $AccessToken = $request->bearerToken();
         }
 
+        $Source = $request->Dashboard;
+        if ($Source == "Admin") {
+            if ($User->Role === "Branch" || $User->Role === "Brand") return RespondWithBadRequest(59);
+        } else if ($Source == "Brand") {
+            if ($User->Role === "Branch" || $User->Role === "Admin") return RespondWithBadRequest(59);
+        } else {
+            return RespondWithBadRequest(1);
+        }
         if ($User->UserStatus == "INACTIVE") {
             return RespondWithBadRequest(6);
         }
         if ($User->UserStatus == "PENDING") {
             return RespondWithBadRequest(36);
         }
-
         $AdminSessionTimeout = GeneralSetting::where("GeneralSettingName", "AdminSessionTimeout")->first();
         $AdminSessionTimeout = $AdminSessionTimeout->GeneralSettingValue;
 
@@ -3228,5 +3239,133 @@ class AdminController extends Controller
             'Response' => $Response,
         );
         return $Response;
+    }
+    public function backup()
+    {
+        // Define the backup file name
+        $fileName = 'backup-' . date('Y-m-d_H-i-s') . '.sql';
+        // Define the full path to the backup file
+        $filePath = storage_path('app/' . $fileName);
+
+        // Run the mysqldump command to create the backup
+        $command = sprintf(
+            'mysqldump --user=%s --password=%s --host=%s %s > %s',
+            escapeshellarg(Config::get('database.connections.mysql.username')),
+            escapeshellarg(Config::get('database.connections.mysql.password')),
+            escapeshellarg(Config::get('database.connections.mysql.host')),
+            escapeshellarg(Config::get('database.connections.mysql.database')),
+            escapeshellarg($filePath)
+        );
+
+        $returnVar = NULL;
+        $output = NULL;
+        exec($command . ' 2>&1', $output, $returnVar);
+
+        if ($returnVar !== 0) {
+            // Log the error for debugging
+            Log::error('Backup failed', [
+                'command' => $command,
+                'output' => $output,
+                'returnVar' => $returnVar
+            ]);
+            return response()->json(['error' => 'Backup failed', 'details' => $output], 500);
+        }
+
+        // Check if the file was created
+        if (!file_exists($filePath)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        return response()->download($filePath)->deleteFileAfterSend(true);
+    }
+
+    public function UploadContract(Request $request)
+    {
+        $request->validate([
+            'contract' => 'required|file|mimes:pdf,doc,docx|max:2048', // Adjust file types and size as needed
+        ]);
+
+        // Find the client by ID
+        $client = Client::findOrFail($request->client_id);
+        // Store the file in storage/app/contract
+        if ($request->hasFile('contract')) {
+            // Store the file in storage/app/contract
+            $document = $request->file('contract');
+            $id = $request->client_id;
+            $filePath = SaveContract($document, $id);
+            // Save the file path in the database
+            $client->update(['contract_path' => $filePath]);
+
+            // Construct the full URL path manually
+            $url = asset($filePath);
+
+            return response()->json(['message' => 'File uploaded successfully', 'file_url' => $url], 200);
+        } else {
+            return response()->json(['error' => 'No file attached in the request'], 400);
+        }
+    }
+    public function sendNotifications(Request $request)
+    {
+        $ids = $request->input('ids');
+        $users = Client::whereIn('IDClient', $ids)->get();
+        $firebaseTokens = $users->pluck('ClientDeviceToken')->toArray();
+        $SERVER_API_KEY = 'AAAAlWZnFGI:APA91bGNNe4QgAf7yuPAvKZnihGD2EvtJMb-fiDy1l4RNd3Wbz6Y2P6Zo6hptcsYxUs7BfyL2ZlcS2INzQLS-4xzHA2ndRXq_Z2W2OpxmKNGT0QTCjmSyNtxjCUlCLDNPeIJ6r1wvwmb';
+        $body = $request->input('body');
+        $title = $request->input('title');
+
+        $data = [
+            "registration_ids" => $firebaseTokens,
+            "notification" => [
+                "title" => $title,
+                "body" => $body,
+            ]
+        ];
+        $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        $headers = [
+            'Authorization: key=' . $SERVER_API_KEY,
+            'Content-Type: application/json; charset=UTF-8',
+        ];
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
+        $response = curl_exec($ch);
+
+        if ($response === false) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            return response()->json(['error' => $error], 500);
+        }
+
+        $responseData = json_decode($response, true);
+
+        // Handle response from FCM and store only successful notifications
+        if (isset($responseData['results'])) {
+            foreach ($responseData['results'] as $key => $result) {
+                if (isset($result['message_id'])) {
+                    // Notification sent successfully
+                    $user = $users[$key];
+                    Notification::create([
+                        'client_id' => $user->IDClient,
+                        'title' => $title,
+                        'body' => $body,
+                    ]);
+                } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
+                    // Handle "NotRegistered" error - remove token from your database or list
+                    $invalidToken = $firebaseTokens[$key];
+                    Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
+                }
+            }
+        }
+
+        curl_close($ch);
+
+        return response()->json(['response' => $responseData], 200);
     }
 }

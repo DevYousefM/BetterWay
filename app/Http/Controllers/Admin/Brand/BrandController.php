@@ -1381,9 +1381,9 @@ class BrandController extends Controller
         $BrandProductInvoiceMin = $request->BrandProductInvoiceMin;
         $BrandProductMaxDiscount = $request->BrandProductMaxDiscount;
 
-        if ($User->IDRole != 1) {
-            $IDBrand = $User->IDBrand;
-        }
+        // if ($User->IDRole != 1) {
+        //     $IDBrand = $User->IDBrand;
+        // }
         if (!$IDBrand) {
             return RespondWithBadRequest(1);
         }
@@ -1506,7 +1506,7 @@ class BrandController extends Controller
     {
         $User = auth('user')->user();
         $BrandProduct = BrandProduct::leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("brandproducts.IDBrandProduct", $IDBrandProduct);
-        if ($User->IDRole != 1) {
+        if ($User->IDBrand && $User->IDBrand != 1) {
             $BrandProduct = $BrandProduct->where("brandproducts.IDBrand", $User->IDBrand);
         }
         $BrandProduct = $BrandProduct->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductInvoiceMin", "brandproducts.BrandProductMaxDiscount", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr")->first();

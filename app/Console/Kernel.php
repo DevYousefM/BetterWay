@@ -26,6 +26,8 @@ class Kernel extends ConsoleKernel
         $schedule->job(new ChequeCycle)->daily();
         $schedule->job(new ProductRenewal)->daily();
         $schedule->command('client:get-registered-14-days-ago')->everyMinute();
+                $schedule->command('send:notifications')->daily();
+
     }
 
     /**

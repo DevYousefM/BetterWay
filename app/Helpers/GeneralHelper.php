@@ -339,7 +339,14 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
                 }
 
                 $Client->save();
-                $ChildPosition = PlanNetwork::where("IDClient", $IDParentClient)->first()->PlanNetworkPosition;
+                $ParentPlanNetwork = PlanNetwork::where("IDClient", $IDParentClient)->first();
+
+                if (!$ParentPlanNetwork) {
+                    // Handle the case where $ParentPlanNetwork is null
+                    return RespondWithBadRequest(35); // or any appropriate error handling
+                }
+
+                $ChildPosition = $ParentPlanNetwork->PlanNetworkPosition;
             }
         }
     }
@@ -611,7 +618,14 @@ function SaveImage($File, $FolderName, $ID)
 {
     return "uploads/" . Storage::disk('uploads')->put($FolderName . "/" . $ID, $File);
 }
-
+function SaveContract($document, $id)
+{
+    return Storage::disk('uploads')->put('contract' . "/" . $id, $document);
+}
+function DeleteContract($filePath)
+{
+    Storage::disk('uploads')->delete($filePath);
+}
 
 function ActionBackLog($IDUser, $IDLink, $ActionBackLogType, $ActionBackLogDesc)
 {

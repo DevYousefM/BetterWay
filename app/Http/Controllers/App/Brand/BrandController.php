@@ -19,6 +19,8 @@ use App\V1\General\Category;
 use App\V1\General\SubCategory;
 use App\V1\General\ContactUs;
 use App\V1\Client\Client;
+use App\Notification;
+
 use App\V1\Client\ClientBrandProduct;
 use App\V1\Location\Country;
 use App\V1\Location\City;
@@ -44,7 +46,7 @@ use DB;
 class BrandController extends Controller
 {
 
-    public function UserLogin(Request $request)
+      public function UserLogin(Request $request)
     {
         if ($request->Filled('UserAppLanguage')) {
             $UserAppLanguage = $request->UserAppLanguage;
@@ -86,16 +88,15 @@ class BrandController extends Controller
             if (!$AccessToken) {
                 return RespondWithBadRequest(6);
             }
-
             $AccessToken = $AccessToken['accessToken'];
             $User = auth('user')->user();
         } else {
             $AccessToken = $request->bearerToken();
         }
-
         if ($request->filled('UserDeviceToken')) {
             $User->UserDeviceToken = $request->UserDeviceToken;
         }
+
         if ($request->filled('UserDeviceType')) {
             $User->UserDeviceType = $request->UserDeviceType;
         }
@@ -195,9 +196,7 @@ class BrandController extends Controller
             }
         }
         $ClientBrandProduct->BrandProductGallery = $BrandProductGallery;
-        if ($this->BrandProductDiscountType === "VALUE") {
-            $BrandProductDiscount = round(($BrandProductDiscount / $this->BrandProductPrice) * 100);
-        }
+
         $ClientBrandProduct = ClientBrandProductResource::collection([$ClientBrandProduct])[0];
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -210,7 +209,7 @@ class BrandController extends Controller
         return $Response;
     }
 
-    public function QRCodeUse(Request $request)
+     public function QRCodeUse(Request $request)
     {
 
         $User = auth('user')->user();
@@ -294,8 +293,77 @@ class BrandController extends Controller
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, 0, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "CASH", "PAYMENT", $BatchNumber);
-        return RespondWithSuccessRequest(8);
+    
+    $firebaseToken = $Client->ClientDeviceToken;
+        $SERVER_API_KEY = 'AAAAlWZnFGI:APA91bGNNe4QgAf7yuPAvKZnihGD2EvtJMb-fiDy1l4RNd3Wbz6Y2P6Zo6hptcsYxUs7BfyL2ZlcS2INzQLS-4xzHA2ndRXq_Z2W2OpxmKNGT0QTCjmSyNtxjCUlCLDNPeIJ6r1wvwmb';
+        $body = 'please review';
+        $title = 'review';
+       $data = [ 
+           "BrandProduct" => $BrandProduct,
+           "message" => "review"
+           ];
+        
+$data = [
+    "to" => $firebaseToken,
+    "notification" => [
+        "title" => $title,
+        "body" => $body,
+    ],
+    "data" => $data,
+];
+        $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
+    
+        $headers = [
+            'Authorization: key=' . $SERVER_API_KEY,
+            'Content-Type: application/json; charset=UTF-8',
+        ];
+    
+        $ch = curl_init();
+    
+        curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
+        $response = curl_exec($ch);
+    
+        if ($response === false) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            return response()->json(['error' => $error], 500);
+        }
+    
+        $responseData = json_decode($response, true);
+    
+        // Handle response from FCM and store only successful notifications
+        if (isset($responseData['results'])) {
+            foreach ($responseData['results'] as $key => $result) {
+                if (isset($result['message_id'])) {
+                    // Notification sent successfully
+                    Notification::create([
+                        'client_id' => $Client->IDClient,
+                        'title' => $title,
+                        'body' => $BrandProduct,
+                        'created_at' => Carbon::now(),
+                    ]);
+                } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
+                    // Handle "NotRegistered" error - remove token from your database or list
+                    $invalidToken = $firebaseTokens[$key];
+                    Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
+                }
+            }
+        }
+    
+        curl_close($ch);
+        
+        
+          return response()->json([
+        'status' => 'success',
+        '$BrandProduct' =>$BrandProduct
+    ], 200);
     }
+
 
     public function ClientBrandProducts(Request $request)
     {

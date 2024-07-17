@@ -10,7 +10,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable implements JWTSubject
 {
     use Notifiable;
-    
+
     protected $table = 'users';
     protected $primaryKey = 'IDUser';
     protected $guard = 'user';
@@ -43,5 +43,10 @@ class User extends Authenticatable implements JWTSubject
     }
     public function getRememberTokenName()
     {
+    }
+
+    public function getRoleAttribute()
+    {
+        return Role::where("IDRole", $this->IDRole)->first()->RoleName;
     }
 }

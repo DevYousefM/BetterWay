@@ -4,6 +4,7 @@ use App\Http\Controllers\App\Client\ClientController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\NotificationController;
 
 Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::get('/terms',[ClientController::class, 'Terms']);
@@ -87,4 +88,10 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
 
 
     Route::post('/test', [ClientController::class, 'Test']);
+            Route::get('/generate-pdf/{client_id}', [ClientController::class, 'generatePdf']);
+
+
+    Route::post('/send-notifications', [NotificationController::class, 'sendNotifications']);
+
+    Route::get('/all-noification/{client_id}', [NotificationController::class, 'allNoification']);
 });

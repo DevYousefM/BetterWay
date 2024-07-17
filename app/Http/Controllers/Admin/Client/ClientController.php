@@ -19,6 +19,7 @@ use App\Http\Resources\Admin\CountryResource;
 use App\Http\Resources\Admin\CityResource;
 use App\Http\Resources\Admin\AreaResource;
 use App\Http\Resources\Admin\BalanceTransferResource;
+use App\Http\Resources\ClientContractsResource;
 use App\V1\GhazalCart;
 use App\V1\Brand\Brand;
 use App\V1\Brand\BrandProduct;
@@ -72,12 +73,13 @@ use DateInterval;
 use Response;
 use Cookie;
 use DB;
+use Exception;
 use Facade\FlareClient\Http\Exceptions\BadResponse;
 use Paytabscom\Laravel_paytabs\Facades\paypage;
+use Mpdf\Mpdf;
 
 class ClientController extends Controller
 {
-
     public function ClientRegister(Request $request)
     {
         $Admin = auth('user')->user();
@@ -699,7 +701,7 @@ class ClientController extends Controller
         if (!$User) {
             return RespondWithBadRequest(10);
         }
-        $IDPage = $request->IDPage;
+        //  $IDPage = $request->IDPage;
         $IDCity = $request->IDCity;
         $IDArea = $request->IDArea;
         $IDPlan = $request->IDPlan;
@@ -714,11 +716,11 @@ class ClientController extends Controller
         $ClientDeleted = $request->ClientDeleted;
         $ClientContractCompleted = $request->ClientContractCompleted;
         $BalanceSort = $request->BalanceSort;
-        if (!$IDPage) {
-            $IDPage = 0;
-        } else {
-            $IDPage = ($request->IDPage - 1) * 20;
-        }
+        // if (!$IDPage) {
+        //     $IDPage = 0;
+        // } else {
+        //     $IDPage = ($request->IDPage - 1) * 20;
+        // }
 
         $Clients = $Clients->leftjoin("positions", "positions.IDPosition", "clients.IDPosition")->leftjoin("areas", "areas.IDArea", "clients.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->leftjoin("plannetwork", "plannetwork.IDClient", "clients.IDClient")->leftjoin("clients as C2", "C2.IDClient", "plannetwork.IDParentClient")->leftjoin("clients as C3", "C3.IDClient", "plannetwork.IDReferralClient")->leftjoin("plans", "plans.IDPlan", "plannetwork.IDPlan")->where("clients.ClientDeleted", 0);
         if ($SearchKey) {
@@ -779,15 +781,15 @@ class ClientController extends Controller
         $ClientNumber = $Clients->count();
         $ClientTotalRewardPoints = $Clients->sum("clients.ClientRewardPoints");
         $ClientTotalPoints = $Clients->sum("clients.ClientTotalPoints");
-        $Pages = ceil($Clients->count() / 20);
+        // $Pages = ceil($Clients->count() / 20);
         if ($BalanceSort) {
             $Clients = $Clients->orderby("clients.ClientBalance", $BalanceSort);
         } else {
             $Clients = $Clients->orderby("clients.IDClient", "DESC");
         }
-        $Clients = $Clients->select("clients.IDClient", "clients.ClientName","clients.IDNationality", "clients.ClientEmail", "clients.ClientPhone", "clients.ClientSecondPhone", "clients.ClientAppID", "clients.ClientStatus", "clients.ClientPicture", "clients.ClientBalance", "clients.ClientContractCompleted", "clients.ClientGender", "clients.ClientBirthDate", "clients.ClientNationalID", "clients.ClientRewardPoints", "clients.ClientLeftPoints", "clients.ClientRightPoints", "clients.ClientLeftNumber", "clients.ClientRightNumber", "clients.ClientPrivacy", "clients.ClientNameArabic", "clients.ClientDeleted", "clients.ClientCurrentAddress", "clients.ClientIDAddress", "clients.ClientPassport", "clients.ClientNationality", "areas.AreaNameEn", "areas.AreaNameAr", "cities.CityNameEn", "cities.CityNameAr", "clients.created_at", "positions.PositionTitleEn", "positions.PositionTitleAr", "plannetwork.IDParentClient", "plannetwork.IDReferralClient", "plans.PlanNameEn", "plans.PlanNameAr", "C2.ClientName as ParentName", "C2.ClientPhone as ParentPhone", "C3.ClientName as ReferralName", "C3.ClientPhone as ReferralPhone")->skip($IDPage)->take(20)->get();
+        $Clients = $Clients->select("clients.IDClient", "clients.ClientName", "clients.ClientEmail", "clients.ClientPhone", "clients.ClientSecondPhone", "clients.ClientAppID", "clients.ClientStatus", "clients.ClientPicture", "clients.ClientBalance", "clients.ClientContractCompleted", "clients.ClientGender", "clients.ClientBirthDate", "clients.ClientNationalID", "clients.ClientRewardPoints", "clients.ClientLeftPoints", "clients.ClientRightPoints", "clients.ClientLeftNumber", "clients.ClientRightNumber", "clients.ClientPrivacy", "clients.ClientNameArabic", "clients.ClientDeleted", "clients.ClientCurrentAddress", "clients.ClientIDAddress", "clients.ClientPassport", "clients.ClientNationality", "areas.AreaNameEn", "areas.AreaNameAr", "cities.CityNameEn", "cities.CityNameAr", "clients.created_at", "positions.PositionTitleEn", "positions.PositionTitleAr", "plannetwork.IDParentClient", "clients.IDNationality", "plannetwork.IDReferralClient", "plans.PlanNameEn", "plans.PlanNameAr", "C2.ClientName as ParentName", "C2.ClientPhone as ParentPhone", "C3.ClientName as ReferralName", "C3.ClientPhone as ReferralPhone")->get();
         $Clients = ClientResource::collection($Clients);
-        $Response = array("Clients" => $Clients, "ClientNumber" => $ClientNumber, "ClientTotalRewardPoints" => $ClientTotalRewardPoints, "ClientTotalPoints" => $ClientTotalPoints, "Pages" => $Pages);
+        $Response = array("Clients" => $Clients, "ClientNumber" => $ClientNumber, "ClientTotalRewardPoints" => $ClientTotalRewardPoints, "ClientTotalPoints" => $ClientTotalPoints);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -806,7 +808,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
         $Client = Client::leftjoin("areas", "areas.IDArea", "clients.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->where("clients.IDClient", $IDClient)->leftjoin("plannetwork", "plannetwork.IDClient", "clients.IDClient")->leftjoin("clients as C2", "C2.IDClient", "plannetwork.IDParentClient")->leftjoin("clients as C3", "C3.IDClient", "plannetwork.IDReferralClient")->leftjoin("plans", "plans.IDPlan", "plannetwork.IDPlan");
-        $Client = $Client->select("clients.IDClient", "clients.ClientName", "clients.ClientEmail", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientStatus", "clients.ClientPicture", "clients.ClientBalance", "clients.ClientDeleted", "clients.ClientGender", "clients.ClientBirthDate", "clients.ClientNationalID", "clients.ClientRewardPoints", "clients.ClientLeftPoints", "clients.ClientRightPoints", "clients.ClientLeftNumber", "clients.ClientRightNumber", "clients.ClientPrivacy", "clients.ClientNameArabic", "clients.ClientCurrentAddress", "clients.ClientIDAddress", "clients.ClientPassport", "clients.ClientNationality", "areas.AreaNameEn", "areas.AreaNameAr", "cities.CityNameEn", "cities.CityNameAr", "clients.created_at", "plannetwork.IDParentClient", "plannetwork.IDReferralClient", "plans.PlanNameEn", "plans.PlanNameAr", "C2.ClientName as ParentName", "C2.ClientPhone as ParentPhone", "C3.ClientName as ReferralName", "C3.ClientPhone as ReferralPhone")->first();
+        $Client = $Client->select("clients.IDClient", "clients.IDNationality", "clients.ClientName", "clients.ClientEmail", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientStatus", "clients.ClientPicture", "clients.ClientBalance", "clients.ClientDeleted", "clients.ClientGender", "clients.ClientBirthDate", "clients.ClientNationalID", "clients.ClientRewardPoints", "clients.ClientLeftPoints", "clients.ClientRightPoints", "clients.ClientLeftNumber", "clients.ClientRightNumber", "clients.ClientPrivacy", "clients.ClientNameArabic", "clients.ClientCurrentAddress", "clients.ClientIDAddress", "clients.ClientPassport", "clients.ClientNationality", "areas.AreaNameEn", "areas.AreaNameAr", "cities.CityNameEn", "cities.CityNameAr", "clients.created_at", "plannetwork.IDParentClient", "plannetwork.IDReferralClient", "plans.PlanNameEn", "plans.PlanNameAr", "C2.ClientName as ParentName", "C2.ClientPhone as ParentPhone", "C3.ClientName as ReferralName", "C3.ClientPhone as ReferralPhone")->first();
         if (!$Client) {
             return RespondWithBadRequest(1);
         }
@@ -2966,6 +2968,115 @@ class ClientController extends Controller
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => $Clients
+        );
+        return $Response;
+    }
+    public function generatePdf($Client_id)
+    {
+        $Client = Client::where("IDClient", $Client_id)->first();
+        $date = $Client->created_at;
+
+        $carbonDate = Carbon::parse($date);
+        $carbonDate->locale('ar'); // Set locale to Arabic
+        $day = $carbonDate->translatedFormat('l'); // 'l' stands for the full textual representation of the day
+
+        $data = [
+            'client' => $Client,
+            'date' => $carbonDate->format('Y-m-d'), // Format date as string
+            'day' => $day,
+        ];
+
+        $mpdfConfig = array(
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'p',
+            'margin_header' => 2, // 30mm not pixel
+            'margin_footer' => 2, // 10mm
+        );
+        $pdf = new Mpdf($mpdfConfig);
+        $pdf->SetXY(100, 80);
+        $pdf->SetAutoPageBreak(true, 10);
+        $pdf->SetHTMLFooter('الصفحة: {PAGENO} ');
+        $pdf->autoScriptToLang = true;
+        $pdf->autoLangToFont = true;
+        $pdf->AddPage();
+        $pdf->SetDirectionality('rtl');
+        // $pdf->SetColumns(2, 'J', 3);
+        $filename = 'contract' . $Client_id . '.pdf';
+
+        $html = view('pdf.download_contract', $data)->render();
+        $pdf->writeHTML($html);
+        $pdfContent = $pdf->Output('', 'S'); // 'S' for returning the PDF as a string
+        // Return the PDF content as a response with appropriate headers
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+    public function UploadClientContract(Request $request)
+    {
+        $Client = Client::find($request->client_id);
+
+        if (!$Client) {
+            return RespondWithBadRequest(23);
+        }
+
+        if ($request->hasFile('contract')) {
+
+            $document = $request->file('contract');
+            $id = $request->client_id;
+
+            $filePath = SaveContract($document, $id);
+
+            $ClientDocument = new ClientDocument;
+            $ClientDocument->IDClient = $Client->IDClient;
+            $ClientDocument->ClientDocumentPath = $filePath;
+            $ClientDocument->ClientDocumentType = "CONTRACT";
+            $ClientDocument->save();
+
+            $url = asset("uploads/" . $filePath);
+
+            $APICode = APICode::where('IDAPICode', 58)->first();
+            $Response = array(
+                'Success' => true,
+                'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+                'ApiCode' => $APICode->IDApiCode,
+                'Response' => $url
+            );
+            return $Response;
+        } else {
+            return response()->json(['error' => 'No file attached in the request'], 400);
+        }
+    }
+    public function ClientContracts(Request $request)
+    {
+        $Client = Client::find($request->client_id);
+
+        if (!$Client) {
+            return RespondWithBadRequest(23);
+        }
+
+        $contracts = ClientDocument::where("IDClient", $Client->IDClient)->where("ClientDocumentType", "CONTRACT")->get();
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => ClientContractsResource::collection($contracts)
+        );
+        return $Response;
+    }
+    public function ClientDeleteContract($id)
+    {
+        $Contract = ClientDocument::find($id);
+        $Contract && DeleteContract($Contract->ClientDocumentPath);
+        $Contract->delete();
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => null
         );
         return $Response;
     }

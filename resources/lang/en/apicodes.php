@@ -57,5 +57,7 @@ return [
     '54' => 'Client Name is required',
     '55' => 'Referral is required',
     '56' => 'Please wait 24 hours to get this offer',
-    '57' => 'Invoice amount below offer minimum.'
+    '57' => 'Invoice amount below offer minimum.',
+    '58' => 'File uploaded successfully.',
+    '59' => "Sorry! You're not allowed to login."
 ];

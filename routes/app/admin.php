@@ -174,6 +174,12 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/ledger', [ClientController::class, 'ClientLedger']);
     Route::post('/clients/rename', [ClientController::class, 'ClientRename']);
     Route::post("/clients/check", [ClientController::class, "ClientCheck"]);
+    Route::post("/clients/contracts", [ClientController::class, "ClientContracts"]);
+    Route::post("/clients/contract/{id}", [ClientController::class, "ClientDeleteContract"]);
+    Route::post("/clients/upload_contract", [ClientController::class, "UploadClientContract"]);
+    // Should Delete This after shazly update front
+    Route::post('/upload_contract', [AdminController::class, 'UploadContract']);
+    //
 
     Route::post('/positions', [ClientController::class, 'PositionList']);
     Route::post('/positions/status', [ClientController::class, 'PositionStatus']);
@@ -233,4 +239,6 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::get('/test3/{id}', [GhazalController::class, 'PaymentInvoice']);
 
     Route::post('/clients/test', [ClientController::class, 'test']);
+    Route::get('/backup', [AdminController::class, 'backup']);
+    Route::post('/send-notifications', [AdminController::class, 'sendNotifications']);
 });
