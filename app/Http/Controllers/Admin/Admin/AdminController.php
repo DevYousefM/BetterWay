@@ -107,9 +107,10 @@ class AdminController extends Controller
             if ($User->Role === "Branch" || $User->Role === "Brand") return RespondWithBadRequest(59);
         } else if ($Source == "Brand") {
             if ($User->Role === "Branch" || $User->Role === "Admin") return RespondWithBadRequest(59);
-        } else {
-            return RespondWithBadRequest(1);
         }
+        //  else {
+        //     return RespondWithBadRequest(1);
+        // }
         if ($User->UserStatus == "INACTIVE") {
             return RespondWithBadRequest(6);
         }
