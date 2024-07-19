@@ -714,7 +714,9 @@ class ClientController extends Controller
         $ReferralSearchKey = $request->ReferralSearchKey;
         $ClientStatus = $request->ClientStatus;
         $ClientDeleted = $request->ClientDeleted;
+
         $ClientContractCompleted = $request->ClientContractCompleted;
+
         $BalanceSort = $request->BalanceSort;
         // if (!$IDPage) {
         //     $IDPage = 0;
@@ -751,7 +753,9 @@ class ClientController extends Controller
             $Clients = $Clients->where("clients.ClientStatus", $ClientStatus);
         }
         if ($ClientContractCompleted) {
-            $Clients = $Clients->where("clients.ClientContractCompleted", 1);
+            $Clients = $Clients->whereHas("clientdocuments", function ($query) {
+                $query->where('ClientDocumentType', 'CONTRACT');
+            });
         }
         if ($ClientContractCompleted == 0 && !is_null($ClientContractCompleted)) {
             $Clients = $Clients->where("clients.ClientContractCompleted", 0);

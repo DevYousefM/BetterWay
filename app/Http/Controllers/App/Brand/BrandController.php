@@ -46,7 +46,7 @@ use DB;
 class BrandController extends Controller
 {
 
-      public function UserLogin(Request $request)
+    public function UserLogin(Request $request)
     {
         if ($request->Filled('UserAppLanguage')) {
             $UserAppLanguage = $request->UserAppLanguage;
@@ -209,7 +209,7 @@ class BrandController extends Controller
         return $Response;
     }
 
-     public function QRCodeUse(Request $request)
+    public function QRCodeUse(Request $request)
     {
 
         $User = auth('user')->user();
@@ -259,12 +259,16 @@ class BrandController extends Controller
         }
 
         $ClientBrandProduct->IDUser = $User->IDUser;
-        $ClientBrandProduct->ClientBrandProductStatus = "USED";
-        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
+        // $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "PENDING")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
+        if (!$BrandProduct) {
+            return RespondWithBadRequest(1);
+        }
+
         if ($BrandProduct->BrandProductDiscountType === "INVOICE") {
             $InvoiceValue = $request->InvoiceValue;
             if (!$InvoiceValue) {
-                return RespondWithBadRequest(1);
+                return RespondWithBadRequest(60);
             }
             $DiscountValue = ($InvoiceValue * $BrandProduct->BrandProductDiscount / 100);
             $Amount = $InvoiceValue - ($InvoiceValue * $BrandProduct->BrandProductDiscount / 100);
@@ -282,44 +286,40 @@ class BrandController extends Controller
         $ClientBrandProduct->UsedAt = $Today;
         $ClientBrandProduct->save();
 
-
-        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
-        if (!$BrandProduct) {
-            return RespondWithBadRequest(1);
-        }
         $BatchNumber = "#BP" . $ClientBrandProduct->IDClientBrandProduct;
         $TimeFormat = new DateTime('now');
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, 0, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "CASH", "PAYMENT", $BatchNumber);
-    
-    $firebaseToken = $Client->ClientDeviceToken;
+
+        $firebaseToken = $Client->ClientDeviceToken;
         $SERVER_API_KEY = 'AAAAlWZnFGI:APA91bGNNe4QgAf7yuPAvKZnihGD2EvtJMb-fiDy1l4RNd3Wbz6Y2P6Zo6hptcsYxUs7BfyL2ZlcS2INzQLS-4xzHA2ndRXq_Z2W2OpxmKNGT0QTCjmSyNtxjCUlCLDNPeIJ6r1wvwmb';
         $body = 'please review';
         $title = 'review';
-       $data = [ 
-           "BrandProduct" => $BrandProduct,
-           "message" => "review"
-           ];
-        
-$data = [
-    "to" => $firebaseToken,
-    "notification" => [
-        "title" => $title,
-        "body" => $body,
-    ],
-    "data" => $data,
-];
+        $data = [
+            "BrandProduct" => $BrandProduct,
+            "message" => "review"
+        ];
+
+        $data = [
+            "to" => $firebaseToken,
+            "notification" => [
+                "title" => $title,
+                "body" => $body,
+                "data" => $data,
+            ],
+        ];
+        // return $data;
         $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
-    
+
         $headers = [
             'Authorization: key=' . $SERVER_API_KEY,
             'Content-Type: application/json; charset=UTF-8',
         ];
-    
+
         $ch = curl_init();
-    
+
         curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -327,15 +327,15 @@ $data = [
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
         $response = curl_exec($ch);
-    
+
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
             return response()->json(['error' => $error], 500);
         }
-    
+
         $responseData = json_decode($response, true);
-    
+
         // Handle response from FCM and store only successful notifications
         if (isset($responseData['results'])) {
             foreach ($responseData['results'] as $key => $result) {
@@ -354,14 +354,13 @@ $data = [
                 }
             }
         }
-    
+
         curl_close($ch);
-        
-        
-          return response()->json([
-        'status' => 'success',
-        '$BrandProduct' =>$BrandProduct
-    ], 200);
+
+        return response()->json([
+            'status' => 'success',
+            'BrandProduct' => $BrandProduct
+        ], 200);
     }
 
 

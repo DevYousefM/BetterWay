@@ -2064,7 +2064,7 @@ public function Nationalitie(){
         if ($SubCategories && count($SubCategories)) {
             $ClientBrandProducts = $ClientBrandProducts->whereIn("brandproducts.IDSubCategory", $SubCategories);
         }
-        $ClientBrandProducts = $ClientBrandProducts->whereIn("clientbrandproducts.ClientBrandProductStatus", ["ACTIVE", "USED"]);
+        $ClientBrandProducts = $ClientBrandProducts->whereIn("clientbrandproducts.ClientBrandProductStatus", ["USED"]);
         $PointsEarned = $ClientBrandProducts->sum("brandproducts.BrandProductPoints");
         $MoneySaved = ($ClientBrandProducts->sum("brandproducts.BrandProductPrice") * $ClientBrandProducts->sum("brandproducts.BrandProductDiscount") / 100);
         $UsedProducts = (clone $ClientBrandProducts)->where("clientbrandproducts.ClientBrandProductStatus", "USED")->count("clientbrandproducts.IDClientBrandProduct");
