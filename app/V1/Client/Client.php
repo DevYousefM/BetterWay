@@ -2,8 +2,10 @@
 
 namespace App\V1\Client;
 
+use App\Http\Resources\App\PlanNetworkResource;
 use App\V1\General\Nationality;
 use App\V1\Plan\PlanNetwork;
+use App\V1\Plan\PlanNetworkAgency;
 use App\V1\Plan\PlanProduct;
 use Illuminate\Database\Eloquent\Model;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -75,5 +77,53 @@ class Client extends Authenticatable implements JWTSubject
     public function clientdocuments()
     {
         return $this->hasMany(ClientDocument::class, "IDClient");
+    }
+    public function referrals()
+    {
+        return $this->hasMany(Client::class, 'IDReferral');
+    }
+    public function visits()
+    {
+        return $this->hasMany(ClientBrandProduct::class, 'IDClient');
+    }
+    public function getPersonsAttribute()
+    {
+        $IDClient = $this->IDClient;
+        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $IDClient . '%')->get();
+
+        $extractedIDs = [];
+        foreach ($records as $record) {
+            $extractedIDs[] = $record->IDClient;
+        }
+        $extractedIDs = array_unique($extractedIDs);
+        return Client::whereIn('IDClient', $extractedIDs)->get();
+    }
+    public function getRightPersonsAttribute()
+    {
+        $IDClient = $this->IDClient;
+        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $IDClient . '%')->where("PlanNetworkPosition", "RIGHT")->get();
+
+        $extractedIDs = [];
+        foreach ($records as $record) {
+            $extractedIDs[] = $record->IDClient;
+        }
+        $extractedIDs = array_unique($extractedIDs);
+        return Client::whereIn('IDClient', $extractedIDs)->get();
+    }
+    public function getLeftPersonsAttribute()
+    {
+        $IDClient = $this->IDClient;
+        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $IDClient . '%')->where("PlanNetworkPosition", "LEFT")->get();
+
+        $extractedIDs = [];
+        foreach ($records as $record) {
+            $extractedIDs[] = $record->IDClient;
+        }
+        $extractedIDs = array_unique($extractedIDs);
+        return Client::whereIn('IDClient', $extractedIDs)->get();
+    }
+    public function points_history()
+    {
+        return $this->hasMany(ClientPointsLedger::class, "IDClient");
     }
 }

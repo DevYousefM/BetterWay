@@ -72,9 +72,9 @@ use DateTime;
 use DateInterval;
 use Response;
 use Cookie;
-use DB;
 use Exception;
 use Facade\FlareClient\Http\Exceptions\BadResponse;
+use Illuminate\Support\Facades\DB;
 use Paytabscom\Laravel_paytabs\Facades\paypage;
 use Mpdf\Mpdf;
 
@@ -539,8 +539,7 @@ class ClientController extends Controller
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
             }
-
-            if (count($PlanNetworkPath) === 2) {
+            if (count($PlanNetworkPath) === 3) {
                 $CoPosition = Position::whereRaw('LOWER(`PositionTitleEn`) = ?', ['co'])->first();
                 if ($CoPosition)
                     $Client->IDPosition = $CoPosition->IDPosition;
@@ -1441,7 +1440,6 @@ class ClientController extends Controller
         if (!$Position) {
             return RespondWithBadRequest(1);
         }
-
         if ($PositionTitleEn) {
             $PositionRow = Position::where("PositionTitleEn", $PositionTitleEn)->where("IDPosition", "<>", $IDPosition)->first();
             if ($PositionRow) {
@@ -2786,19 +2784,26 @@ class ClientController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $PositionClients = PositionClient::leftjoin("clients", "clients.IDClient", "positionclients.IDClient")->where("positionclients.PositionClientStatus", "ACTIVE")->where("clients.ClientStatus", "ACTIVE")->where("positionclients.IDPosition", $IDPosition);
+        $IDPosition = $request->IDPosition;
+        $IDPage = $request->IDPage;
+        if (!$IDPosition) {
+            return RespondWithBadRequest(1);
+        }
 
-        $PositionClientCount = $PositionClients->count();
-        $Pages = ceil($PositionClients->count() / 20);
-        $PositionClients = $PositionClients->select("clients.IDClient", "clients.ClientName", "clients.ClientPhone", "positionclients.ReferralNumber", "positionclients.LeftNumber", "positionclients.RightNumber", "positionclients.AllNumber", "positionclients.LeftPoints", "positionclients.RightPoints", "positionclients.AllPoints", "positionclients.Visits", "positionclients.UniqueVisits", "positionclients.ChequeValue")->skip($IDPage)->take(20)->get();
+        if (!$IDPage) {
+            $IDPage = 0;
+        } else {
+            $IDPage = ($request->IDPage - 1) * 20;
+        }
 
-        $Response = array("PositionClients" => $PositionClients, "PositionClientCount" => $PositionClientCount, "Pages" => $Pages);
+        $position = Position::findOrFail($IDPosition);
+
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $Response,
+            'Response' => $position->positionforclients()->with(["client", "position"])->get()
         );
         return $Response;
     }

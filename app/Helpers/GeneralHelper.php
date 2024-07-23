@@ -15,6 +15,7 @@ use App\V1\Client\ClientFriend;
 use App\V1\Client\ClientLedger;
 use App\V1\Client\ClientNotification;
 use App\V1\Client\ClientNotificationDetail;
+use App\V1\Client\ClientPointsLedger;
 use App\V1\Client\Position;
 use App\V1\Plan\Plan;
 use App\V1\Plan\PlanNetwork;
@@ -257,6 +258,7 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
         $PlanProduct = PlanProduct::find($PlanNetwork->IDPlanProduct);
         $PlanProductPoints = $PlanProduct->PlanProductPoints;
         $ChildPosition = $PlanNetwork->PlanNetworkPosition;
+        $ChildIDClient = $PlanNetwork->IDClient;
     }
 
     if ($Amount || $RewardPoints) {
@@ -336,20 +338,37 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
                         $Client->ClientRightPoints = $Client->ClientRightPoints + $PlanProductPoints;
                         $Client->ClientTotalPoints = $Client->ClientTotalPoints + $PlanProductPoints;
                     }
+                    // Number Of Points => $PlanProductPoints
+                    // Who Get Points => $Client
+                    // Get From Who $ChildIDClient
+                    // Position => $ChildPosition
+                    PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber);
                 }
 
                 $Client->save();
                 $ParentPlanNetwork = PlanNetwork::where("IDClient", $IDParentClient)->first();
 
                 if (!$ParentPlanNetwork) {
-                    // Handle the case where $ParentPlanNetwork is null
-                    return RespondWithBadRequest(35); // or any appropriate error handling
+                    return RespondWithBadRequest(35);
                 }
 
                 $ChildPosition = $ParentPlanNetwork->PlanNetworkPosition;
             }
         }
     }
+}
+function PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber)
+{
+    $logMessage = "Points Ledger: PlanProductPoints=$PlanProductPoints, Client=$Client, ChildIDClient=$ChildIDClient, ChildPosition=$ChildPosition, BatchNumber=$BatchNumber";
+    Log::info($logMessage);
+
+    $ClientPointsLedger = new ClientPointsLedger;
+    $ClientPointsLedger->IDClient = $Client->IDClient;
+    $ClientPointsLedger->ClientLedgerPoints = $PlanProductPoints;
+    $ClientPointsLedger->ClientLedgerSource = $ChildIDClient;
+    $ClientPointsLedger->ClientLedgerPosition = $ChildPosition;
+    $ClientPointsLedger->ClientLedgerBatchNumber = $BatchNumber;
+    $ClientPointsLedger->save();
 }
 
 function ProductBranches($IDLink, $Client, $Type)

@@ -371,7 +371,7 @@ public function Nationalitie(){
             if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
                 return RespondWithBadRequest(34);
             }
-            if (count($PlanNetworkPath) === 2) {
+            if (count($PlanNetworkPath) === 3) {
                 $CoPosition = Position::whereRaw('LOWER(`PositionTitleEn`) = ?', ['co'])->first();
                 if ($CoPosition)
                     $Client->IDPosition = $CoPosition->IDPosition;

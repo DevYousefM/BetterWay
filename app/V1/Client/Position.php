@@ -8,4 +8,9 @@ class Position extends Model
 {
     protected $table = 'positions';
     protected $primaryKey = 'IDPosition';
+
+    public function positionforclients()
+    {
+        return $this->hasMany(PositionsForClients::class, "IDPosition");
+    }
 }
