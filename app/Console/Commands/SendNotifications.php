@@ -50,6 +50,7 @@ class SendNotifications extends Command
                     $query->where('ClientDocumentType', 'CONTRACT');
                 })
                 ->whereDate('created_at', '>=', Carbon::now()->subDays(20)->toDateString())
+                ->where('ClientStatus', '!=', 'Pending')
                 ->get();
             // Extract device tokens for Firebase notifications
             $firebaseTokens = $users->pluck('ClientDeviceToken')->toArray();
