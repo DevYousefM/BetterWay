@@ -2797,13 +2797,27 @@ class ClientController extends Controller
         }
 
         $position = Position::findOrFail($IDPosition);
-
+        $FullData = $position->positionforclients()->with(["client", "position"])->get();
+        $Response = array(
+            "ClientName" => $FullData->client->ClientName,
+            'ClientPhone' => $FullData->client->ClientPhone,
+            'PositionTitle' => $FullData->position->PositionTitleEn,
+            'LeftPoints' => $FullData->position->PositionLeftPoints,
+            'RightPoints' => $FullData->position->PositionRightPoints,
+            'AllPoints' => $FullData->position->PositionAllPoints,
+            'ReferralNumber' => $FullData->position->PositionReferralNumber,
+            'LeftNumber' => $FullData->position->PositionLeftNumber,
+            'RightNumber' => $FullData->position->PositionRightNumber,
+            'AllNumber' => $FullData->position->PositionAllNumber,
+            'Visits' => $FullData->position->PositionVisits,
+            'ChequeValue' => $FullData->position->PositionChequeValue,
+        );
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $position->positionforclients()->with(["client", "position"])->get()
+            'Response' => $Response
         );
         return $Response;
     }
