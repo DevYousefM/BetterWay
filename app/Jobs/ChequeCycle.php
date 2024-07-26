@@ -55,6 +55,9 @@ class ChequeCycle implements ShouldQueue
                 $IDClient = $Person->IDClient;
                 $AgencyNumber = $Person->PlanNetworkAgencyNumber;
                 $Counter = 1;
+                $AmountGet = 0;
+                $PreviousBalance = $Person->ClientBalance;
+
                 while ($Counter <= $AgencyNumber) {
                     Log::info("Processing Agency Number: " . $Counter);
 
@@ -159,7 +162,9 @@ class ChequeCycle implements ShouldQueue
 
 
                         Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
+
                         ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+
                         $CompanyLedger = new CompanyLedger;
                         $CompanyLedger->IDSubCategory = 19;
                         $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
@@ -167,7 +172,6 @@ class ChequeCycle implements ShouldQueue
                         $CompanyLedger->CompanyLedgerProcess = "AUTO";
                         $CompanyLedger->CompanyLedgerType = "DEBIT";
                         $CompanyLedger->save();
-
 
                         $IDPlanNetworkCheque = $PlanNetworkCheque->IDPlanNetworkCheque;
 
