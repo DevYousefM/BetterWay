@@ -17,6 +17,8 @@ class PositionsForClients extends JsonResource
     {
         $currentPosition = $this->client->IDPosition ? Position::find($this->client->IDPosition)->PositionTitleEn : 'Networker';
         return [
+            "IDClient" => $this->client->IDClient,
+            "IDPosition" => $this->client->IDPosition,
             "ClientName" => $this->client->ClientName,
             'ClientPhone' => $this->client->ClientPhone,
             'ClientPosition' => $currentPosition,
