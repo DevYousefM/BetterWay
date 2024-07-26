@@ -1370,13 +1370,34 @@ class ClientController extends Controller
         $Position->PositionTitleAr = $PositionTitleAr;
         $Position->PositionReferralNumber = $PositionReferralNumber;
         $Position->PositionReferralInterval = $PositionReferralInterval;
-        $Position->PositionLeftNumber = $PositionLeftNumber;
-        $Position->PositionRightNumber = $PositionRightNumber;
-        $Position->PositionAllNumber = $PositionAllNumber;
+
+
+        if ($request->PositionBalancePerson === 'Total') {
+            $Position->PositionLeftNumber = 0;
+            $Position->PositionRightNumber = 0;
+            $Position->PositionAllNumber = $PositionAllNumber;
+        }
+        if ($request->PositionBalancePerson === 'Balance') {
+            $Position->PositionLeftNumber = $PositionLeftNumber;
+            $Position->PositionRightNumber = $PositionRightNumber;
+            $Position->PositionAllNumber = 0;
+        }
+
+
+        if ($request->PositionBalancePoints == 'Total') {
+            $Position->PositionLeftPoints = 0;
+            $Position->PositionRightPoints = 0;
+            $Position->PositionAllPoints = $PositionAllPoints;
+        }
+        if ($request->PositionBalancePoints === 'Balance') {
+            $Position->PositionLeftPoints = $PositionLeftPoints;
+            $Position->PositionRightPoints = $PositionRightPoints;
+            $Position->PositionAllPoints = 0;
+        }
+
+
+
         $Position->PositionNumberInterval = $PositionNumberInterval;
-        $Position->PositionLeftPoints = $PositionLeftPoints;
-        $Position->PositionRightPoints = $PositionRightPoints;
-        $Position->PositionAllPoints = $PositionAllPoints;
         $Position->PositionPointInterval = $PositionPointInterval;
         $Position->PositionVisits = $PositionVisits;
         $Position->PositionVisitInterval = $PositionVisitInterval;
@@ -1423,19 +1444,23 @@ class ClientController extends Controller
         $PositionTitleAr = $request->PositionTitleAr;
         $PositionReferralNumber = $request->PositionReferralNumber;
         $PositionReferralInterval = $request->PositionReferralInterval;
-        $PositionLeftNumber = $request->PositionLeftNumber;
-        $PositionRightNumber = $request->PositionRightNumber;
-        $PositionAllNumber = $request->PositionAllNumber;
+
         $PositionNumberInterval = $request->PositionNumberInterval;
+
         $PositionLeftPoints = $request->PositionLeftPoints;
         $PositionRightPoints = $request->PositionRightPoints;
         $PositionAllPoints = $request->PositionAllPoints;
+
         $PositionPointInterval = $request->PositionPointInterval;
         $PositionVisits = $request->PositionVisits;
         $PositionVisitInterval = $request->PositionVisitInterval;
         $PositionChequeValue = $request->PositionChequeValue;
         $PositionChequeInterval = $request->PositionChequeInterval;
+        $PositionAllNumber = $request->PositionAllNumber;
+        $PositionLeftNumber = $request->PositionLeftNumber;
+        $PositionRightNumber = $request->PositionRightNumber;
         $Desc = "";
+
 
         $Position = Position::find($IDPosition);
         if (!$Position) {
@@ -1465,18 +1490,62 @@ class ClientController extends Controller
             $Desc = $Desc . ", Position referral interval changed from " . $Position->PositionReferralInterval . " to " . $PositionReferralInterval;
             $Position->PositionReferralInterval = $PositionReferralInterval;
         }
-        if ($PositionLeftNumber) {
-            $Desc = $Desc . ", Position left number changed from " . $Position->PositionLeftNumber . " to " . $PositionLeftNumber;
-            $Position->PositionLeftNumber = $PositionLeftNumber;
+
+        if ($request->PositionBalancePerson === 'Total') {
+
+            $Desc = $Desc . ", Position left number changed from " . $Position->PositionLeftNumber . " to " . 0;
+            $Position->PositionLeftNumber = 0;
+
+            $Desc = $Desc . ", Position right number changed from " . $Position->PositionRightNumber . " to " . 0;
+            $Position->PositionRightNumber = 0;
+
+            if ($PositionAllNumber) {
+                $Desc = $Desc . ", Position all number changed from " . $Position->PositionAllNumber . " to " . $PositionAllNumber;
+                $Position->PositionAllNumber = $PositionAllNumber;
+            }
         }
-        if ($PositionRightNumber) {
-            $Desc = $Desc . ", Position right number changed from " . $Position->PositionRightNumber . " to " . $PositionRightNumber;
-            $Position->PositionRightNumber = $PositionRightNumber;
+        if ($request->PositionBalancePerson === 'Balance') {
+            $Desc = $Desc . ", Position all number changed from " . $Position->PositionAllNumber . " to " . 0;
+            $Position->PositionAllNumber = 0;
+
+            if ($PositionRightNumber) {
+                $Desc = $Desc . ", Position right number changed from " . $Position->PositionRightNumber . " to " . $PositionRightNumber;
+                $Position->PositionRightNumber = $PositionRightNumber;
+            }
+            if ($PositionLeftNumber) {
+                $Desc = $Desc . ", Position right number changed from " . $Position->PositionLeftNumber . " to " . $PositionLeftNumber;
+                $Position->PositionLeftNumber = $PositionLeftNumber;
+            }
         }
-        if ($PositionAllNumber) {
-            $Desc = $Desc . ", Position all number changed from " . $Position->PositionAllNumber . " to " . $PositionAllNumber;
-            $Position->PositionAllNumber = $PositionAllNumber;
+        if ($request->PositionBalancePoints == 'Total') {
+
+            $Desc = $Desc . ", Position left points changed from " . $Position->PositionLeftPoints . " to " . 0;
+            $Position->PositionLeftPoints = 0;
+            $Desc = $Desc . ", Position right points changed from " . $Position->PositionRightPoints . " to " . 0;
+            $Position->PositionRightPoints = 0;
+
+            if ($PositionAllPoints) {
+                $Desc = $Desc . ", Position all points changed from " . $Position->PositionAllPoints . " to " . $PositionAllPoints;
+                $Position->PositionAllPoints = $PositionAllPoints;
+            }
         }
+        if ($request->PositionBalancePoints === 'Balance') {
+
+            $Desc = $Desc . ", Position all points changed from " . $Position->PositionAllPoints . " to " . 0;
+            $Position->PositionAllPoints = 0;
+
+            if ($PositionLeftPoints) {
+                $Desc = $Desc . ", Position left points changed from " . $Position->PositionLeftPoints . " to " . $PositionLeftPoints;
+                $Position->PositionLeftPoints = $PositionLeftPoints;
+            }
+            if ($PositionRightPoints) {
+                $Desc = $Desc . ", Position right points changed from " . $Position->PositionRightPoints . " to " . $PositionRightPoints;
+                $Position->PositionRightPoints = $PositionRightPoints;
+            }
+        }
+
+
+
         if ($PositionNumberInterval) {
             $Desc = $Desc . ", Position number interval changed from " . $Position->PositionNumberInterval . " to " . $PositionNumberInterval;
             $Position->PositionNumberInterval = $PositionNumberInterval;
@@ -1489,18 +1558,7 @@ class ClientController extends Controller
             $Desc = $Desc . ", Position visit interval changed from " . $Position->PositionVisitInterval . " to " . $PositionVisitInterval;
             $Position->PositionVisitInterval = $PositionVisitInterval;
         }
-        if ($PositionLeftPoints) {
-            $Desc = $Desc . ", Position left points changed from " . $Position->PositionLeftPoints . " to " . $PositionLeftPoints;
-            $Position->PositionLeftPoints = $PositionLeftPoints;
-        }
-        if ($PositionRightPoints) {
-            $Desc = $Desc . ", Position right points changed from " . $Position->PositionRightPoints . " to " . $PositionRightPoints;
-            $Position->PositionRightPoints = $PositionRightPoints;
-        }
-        if ($PositionAllPoints) {
-            $Desc = $Desc . ", Position all points changed from " . $Position->PositionAllPoints . " to " . $PositionAllPoints;
-            $Position->PositionAllPoints = $PositionAllPoints;
-        }
+
         if ($PositionPointInterval) {
             $Desc = $Desc . ", Position point interval changed from " . $Position->PositionPointInterval . " to " . $PositionPointInterval;
             $Position->PositionPointInterval = $PositionPointInterval;
@@ -1515,7 +1573,9 @@ class ClientController extends Controller
         }
 
         $Position->PositionStatus = "PENDING";
+
         $Position->save();
+        return $Position;
 
         ActionBackLog($Admin->IDUser, $Position->IDPosition, "EDIT_POSITION", $Desc);
         return RespondWithSuccessRequest(8);
