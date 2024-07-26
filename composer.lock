@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "371474692168a174cec7a0c45c0e57c7",
+    "content-hash": "b84ff1a0a80632ef2a20901bb69dd774",
     "packages": [
         {
             "name": "apility/laravel-fcm",
@@ -2612,6 +2612,65 @@
                 "source": "https://github.com/mRamadan0101/dompdf/tree/v0.8.3"
             },
             "time": "2018-12-14T02:40:31+00:00"
+        },
+        {
+            "name": "mxl/laravel-job",
+            "version": "v1.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mxl/laravel-job.git",
+                "reference": "d4f9a85e1cae2d5e0a1580ef2d987306d64b993a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mxl/laravel-job/zipball/d4f9a85e1cae2d5e0a1580ef2d987306d64b993a",
+                "reference": "d4f9a85e1cae2d5e0a1580ef2d987306d64b993a",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "5.5.*|5.6.*|5.7.*|5.8.*|^6.0|^7.0|^8.0|^9.0|^10.0|^11.0",
+                "php": ">=7.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.2|^10.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "MichaelLedin\\LaravelJob\\LaravelJobServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "MichaelLedin\\LaravelJob\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Michael Ledin",
+                    "email": "mledin89@gmail.com"
+                }
+            ],
+            "description": "Laravel job tools",
+            "homepage": "https://github.com/mxl/laravel-job",
+            "keywords": [
+                "command",
+                "dispatch",
+                "job",
+                "laravel",
+                "tools"
+            ],
+            "support": {
+                "issues": "https://github.com/mxl/laravel-job/issues",
+                "source": "https://github.com/mxl/laravel-job"
+            },
+            "time": "2024-04-17T04:01:19+00:00"
         },
         {
             "name": "myclabs/deep-copy",

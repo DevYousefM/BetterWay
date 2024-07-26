@@ -168,6 +168,15 @@ function LedgerBatchNumber()
     $BatchNumber = $NextLedgerID . $Time;
     return $BatchNumber;
 }
+function GenerateBatch($slogan, $IDClient)
+{
+    $BatchNumber = "#$slogan" . $IDClient;
+    $TimeFormat = new DateTime('now');
+    $Time = $TimeFormat->format('H');
+    $Time = $Time . $TimeFormat->format('i');
+    $BatchNumber = $BatchNumber . $Time;
+    return $BatchNumber;
+}
 
 
 function CreateToken($credentials, $guard)
@@ -338,10 +347,6 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
                         $Client->ClientRightPoints = $Client->ClientRightPoints + $PlanProductPoints;
                         $Client->ClientTotalPoints = $Client->ClientTotalPoints + $PlanProductPoints;
                     }
-                    // Number Of Points => $PlanProductPoints
-                    // Who Get Points => $Client
-                    // Get From Who $ChildIDClient
-                    // Position => $ChildPosition
                     PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber);
                 }
 
@@ -356,6 +361,26 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
             }
         }
     }
+}
+function ChequesLedger($Client, $Amount, $Source, $Destination, $Type, $BatchNumber)
+{
+
+    $ClientLedger = new ClientLedger;
+    $ClientLedger->IDClient = $Client->IDClient;
+    $ClientLedger->ClientLedgerAmount = abs($Amount);
+    $ClientLedger->ClientLedgerPoints = 0;
+    $ClientLedger->ClientLedgerSource = $Source;
+    $ClientLedger->ClientLedgerDestination = $Destination;
+    $ClientLedger->ClientLedgerInitialeBalance = $Client->ClientBalance;
+    $ClientLedger->ClientLedgerFinalBalance = $Client->ClientBalance + $Amount;
+    $ClientLedger->ClientLedgerInitialePoints = 0;
+    $ClientLedger->ClientLedgerFinalPoints = 0;
+    $ClientLedger->ClientLedgerType = $Type;
+    $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
+    $ClientLedger->save();
+
+    $Client->ClientBalance = $Client->ClientBalance + $Amount;
+    $Client->save();
 }
 function PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber)
 {

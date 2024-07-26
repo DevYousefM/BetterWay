@@ -16,6 +16,7 @@
         "laravelcollective/html": "^6.3",
         "mpdf/mpdf": "^8.2",
         "mramadan0101/dompdf": "*",
+        "mxl/laravel-job": "^1.6",
         "nesbot/carbon": "^2.61.0",
         "paytabscom/laravel_paytabs": "^1.4",
         "spatie/laravel-backup": "^7.8",

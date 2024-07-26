@@ -25,16 +25,22 @@ class ChequeCycle implements ShouldQueue
 
     protected $signature = 'log:cron';
 
-    public function __construct(){
-
+    public function __construct()
+    {
     }
 
-    public function handle(){
+    public function handle()
+    {
+        Log::info("Handler started");
         $CurrentTime = new DateTime('now');
         $Day = strtoupper($CurrentTime->format('l'));
-        
-        $Plans = Plan::where("PlanStatus","ACTIVE")->where('ChequeEarnDay', 'like', '%' . $Day . '%')->get();
-        foreach($Plans as $Plan){
+        Log::info("Current Day: " . $Day);
+
+        $Plans = Plan::where("PlanStatus", "ACTIVE")->where('ChequeEarnDay', 'like', '%' . $Day . '%')->get();
+        Log::info("Number of active plans: " . count($Plans));
+        foreach ($Plans as $Plan) {
+            Log::info("Processing Plan ID: " . $Plan->IDPlan);
+
             $LeftBalanceNumber = $Plan->LeftBalanceNumber;
             $RightBalanceNumber = $Plan->RightBalanceNumber;
             $LeftMaxOutNumber = $Plan->LeftMaxOutNumber;
@@ -42,89 +48,100 @@ class ChequeCycle implements ShouldQueue
             $PlanChequeValue = $Plan->ChequeValue;
             $ChequeMaxOut = $Plan->ChequeMaxOut;
 
-            $PlanNetwork = PlanNetwork::where("IDPlan",$Plan->IDPlan)->get();
-            foreach($PlanNetwork as $Person){
+            $PlanNetwork = PlanNetwork::where("IDPlan", $Plan->IDPlan)->get();
+            Log::info("PlanNetwork count for Plan ID " . $Plan->IDPlan . ": " . count($PlanNetwork));
+
+            foreach ($PlanNetwork as $Person) {
                 $IDClient = $Person->IDClient;
                 $AgencyNumber = $Person->PlanNetworkAgencyNumber;
                 $Counter = 1;
-                while($Counter <= $AgencyNumber){
+                while ($Counter <= $AgencyNumber) {
+                    Log::info("Processing Agency Number: " . $Counter);
+
                     $LeftNetworkNumber = 0;
                     $RightNetworkNumber = 0;
                     $ChequeValue = 0;
 
-                    $PreviousNetworkClients = PlanNetworkChequeDetail::where("IDClient",$IDClient)->pluck("IDClientNetwork")->toArray();
-                    $LeftNetwork = PlanNetwork::where("IDParentClient",$IDClient)->where("PlanNetworkAgency",$Counter)->where("PlanNetworkPosition","LEFT")->first();
-                    $RightNetwork = PlanNetwork::where("IDParentClient",$IDClient)->where("PlanNetworkAgency",$Counter)->where("PlanNetworkPosition","RIGHT")->first();
-                    
-                    if($LeftNetwork){
+                    $PreviousNetworkClients = PlanNetworkChequeDetail::where("IDClient", $IDClient)->pluck("IDClientNetwork")->toArray();
+                    $LeftNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "LEFT")->first();
+                    $RightNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "RIGHT")->first();
+
+                    if ($LeftNetwork) {
+                        Log::info("Left Network found for IDClient: " . $IDClient . " at Counter: " . $Counter);
+
                         $IDClient = $LeftNetwork->IDClient;
-                        $Key = $IDClient."-";
-                        $SecondKey = $IDClient."-";
-                        $ThirdKey = "-".$IDClient;
-                        $AllNetwork = PlanNetwork::leftjoin("clients","clients.IDClient","plannetwork.IDClient")->leftjoin("clients as C1","C1.IDClient","plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency",$Counter)->whereNotIn("plannetwork.IDClient",$PreviousNetworkClients);
-                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient,$Key,$SecondKey,$ThirdKey) {
-                            $query->where("plannetwork.PlanNetworkPath", 'like',$IDClient . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath",$IDClient)
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like',$Key . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like','%'.$SecondKey . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like','%'.$ThirdKey . '%');
+                        $Key = $IDClient . "-";
+                        $SecondKey = $IDClient . "-";
+                        $ThirdKey = "-" . $IDClient;
+                        $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
+                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
+                            $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
                         });
-            
+
                         $LeftNetworkNumber = $AllNetwork->count();
                         $LeftNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
-                        if (!in_array($IDClient, $PreviousNetworkClients)){
+                        if (!in_array($IDClient, $PreviousNetworkClients)) {
                             array_push($LeftNetwork, $IDClient);
                             $LeftNetworkNumber++;
                         }
+                        Log::info("Left Network Number: " . $LeftNetworkNumber);
                     }
-            
-                    if($RightNetwork){
+
+                    if ($RightNetwork) {
+                        Log::info("Right Network found for IDClient: " . $IDClient . " at Counter: " . $Counter);
+
                         $IDClient = $RightNetwork->IDClient;
-                        $Key = $IDClient."-";
-                        $SecondKey = $IDClient."-";
-                        $ThirdKey = "-".$IDClient;
-                        $AllNetwork = PlanNetwork::leftjoin("clients","clients.IDClient","plannetwork.IDClient")->leftjoin("clients as C1","C1.IDClient","plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency",$Counter)->whereNotIn("plannetwork.IDClient",$PreviousNetworkClients);
-                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient,$Key,$SecondKey,$ThirdKey) {
-                            $query->where("plannetwork.PlanNetworkPath", 'like',$IDClient . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath",$IDClient)
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like',$Key . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like','%'.$SecondKey . '%')
-                            ->orwhere("plannetwork.PlanNetworkPath", 'like','%'.$ThirdKey . '%');
+                        $Key = $IDClient . "-";
+                        $SecondKey = $IDClient . "-";
+                        $ThirdKey = "-" . $IDClient;
+                        $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
+                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
+                            $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
+                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
                         });
-            
+
                         $RightNetworkNumber = $AllNetwork->count();
                         $RightNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
-                        if (!in_array($IDClient, $PreviousNetworkClients)){
+                        if (!in_array($IDClient, $PreviousNetworkClients)) {
                             array_push($RightNetwork, $IDClient);
                             $RightNetworkNumber++;
                         }
+                        Log::info("Right Network Number: " . $RightNetworkNumber);
                     }
 
-                    if($LeftNetworkNumber > $LeftMaxOutNumber){
+                    if ($LeftNetworkNumber > $LeftMaxOutNumber) {
                         $LeftNetworkNumber = $LeftMaxOutNumber;
                     }
-                    if($RightNetworkNumber > $RightMaxOutNumber){
+                    if ($RightNetworkNumber > $RightMaxOutNumber) {
                         $RightNetworkNumber = $RightMaxOutNumber;
                     }
 
-                    if($LeftBalanceNumber <= $LeftNetworkNumber && $RightBalanceNumber <= $RightNetworkNumber){
+                    if ($LeftBalanceNumber <= $LeftNetworkNumber && $RightBalanceNumber <= $RightNetworkNumber) {
 
                         $LeftNumber = intdiv($LeftNetworkNumber, $LeftBalanceNumber);
                         $RightNumber = intdiv($RightNetworkNumber, $RightBalanceNumber);
-                        if($LeftNumber <= $RightNumber){
+                        if ($LeftNumber <= $RightNumber) {
                             $Number = $LeftNumber;
                         }
-                        if($RightNumber <= $LeftNumber){
+                        if ($RightNumber <= $LeftNumber) {
                             $Number = $RightNumber;
                         }
                         $ChequeValue = $Number * $PlanChequeValue;
+                        Log::info("Cheque Value: " . $ChequeValue);
 
                         $LeftNumber = $Number * $LeftBalanceNumber;
                         $RightNumber = $Number * $RightBalanceNumber;
-                        if($LeftNumber <= $RightNumber){
+                        if ($LeftNumber <= $RightNumber) {
                             $Number = $LeftNumber;
                         }
-                        if($RightNumber <= $LeftNumber){
+                        if ($RightNumber <= $LeftNumber) {
                             $Number = $RightNumber;
                         }
                         $IDClient = $Person->IDClient;
@@ -140,10 +157,13 @@ class ChequeCycle implements ShouldQueue
                         $PlanNetworkCheque->AgencyNumber = $Counter;
                         $PlanNetworkCheque->save();
 
+
+                        Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
+                        ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
                         $CompanyLedger = new CompanyLedger;
                         $CompanyLedger->IDSubCategory = 19;
                         $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
-                        $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client ".$Client->ClientName;
+                        $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
                         $CompanyLedger->CompanyLedgerProcess = "AUTO";
                         $CompanyLedger->CompanyLedgerType = "DEBIT";
                         $CompanyLedger->save();
@@ -164,14 +184,14 @@ class ChequeCycle implements ShouldQueue
                             $PlanNetworkChequeDetail->IDClientNetwork = $RightNetwork[$I];
                             $PlanNetworkChequeDetail->save();
                         }
-                          
+                        Log::info("PlanNetworkChequeDetail records created for IDPlanNetworkCheque: " . $IDPlanNetworkCheque);
                     }
 
                     $Counter++;
                 }
             }
         }
-
-       
+        Log::info("Handler completed");
+        Log::info(" ");
     }
 }
