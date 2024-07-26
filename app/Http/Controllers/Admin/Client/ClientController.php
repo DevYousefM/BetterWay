@@ -20,6 +20,7 @@ use App\Http\Resources\Admin\CityResource;
 use App\Http\Resources\Admin\AreaResource;
 use App\Http\Resources\Admin\BalanceTransferResource;
 use App\Http\Resources\ClientContractsResource;
+use App\Http\Resources\PositionsForClients;
 use App\V1\GhazalCart;
 use App\V1\Brand\Brand;
 use App\V1\Brand\BrandProduct;
@@ -2798,26 +2799,13 @@ class ClientController extends Controller
 
         $position = Position::findOrFail($IDPosition);
         $FullData = $position->positionforclients()->with(["client", "position"])->get();
-        $Response = array(
-            "ClientName" => $FullData->client->ClientName,
-            'ClientPhone' => $FullData->client->ClientPhone,
-            'PositionTitle' => $FullData->position->PositionTitleEn,
-            'LeftPoints' => $FullData->position->PositionLeftPoints,
-            'RightPoints' => $FullData->position->PositionRightPoints,
-            'AllPoints' => $FullData->position->PositionAllPoints,
-            'ReferralNumber' => $FullData->position->PositionReferralNumber,
-            'LeftNumber' => $FullData->position->PositionLeftNumber,
-            'RightNumber' => $FullData->position->PositionRightNumber,
-            'AllNumber' => $FullData->position->PositionAllNumber,
-            'Visits' => $FullData->position->PositionVisits,
-            'ChequeValue' => $FullData->position->PositionChequeValue,
-        );
+
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $Response
+            'Response' => PositionsForClients::collection($FullData)
         );
         return $Response;
     }
