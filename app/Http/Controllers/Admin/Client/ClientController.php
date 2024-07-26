@@ -1575,7 +1575,6 @@ class ClientController extends Controller
         $Position->PositionStatus = "PENDING";
 
         $Position->save();
-        return $Position;
 
         ActionBackLog($Admin->IDUser, $Position->IDPosition, "EDIT_POSITION", $Desc);
         return RespondWithSuccessRequest(8);
