@@ -18,16 +18,16 @@ class ClientLocalization
      */
     public function handle(Request $request, Closure $next)
     {
-        $ClientAppLanguage = Session::get('ClientAppLanguage');
-        if (!$ClientAppLanguage) {
-            $Client = auth('client')->user();
-            if($Client){
-                $ClientAppLanguage = $Client->ClientAppLanguage;
-            }else{
-                $ClientAppLanguage = "ar";
-            }
-        }
-        App::setLocale($ClientAppLanguage);
+        // $ClientAppLanguage = Session::get('ClientAppLanguage');
+        // if (!$ClientAppLanguage) {
+        //     $Client = auth('client')->user();
+        //     if($Client){
+        //         $ClientAppLanguage = $Client->ClientAppLanguage;
+        //     }else{
+        //         $ClientAppLanguage = "en";
+        //     }
+        // }
+        // App::setLocale($ClientAppLanguage);
         return $next($request);
     }
 }

@@ -76,8 +76,10 @@ function LocalAppLanguage()
     $ClientAppLanguage = app()->getLocale();
     if ($ClientAppLanguage == "ar") {
         $ClientAppLanguage = "Ar";
-    }
+    } else 
     if ($ClientAppLanguage == "en") {
+        $ClientAppLanguage = "En";
+    } else {
         $ClientAppLanguage = "En";
     }
     return $ClientAppLanguage;

@@ -101,6 +101,7 @@ class ClientController extends Controller
 
         Session::put('ClientAppLanguage', $ClientAppLanguage);
         App::setLocale($ClientAppLanguage);
+        
         $ClientAppLanguage = LocalAppLanguage($ClientAppLanguage);
 
         $NationalityName = "NationalityName" . $ClientAppLanguage;
