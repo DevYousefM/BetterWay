@@ -7,12 +7,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PositionsForClients extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
-     */
+    
     public function toArray($request)
     {
         $currentPosition = $this->client->IDPosition ? Position::find($this->client->IDPosition)->PositionTitleEn : 'Networker';
@@ -32,6 +27,7 @@ class PositionsForClients extends JsonResource
             'AllNumber' => $this->position->PositionAllNumber,
             'Visits' => $this->position->PositionVisits,
             'ChequeValue' => $this->position->PositionChequeValue,
+            'Date' => $this->created_at->format('Y-m-d'),
         ];
     }
 }
