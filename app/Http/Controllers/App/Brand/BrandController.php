@@ -211,7 +211,6 @@ class BrandController extends Controller
 
     public function QRCodeUse(Request $request)
     {
-
         $User = auth('user')->user();
         if (!$User) {
             return RespondWithBadRequest(10);
@@ -260,9 +259,9 @@ class BrandController extends Controller
 
         $ClientBrandProduct->IDUser = $User->IDUser;
         $ClientBrandProduct->ClientBrandProductStatus = "USED";
-        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "PENDING")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
+        $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
-            return RespondWithBadRequest(1);
+            return RespondWithBadRequest(61);
         }
 
         if ($BrandProduct->BrandProductDiscountType === "INVOICE") {
