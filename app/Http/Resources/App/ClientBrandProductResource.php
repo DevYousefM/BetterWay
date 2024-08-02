@@ -18,11 +18,11 @@ class ClientBrandProductResource extends JsonResource
             $SubCategoryName = "SubCategoryName" . $ClientLanguage;
             $BrandName = "BrandName" . $ClientLanguage;
         } else {
-            $BrandProductTitle = "BrandProductTitleEn";
-            $BrandProductDesc = "BrandProductDescEn";
-            $BrandProductDiscountType = "BrandProductDiscountType";
-            $SubCategoryName = "SubCategoryNameEn";
-            $BrandName = "BrandNameEn";
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $BrandProductTitle = "BrandProductTitle" . $ClientLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $ClientLanguage;
+            $SubCategoryName = "SubCategoryName" . $ClientLanguage;
+            $BrandName = "BrandName" . $ClientLanguage;
         }
         if ($this->BrandProductDiscountType === "VALUE") {
             $BrandProductDiscount = round(($this->BrandProductDiscount / $this->BrandProductPrice) * 100);
