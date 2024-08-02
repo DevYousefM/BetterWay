@@ -10,10 +10,18 @@ class BrandResource extends JsonResource
 
     public function toArray($request)
     {
-        $ClientLanguage = LocalAppLanguage();
-        $BrandName = "BrandName" . $ClientLanguage;
-        $BrandDesc = "BrandDesc" . $ClientLanguage;
-        $BrandPolicy = "BrandPolicy" . $ClientLanguage;
+        $Client = auth('client')->user();
+        if ($Client) {
+            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $BrandName = "BrandName" . $ClientLanguage;
+            $BrandDesc = "BrandDesc" . $ClientLanguage;
+            $BrandPolicy = "BrandPolicy" . $ClientLanguage;
+        } else {
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $BrandName = "BrandName" . $ClientLanguage;
+            $BrandDesc = "BrandDesc" . $ClientLanguage;
+            $BrandPolicy = "BrandPolicy" . $ClientLanguage;
+        }
 
         return [
             'IDBrand'             => $this->IDBrand,

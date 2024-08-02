@@ -8,13 +8,15 @@ use Illuminate\Support\Facades\Log;
 class CategoryResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
-        if($Client){
+        if ($Client) {
             $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $CategoryName = "CategoryName".$ClientLanguage;
-        }else{
-            $CategoryName = "CategoryNameEn";
+            $CategoryName = "CategoryName" . $ClientLanguage;
+        } else {
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $CategoryName = "CategoryName" . $ClientLanguage;
         }
 
         return [

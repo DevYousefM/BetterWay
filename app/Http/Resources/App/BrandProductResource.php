@@ -18,10 +18,11 @@ class BrandProductResource extends JsonResource
             $SubCategoryName = "SubCategoryName" . $ClientLanguage;
             $BrandName = "BrandName" . $ClientLanguage;
         } else {
-            $BrandProductTitle = "BrandProductTitleEn";
-            $BrandProductDesc = "BrandProductDescEn";
-            $SubCategoryName = "SubCategoryNameEn";
-            $BrandName = "BrandNameEn";
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $BrandProductTitle = "BrandProductTitle" . $ClientLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $ClientLanguage;
+            $SubCategoryName = "SubCategoryName" . $ClientLanguage;
+            $BrandName = "BrandName" . $ClientLanguage;
         }
 
         $BrandProductDiscount = $this->BrandProductDiscount;
