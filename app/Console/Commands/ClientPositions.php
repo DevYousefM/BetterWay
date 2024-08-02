@@ -51,6 +51,10 @@ class ClientPositions extends Command
             $PositionLeftPointsNumber = $position->PositionLeftPoints;
 
             $PositionPointsInterval = $position->PositionPointInterval;
+
+            $PositionChequeInterval = $position->PositionChequeInterval;
+            $PositionChequeValue = $position->PositionChequeValue;
+
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
             if (count($lastFiltering) > 0) {
@@ -66,6 +70,7 @@ class ClientPositions extends Command
                 } else {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
                 }
+                $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,
@@ -186,6 +191,19 @@ class ClientPositions extends Command
             $pointsCount = $recentPointsHistory->sum('ClientLedgerPoints');
 
             return $pointsCount >= $pointsNumber;
+        });
+    }
+    function getFilteredByCheques($clients, $intervalMinutes, $chequesValue)
+    {
+        return $clients->filter(function ($client) use ($intervalMinutes, $chequesValue) {
+            $now = Carbon::now();
+            $recentChequesHistory = $client->ChequesHistory->filter(function ($cheque) use ($now, $intervalMinutes, $client) {
+                return Carbon::parse($cheque->created_at)->diffInMinutes($now) <= $intervalMinutes;
+            });
+
+            $chequesCount = $recentChequesHistory->sum('ClientLedgerAmount');
+
+            return $chequesCount >= $chequesValue;
         });
     }
     function getFilteredByBalancePoints($clients, $intervalMinutes, $rightPointsNumber, $leftPointsNumber)

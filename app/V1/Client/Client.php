@@ -126,4 +126,8 @@ class Client extends Authenticatable implements JWTSubject
     {
         return $this->hasMany(ClientPointsLedger::class, "IDClient");
     }
+    public function getChequesHistoryAttribute()
+    {
+        return ClientLedger::where('IDClient', $this->IDClient)->where('ClientLedgerSource', 'CHEQUE')->get();
+    }
 }

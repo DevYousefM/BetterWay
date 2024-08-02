@@ -7,25 +7,25 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 
 Route::middleware('clientapi')->prefix('client')->group(function () {
-    Route::get('/terms',[ClientController::class, 'Terms']);
-    Route::get('/privacy',[ClientController::class, 'PrivacyPolicy']);
-    Route::get('/about',[ClientController::class, 'AboutUs']);
-    Route::post('/contact',[ClientController::class, 'ContactUs']);
+    Route::get('/terms', [ClientController::class, 'Terms']);
+    Route::get('/privacy', [ClientController::class, 'PrivacyPolicy']);
+    Route::get('/about', [ClientController::class, 'AboutUs']);
+    Route::post('/contact', [ClientController::class, 'ContactUs']);
     Route::post('/register', [ClientController::class, 'ClientRegister']);
     Route::post('/login', [ClientController::class, 'ClientLogin']);
-    Route::get('/resendverification',[ClientController::class, 'ResendVerificationCode']);
-    Route::post('/verify/code',[ClientController::class, 'VerifyCode']);
-    Route::post('/password/forget',[ClientController::class, 'ForgetPassword']);
-    Route::post('/password/forget/change',[ClientController::class, 'ChangePasswordForget']);
+    Route::get('/resendverification', [ClientController::class, 'ResendVerificationCode']);
+    Route::post('/verify/code', [ClientController::class, 'VerifyCode']);
+    Route::post('/password/forget', [ClientController::class, 'ForgetPassword']);
+    Route::post('/password/forget/change', [ClientController::class, 'ChangePasswordForget']);
     Route::post('/profile/complete', [ClientController::class, 'CompleteProfile']);
-    Route::get('/profile/delete',[ClientController::class, 'ClientDeleteProfile']);
-    Route::get('/profile',[ClientController::class, 'ClientProfile']);
-    Route::get('/document/remove/{id}',[ClientController::class, 'RemoveClientDocument']);
-    Route::post('/profile/update',[ClientController::class, 'UpdateProfile']);
-    Route::post('/password/change',[ClientController::class, 'ChangePassword']);
-    Route::get('/logout',[ClientController::class, 'ClientLogout']);
+    Route::get('/profile/delete', [ClientController::class, 'ClientDeleteProfile']);
+    Route::get('/profile', [ClientController::class, 'ClientProfile']);
+    Route::get('/document/remove/{id}', [ClientController::class, 'RemoveClientDocument']);
+    Route::post('/profile/update', [ClientController::class, 'UpdateProfile']);
+    Route::post('/password/change', [ClientController::class, 'ChangePassword']);
+    Route::get('/logout', [ClientController::class, 'ClientLogout']);
     Route::post('/language/change', [ClientController::class, 'ChangeLanguage']);
-    Route::post('/securitycode/change',[ClientController::class, 'UpdateSecurityCode']);
+    Route::post('/securitycode/change', [ClientController::class, 'UpdateSecurityCode']);
 
     Route::get('/nationalities', [ClientController::class, 'Nationalities']);
     Route::get('/countries', [ClientController::class, 'Countries']);
@@ -88,8 +88,7 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
 
 
     Route::post('/test', [ClientController::class, 'Test']);
-            Route::get('/generate-pdf/{client_id}', [ClientController::class, 'generatePdf']);
-
+    Route::get('/generate-pdf/{client_id}', [ClientController::class, 'generatePdf']);
 
     Route::post('/send-notifications', [NotificationController::class, 'sendNotifications']);
 
