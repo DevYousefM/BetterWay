@@ -309,7 +309,6 @@ class BrandController extends Controller
                 "data" => $data,
             ],
         ];
-        // return $data;
         $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
 
         $headers = [
@@ -335,7 +334,6 @@ class BrandController extends Controller
 
         $responseData = json_decode($response, true);
 
-        // Handle response from FCM and store only successful notifications
         if (isset($responseData['results'])) {
             foreach ($responseData['results'] as $key => $result) {
                 if (isset($result['message_id'])) {

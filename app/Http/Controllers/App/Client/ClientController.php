@@ -3280,14 +3280,7 @@ class ClientController extends Controller
         if ($Client) {
             $ClientAppLanguage = LocalAppLanguage($Client->ClientLanguage);
         } else {
-            $ClientAppLanguage = Input::get('ClientAppLanguage');
-            if (!$ClientAppLanguage) {
-                $ClientAppLanguage = "ar";
-            }
-
-            Session::put('ClientAppLanguage', $ClientAppLanguage);
-            App::setLocale($ClientAppLanguage);
-            $ClientAppLanguage = LocalAppLanguage($ClientAppLanguage);
+            $ClientAppLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
         }
 
 

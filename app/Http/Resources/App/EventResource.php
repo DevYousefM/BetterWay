@@ -9,28 +9,30 @@ use App\V1\Event\EventAttendee;
 class EventResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
         $EventAttendeeStatus = "NONE";
         $EventAttendeePaidAmount = 0;
-        if($Client){
+        if ($Client) {
             $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $AreaName = "AreaName".$ClientLanguage;
-            $CityName = "CityName".$ClientLanguage;
-            $EventTitle = "EventTitle".$ClientLanguage;
-            $EventDesc = "EventDesc".$ClientLanguage;
-            $EventPolicy = "EventPolicy".$ClientLanguage;
-            $EventAttendee = EventAttendee::where("IDEvent",$this->IDEvent)->where("IDClient",$Client->IDClient)->first();
-            if($EventAttendee){
+            $AreaName = "AreaName" . $ClientLanguage;
+            $CityName = "CityName" . $ClientLanguage;
+            $EventTitle = "EventTitle" . $ClientLanguage;
+            $EventDesc = "EventDesc" . $ClientLanguage;
+            $EventPolicy = "EventPolicy" . $ClientLanguage;
+            $EventAttendee = EventAttendee::where("IDEvent", $this->IDEvent)->where("IDClient", $Client->IDClient)->first();
+            if ($EventAttendee) {
                 $EventAttendeeStatus = $EventAttendee->EventAttendeeStatus;
                 $EventAttendeePaidAmount = $EventAttendee->EventAttendeePaidAmount;
             }
-        }else{
-            $EventTitle = "EventTitleEn";
-            $EventDesc = "EventDescEn";
-            $AreaName = "AreaNameEn";
-            $CityName = "CityNameEn";
-            $EventPolicy = "EventPolicyEn";
+        } else {
+            $ClientLanguage = $request->ClientAppLanguage == "ar" ? "Ar" : "En";
+            $EventTitle = "EventTitle" . $ClientLanguage;
+            $EventDesc = "EventDesc" . $ClientLanguage;
+            $AreaName = "AreaName" . $ClientLanguage;
+            $CityName = "CityName" . $ClientLanguage;
+            $EventPolicy = "EventPolicy" . $ClientLanguage;;
         }
 
         return [

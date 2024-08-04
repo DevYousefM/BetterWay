@@ -7,16 +7,17 @@ use Illuminate\Support\Facades\Log;
 
 class SubCategoryResource extends JsonResource
 {
-
-    public function toArray($request){
+    public function toArray($request)
+    {
         $User = auth('user')->user();
-        if($User){
+        if ($User) {
             $UserLanguage = AdminLanguage($User->UserLanguage);
-            $CategoryName = "CategoryName".$UserLanguage;
-            $SubCategoryName = "SubCategoryName".$UserLanguage;
-        }else{
-            $CategoryName = "CategoryNameEn";
-            $SubCategoryName = "SubCategoryNameEn";
+            $CategoryName = "CategoryName" . $UserLanguage;
+            $SubCategoryName = "SubCategoryName" . $UserLanguage;
+        } else {
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $CategoryName = "CategoryName" . $ClientLanguage;
+            $SubCategoryName = "SubCategoryName" . $ClientLanguage;
         }
 
         return [

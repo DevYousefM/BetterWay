@@ -8,17 +8,19 @@ use Illuminate\Support\Facades\Log;
 class BrandPageResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
-        if($Client){
+        if ($Client) {
             $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $BrandName = "BrandName".$ClientLanguage;
-            $BrandDesc = "BrandDesc".$ClientLanguage;
-            $BrandPolicy = "BrandPolicy".$ClientLanguage;
-        }else{
-            $BrandName = "BrandNameEn";
-            $BrandDesc = "BrandDescEn";
-            $BrandPolicy = "BrandPolicyEn";
+            $BrandName = "BrandName" . $ClientLanguage;
+            $BrandDesc = "BrandDesc" . $ClientLanguage;
+            $BrandPolicy = "BrandPolicy" . $ClientLanguage;
+        } else {
+            $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $BrandName = "BrandName" . $ClientLanguage;
+            $BrandDesc = "BrandDesc" . $ClientLanguage;
+            $BrandPolicy = "BrandPolicy" . $ClientLanguage;
         }
 
         return [

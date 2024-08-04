@@ -8,19 +8,21 @@ use Illuminate\Support\Facades\Log;
 class BrandProductResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $User = auth('user')->user();
-        if($User){
+        if ($User) {
             $UserLanguage = AdminLanguage($User->UserLanguage);
-            $BrandProductTitle = "BrandProductTitle".$UserLanguage;
-            $BrandProductDesc = "BrandProductDesc".$UserLanguage;
-            $SubCategoryName = "SubCategoryName".$UserLanguage;
-            $BrandName = "BrandName".$UserLanguage;
-        }else{
-            $BrandProductTitle = "BrandProductTitleEn";
-            $BrandProductDesc = "BrandProductDescEn";
-            $SubCategoryName = "SubCategoryNameEn";
-            $BrandName = "BrandNameEn";
+            $BrandProductTitle = "BrandProductTitle" . $UserLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $UserLanguage;
+            $SubCategoryName = "SubCategoryName" . $UserLanguage;
+            $BrandName = "BrandName" . $UserLanguage;
+        } else {
+            $UserLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
+            $BrandProductTitle = "BrandProductTitle" . $UserLanguage;
+            $BrandProductDesc = "BrandProductDesc" . $UserLanguage;
+            $SubCategoryName = "SubCategoryName" . $UserLanguage;
+            $BrandName = "BrandName" . $UserLanguage;
         }
 
 
