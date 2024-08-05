@@ -258,7 +258,7 @@ class BrandController extends Controller
         }
 
         $ClientBrandProduct->IDUser = $User->IDUser;
-        $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        // $ClientBrandProduct->ClientBrandProductStatus = "USED";
         $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(61);
@@ -293,7 +293,7 @@ class BrandController extends Controller
         AdjustLedger($Client, 0, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "CASH", "PAYMENT", $BatchNumber);
 
         $firebaseToken = $Client->ClientDeviceToken;
-        $SERVER_API_KEY = 'AAAAlWZnFGI:APA91bGNNe4QgAf7yuPAvKZnihGD2EvtJMb-fiDy1l4RNd3Wbz6Y2P6Zo6hptcsYxUs7BfyL2ZlcS2INzQLS-4xzHA2ndRXq_Z2W2OpxmKNGT0QTCjmSyNtxjCUlCLDNPeIJ6r1wvwmb';
+        $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
         $body = 'please review';
         $title = 'review';
         $data = [
@@ -309,8 +309,8 @@ class BrandController extends Controller
                 "data" => $data,
             ],
         ];
-        $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
 
+        $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
         $headers = [
             'Authorization: key=' . $SERVER_API_KEY,
             'Content-Type: application/json; charset=UTF-8',
@@ -333,7 +333,6 @@ class BrandController extends Controller
         }
 
         $responseData = json_decode($response, true);
-
         if (isset($responseData['results'])) {
             foreach ($responseData['results'] as $key => $result) {
                 if (isset($result['message_id'])) {
@@ -346,6 +345,9 @@ class BrandController extends Controller
                     ]);
                 } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
                     // Handle "NotRegistered" error - remove token from your database or list
+                    Log::info("NotRegistered error: " . $result['error']);
+                    Log::info("Token: " . $firebaseToken);
+                    Log::info("Result: " . $result);
                     $invalidToken = $firebaseTokens[$key];
                     Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
                 }

@@ -35,7 +35,7 @@ use LaravelFCM\Facades\FCM;
 
 function RespondWithBadRequest($Code, $Variable = Null)
 {
-    $ClientAppLanguage = LocalAppLanguage();
+    $ClientAppLanguage = LocalAppLanguage(app()->getLocale());
     $APICode = APICode::where('IDApiCode', $Code)->first();
     if ($ClientAppLanguage == "En") {
         $ApiMsg = __('apicodes.' . $APICode->IDApiCode) . $Variable;

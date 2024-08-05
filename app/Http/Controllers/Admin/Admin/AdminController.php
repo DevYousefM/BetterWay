@@ -3310,7 +3310,7 @@ class AdminController extends Controller
         $ids = $request->input('ids');
         $users = Client::whereIn('IDClient', $ids)->get();
         $firebaseTokens = $users->pluck('ClientDeviceToken')->toArray();
-        $SERVER_API_KEY = 'AAAAlWZnFGI:APA91bGNNe4QgAf7yuPAvKZnihGD2EvtJMb-fiDy1l4RNd3Wbz6Y2P6Zo6hptcsYxUs7BfyL2ZlcS2INzQLS-4xzHA2ndRXq_Z2W2OpxmKNGT0QTCjmSyNtxjCUlCLDNPeIJ6r1wvwmb';
+        $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
         $body = $request->input('body');
         $title = $request->input('title');
 
