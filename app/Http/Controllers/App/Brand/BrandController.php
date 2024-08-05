@@ -258,7 +258,7 @@ class BrandController extends Controller
         }
 
         $ClientBrandProduct->IDUser = $User->IDUser;
-        $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        // $ClientBrandProduct->ClientBrandProductStatus = "USED";
         $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(61);
@@ -306,10 +306,10 @@ class BrandController extends Controller
             "notification" => [
                 "title" => $title,
                 "body" => $body,
-                "data" => $data,
             ],
+            "data" => $data,
         ];
-
+// return $data;
         $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
         $headers = [
             'Authorization: key=' . $SERVER_API_KEY,
@@ -333,7 +333,7 @@ class BrandController extends Controller
         }
 
         $responseData = json_decode($response, true);
-        Log::info("responseData: " . $responseData);
+        Log::info("responseData: " . $response);
         if (isset($responseData['results'])) {
             foreach ($responseData['results'] as $key => $result) {
                 if (isset($result['message_id'])) {
