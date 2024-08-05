@@ -71,18 +71,15 @@ function RespondWithSuccessRequest($Code)
     return $response;
 }
 
-function LocalAppLanguage()
+function LocalAppLanguage($ClientAppLanguage)
 {
-    $ClientAppLanguage = app()->getLocale();
     if ($ClientAppLanguage == "ar") {
-        $ClientAppLanguage = "Ar";
-    } else 
-    if ($ClientAppLanguage == "en") {
-        $ClientAppLanguage = "En";
+        return    $ClientAppLanguage = "Ar";
+    } else if ($ClientAppLanguage == "en") {
+        return $ClientAppLanguage = "En";
     } else {
-        $ClientAppLanguage = "En";
+        return $ClientAppLanguage = "En";
     }
-    return $ClientAppLanguage;
 }
 
 function YoutubeEmbedUrl($URL)
@@ -97,12 +94,12 @@ function YoutubeEmbedUrl($URL)
 function AdminLanguage($AdminLanguage)
 {
     if ($AdminLanguage == "ar") {
-        $AdminLanguage = "Ar";
+        return $AdminLanguage = "Ar";
+    } else if ($AdminLanguage == "en") {
+        return $AdminLanguage = "En";
+    } else {
+        return $AdminLanguage = "En";
     }
-    if ($AdminLanguage == "en") {
-        $AdminLanguage = "En";
-    }
-    return $AdminLanguage;
 }
 
 function TimeZoneAdjust($Date, $CountryZone)
@@ -401,7 +398,7 @@ function PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPositio
 function ProductBranches($IDLink, $Client, $Type)
 {
     if ($Client) {
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $BranchAddress = "BranchAddress" . $ClientLanguage;
         $AreaName = "AreaName" . $ClientLanguage;
         $CityName = "CityName" . $ClientLanguage;

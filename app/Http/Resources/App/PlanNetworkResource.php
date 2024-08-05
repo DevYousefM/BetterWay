@@ -8,18 +8,19 @@ use Illuminate\Support\Facades\Log;
 class PlanNetworkResource extends JsonResource
 {
 
-    public function toArray($request){
+    public function toArray($request)
+    {
         $Client = auth('client')->user();
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $ClientPrivacy = $this->ClientPrivacy;
         $ClientContact = $this->ClientPhone;
         $ClientPicture = $this->ClientPicture;
-        if($ClientPrivacy){
+        if ($ClientPrivacy) {
             $ClientContact = $this->ClientAppID;
             $ClientPicture = Null;
         }
         $PositionName = "Networker";
-        if($ClientLanguage == "Ar"){
+        if ($ClientLanguage == "Ar") {
             $PositionName = "Networker";
         }
 

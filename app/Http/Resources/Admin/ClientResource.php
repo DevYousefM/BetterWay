@@ -30,7 +30,7 @@ class ClientResource extends JsonResource
 
         $ReferralNumber = PlanNetwork::where("IDReferralClient", $this->IDClient)->count();
         $Nationality = Nationality::find($this->IDNationality);
-        $ClientAppLanguage = LocalAppLanguage();
+        $ClientAppLanguage = LocalAppLanguage($User->UserLanguage);
         $ClientNationality = "NationalityName" . $ClientAppLanguage;
         $ClientNationality = $Nationality->$ClientNationality;
 

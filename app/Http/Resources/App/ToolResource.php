@@ -18,7 +18,7 @@ class ToolResource extends JsonResource
             if ($ClientTool) {
                 $ToolBought = 1;
             }
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $ToolTitle = "ToolTitle" . $ClientLanguage;
             $ToolDesc = "ToolDesc" . $ClientLanguage;
         } else {

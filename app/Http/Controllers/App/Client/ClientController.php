@@ -88,6 +88,7 @@ use Cookie;
 use Nette\Utils\Random;
 use PDO;
 use Mpdf\Mpdf;
+use Svg\Tag\Rect;
 
 class ClientController extends Controller
 {
@@ -101,7 +102,7 @@ class ClientController extends Controller
 
         Session::put('ClientAppLanguage', $ClientAppLanguage);
         App::setLocale($ClientAppLanguage);
-        
+
         $ClientAppLanguage = LocalAppLanguage($ClientAppLanguage);
 
         $NationalityName = "NationalityName" . $ClientAppLanguage;
@@ -786,7 +787,7 @@ class ClientController extends Controller
             }
         }
 
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PositionLanguageName = "PositionTitle" . $ClientLanguage;
         $Position = Position::find($Client->IDPosition);
         $PositionName = "Networker";
@@ -918,9 +919,9 @@ class ClientController extends Controller
         return RespondWithSuccessRequest(8);
     }
 
-    public function PrivacyPolicy()
+    public function PrivacyPolicy(Request $request)
     {
-        $ClientAppLanguage = LocalAppLanguage();
+        $ClientAppLanguage = LocalAppLanguage($request->ClientAppLanguage);
 
         $PolicyEn = "<b>What Data We Get</b><br>We collect certain data from you directly, like information you enter yourself, data about your participation in courses, and data from third-party platforms you connect with Zari. We also collect some data automatically, like information about your device and what parts of our Services you interact with or spend time using.<br>Data You Provide to Us<br>We may collect different data from or about you depending on how you use the Services. Below are some examples to help you better understand the data we collect.<br>";
         $PolicyEn = $PolicyEn . "How We Get Data About You<br>We use tools like cookies, web beacons, analytics services, and advertising providers to gather the data listed above. Some of these tools offer you the ability to opt out of data collection.<br>What We Use Your Data For<br>Responding to your questions and concerns; Sending you administrative messages and information, including messages from instructors and teaching assistants, notifications about changes to our Service, and updates to our agreements; Sending push notifications to your wireless device to provide updates and other relevant messages (which you can manage from the “options” or “settings” page of the mobile app);<br>";
@@ -957,9 +958,9 @@ class ClientController extends Controller
         return 123123123;
     }
 
-    public function AboutUs()
+    public function AboutUs(Request $request)
     {
-        $ClientAppLanguage = LocalAppLanguage();
+        $ClientAppLanguage = LocalAppLanguage($request->ClientAppLanguage);
         $AboutUsTitle = GeneralSettings('AboutUsTitle' . $ClientAppLanguage);
         $AboutUsBody = GeneralSettings('AboutUsBody' . $ClientAppLanguage);
         $ContactLocation = GeneralSettings('ContactLocation' . $ClientAppLanguage);
@@ -1031,7 +1032,7 @@ class ClientController extends Controller
         }
 
         $AccessToken = $request->bearerToken();
-        $ClientAppLanguage = LocalAppLanguage();
+        $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
 
         $PositionLanguageName = "PositionTitle" . $ClientAppLanguage;
         $CityName = "CityName" . $ClientAppLanguage;
@@ -2074,12 +2075,12 @@ class ClientController extends Controller
         $SubCategory = $ClientBrandProducts->select('brandproducts.IDSubCategory', DB::raw('count(*) as Total'))->groupby("brandproducts.IDSubCategory")->orderby("Total", "DESC")->first();
         if ($SubCategory) {
             $SubCategory = SubCategory::find($SubCategory->IDSubCategory);
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $SubCategoryName = "SubCategoryName" . $ClientLanguage;
             $UsedCategory = $SubCategory->$SubCategoryName;
         }
 
-        $Response = array("MoneySaved" => $MoneySaved , "PointsEarned" => $PointsEarned, "UsedProducts" => $UsedProducts, "UsedCategory" => $UsedCategory, "ClientBrandProducts" => $MyProducts, "Pages" => $Pages);
+        $Response = array("MoneySaved" => $MoneySaved, "PointsEarned" => $PointsEarned, "UsedProducts" => $UsedProducts, "UsedCategory" => $UsedCategory, "ClientBrandProducts" => $MyProducts, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -2158,7 +2159,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(1);
         }
 
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PositionLanguageName = "PositionTitle" . $ClientLanguage;
         $Position = Position::find($Client->IDPosition);
         $PositionName = "Networker";
@@ -2200,7 +2201,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $IDClient = $Client->IDClient;
         $AgencyNumber = $request->AgencyNumber;
         if (!$AgencyNumber) {
@@ -2924,7 +2925,7 @@ class ClientController extends Controller
             }
         }
 
-        $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PositionLanguageName = "PositionTitle" . $ClientLanguage;
         $Position = Position::find($Client->IDPosition);
         $PositionName = "Networker";
@@ -3278,7 +3279,7 @@ class ClientController extends Controller
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientAppLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         } else {
             $ClientAppLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
         }
@@ -3326,7 +3327,7 @@ class ClientController extends Controller
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientAppLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         } else {
             $ClientAppLanguage = Input::get('ClientAppLanguage');
             if (!$ClientAppLanguage) {
@@ -3549,7 +3550,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $ClientAppLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
         if (!$PlanNetwork) {
             return RespondWithBadRequest(1);
@@ -3652,7 +3653,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $ClientAppLanguage = LocalAppLanguage($Client->ClientLanguage);
+        $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PlanNetwork = PlanNetwork::leftjoin("planproducts", "planproducts.IDPlanProduct", "plannetwork.IDPlanProduct")->where("plannetwork.IDClient", $Client->IDClient)->first();
         if (!$PlanNetwork) {
             return RespondWithBadRequest(1);

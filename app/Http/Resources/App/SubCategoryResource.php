@@ -12,7 +12,7 @@ class SubCategoryResource extends JsonResource
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $SubCategoryName = "SubCategoryName" . $ClientLanguage;
         } else {
             $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';

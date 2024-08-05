@@ -15,7 +15,7 @@ class EventResource extends JsonResource
         $EventAttendeeStatus = "NONE";
         $EventAttendeePaidAmount = 0;
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $AreaName = "AreaName" . $ClientLanguage;
             $CityName = "CityName" . $ClientLanguage;
             $EventTitle = "EventTitle" . $ClientLanguage;

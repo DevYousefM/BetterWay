@@ -12,7 +12,7 @@ class CategoryResource extends JsonResource
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $CategoryName = "CategoryName" . $ClientLanguage;
         } else {
             $ClientLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';

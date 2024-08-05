@@ -12,7 +12,7 @@ class BrandProductResource extends JsonResource
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $BrandProductTitle = "BrandProductTitle" . $ClientLanguage;
             $BrandProductDesc = "BrandProductDesc" . $ClientLanguage;
             $SubCategoryName = "SubCategoryName" . $ClientLanguage;

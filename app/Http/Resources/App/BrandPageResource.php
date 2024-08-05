@@ -12,7 +12,7 @@ class BrandPageResource extends JsonResource
     {
         $Client = auth('client')->user();
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
+            $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
             $BrandName = "BrandName" . $ClientLanguage;
             $BrandDesc = "BrandDesc" . $ClientLanguage;
             $BrandPolicy = "BrandPolicy" . $ClientLanguage;

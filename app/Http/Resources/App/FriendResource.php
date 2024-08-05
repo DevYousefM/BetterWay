@@ -12,10 +12,10 @@ class FriendResource extends JsonResource
     public function toArray($request)
     {
         $Client = auth('client')->user();
+        $ClientAppLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         if ($Client) {
-            $ClientLanguage = LocalAppLanguage($Client->ClientLanguage);
-            $AreaName = "AreaName" . $ClientLanguage;
-            $CityName = "CityName" . $ClientLanguage;
+            $AreaName = "AreaName" . $ClientAppLanguage;
+            $CityName = "CityName" . $ClientAppLanguage;
         } else {
             $AreaName = "AreaNameEn";
             $CityName = "CityNameEn";
@@ -31,13 +31,12 @@ class FriendResource extends JsonResource
         $PositionName = $this->PositionName;
         if (!$PositionName) {
             $PositionName = "Networker";
-            if ($ClientLanguage == "Ar") {
+            if ($ClientAppLanguage == "Ar") {
                 $PositionName = "Networker";
             }
         }
 
         $Nationality = Nationality::find($this->IDNationality);
-        $ClientAppLanguage = LocalAppLanguage();
         $ClientNationality = "NationalityName" . $ClientAppLanguage;
         $ClientNationality = $Nationality->$ClientNationality;
 
