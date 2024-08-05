@@ -258,7 +258,7 @@ class BrandController extends Controller
         }
 
         $ClientBrandProduct->IDUser = $User->IDUser;
-        // $ClientBrandProduct->ClientBrandProductStatus = "USED";
+        $ClientBrandProduct->ClientBrandProductStatus = "USED";
         $BrandProduct = BrandProduct::where("IDBrandProduct", $ClientBrandProduct->IDBrandProduct)->where("BrandProductStatus", "ACTIVE")->where("BrandProductStartDate", "<=", $Today)->where("BrandProductEndDate", ">", $Today)->first();
         if (!$BrandProduct) {
             return RespondWithBadRequest(61);
