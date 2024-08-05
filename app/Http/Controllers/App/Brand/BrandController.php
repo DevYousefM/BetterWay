@@ -333,6 +333,7 @@ class BrandController extends Controller
         }
 
         $responseData = json_decode($response, true);
+        Log::info("responseData: " . $responseData);
         if (isset($responseData['results'])) {
             foreach ($responseData['results'] as $key => $result) {
                 if (isset($result['message_id'])) {
