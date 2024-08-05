@@ -294,6 +294,7 @@ class BrandController extends Controller
 
         $firebaseToken = $Client->ClientDeviceToken;
         $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
+        Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
         $body = 'please review';
         $title = 'review';
         $data = [
@@ -309,7 +310,6 @@ class BrandController extends Controller
             ],
             "data" => $data,
         ];
-// return $data;
         $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
         $headers = [
             'Authorization: key=' . $SERVER_API_KEY,
