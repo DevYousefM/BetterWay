@@ -2934,7 +2934,15 @@ class ClientController extends Controller
         }
 
         $Friend->ClientFriendStatus = $ClientFriendStatus;
-        $Friend->PositionName = $PositionName;
+        $FriendLanguage = LocalAppLanguage($Friend->ClientAppLanguage);
+        $FriendPositionLanguageName = "PositionTitle" . $FriendLanguage;
+        $FriendPosition = Position::find($Friend->IDPosition);
+        $FriendPositionName = "Networker";
+        if ($FriendPosition) {
+            $FriendPositionName = $FriendPosition->$FriendPositionLanguageName;
+        }
+        
+        $Friend->PositionName = $FriendPositionName;
         $Friend = FriendResource::collection([$Friend])[0];
 
         $APICode = APICode::where('IDAPICode', 8)->first();
