@@ -104,7 +104,7 @@ class ClientPositions extends Command
         return $clients->filter(function ($client) use ($intervalMinutes, $referralNumber) {
             $now = Carbon::now();
             Log::info("Client:" . json_decode($client));
-            Log::info("referral:" . $client->referrals);
+            Log::info("referral: " . print_r($client->referrals, true));
             $recentReferrals = $client->referrals->filter(function ($referral) use ($now, $intervalMinutes) {
                 return Carbon::parse($referral->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
