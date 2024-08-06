@@ -26,6 +26,9 @@ class ClientPositions extends Command
         $Positions = Position::all();
         foreach ($Positions as $position) {
             Log::info("Position:{$position->PositionTitleEn}");
+
+            Log::info("HERE: " . Client::find(344));
+
             $clients = Client::with(['referrals', 'visits' => function ($query) {
                 $query->where('ClientBrandProductStatus', 'USED');
             }])
