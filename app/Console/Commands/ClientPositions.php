@@ -71,7 +71,8 @@ class ClientPositions extends Command
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
                     Log::info("getFilteredByTotalPersons:" . json_encode($lastFiltering));
-                } else {
+                } 
+                if($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
                     Log::info("getFilteredByBalancePersons:" . json_encode($lastFiltering));
                 }
