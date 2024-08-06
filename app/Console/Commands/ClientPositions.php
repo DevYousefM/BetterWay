@@ -29,9 +29,7 @@ class ClientPositions extends Command
 
             // Log::info("HERE: " . Client::find(344)->referrals);
 
-            $clients = Client::with(['referrals', 'visits' => function ($query) {
-                $query->where('ClientBrandProductStatus', 'USED');
-            }])
+            $clients = Client::with(['referrals'])
                 ->whereHas('referrals', function ($query) {
                     $query->whereNotNull('IDReferral');
                 })
