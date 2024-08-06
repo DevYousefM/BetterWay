@@ -71,19 +71,20 @@ class ClientPositions extends Command
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
                     Log::info("getFilteredByTotalPersons:" . json_encode($lastFiltering));
-                } 
-                if($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
+                }
+                if ($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
                     Log::info("getFilteredByBalancePersons:" . json_encode($lastFiltering));
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
                     Log::info("getFilteredByTotalPoints:" . json_encode($lastFiltering));
-                } else {
+                }
+                if ($PositionRightPointsNumber && $PositionLeftPointsNumber && $PositionRightPointsNumber != 0 && $PositionLeftPointsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
                     Log::info("getFilteredByBalancePoints:" . json_encode($lastFiltering));
                 }
-                $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
+                if ($PositionChequeValue && $PositionChequeValue > 0) $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
                 Log::info("getFilteredByCheques:" . json_encode($lastFiltering));
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
