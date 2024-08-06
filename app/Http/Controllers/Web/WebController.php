@@ -31,6 +31,7 @@ class WebController extends Controller
                     $query->whereNotNull('IDReferral');
                 })
                 // ->where("IDPosition", '!=', $position->IDPosition)
+                ->where("IDClient", 344)
                 ->get();
 
             echo $clients . "\n";
