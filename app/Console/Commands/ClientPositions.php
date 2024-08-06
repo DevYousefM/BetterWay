@@ -60,27 +60,27 @@ class ClientPositions extends Command
 
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
-            Log::info("getFilteredByReferral:" . $lastFiltering);
+            Log::info("getFilteredByReferral:" . json_encode($lastFiltering));
             if (count($lastFiltering) > 0) {
 
                 $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
-                Log::info("getFilteredByVisits:" . $lastFiltering);
+                Log::info("getFilteredByVisits:" . json_encode($lastFiltering));
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
-                    Log::info("getFilteredByTotalPersons:" . $lastFiltering);
+                    Log::info("getFilteredByTotalPersons:" . json_encode($lastFiltering));
                 } else {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
-                    Log::info("getFilteredByBalancePersons:" . $lastFiltering);
+                    Log::info("getFilteredByBalancePersons:" . json_encode($lastFiltering));
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
-                    Log::info("getFilteredByTotalPoints:" . $lastFiltering);
+                    Log::info("getFilteredByTotalPoints:" . json_encode($lastFiltering));
                 } else {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
-                    Log::info("getFilteredByBalancePoints:" . $lastFiltering);
+                    Log::info("getFilteredByBalancePoints:" . json_encode($lastFiltering));
                 }
                 $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
-                Log::info("getFilteredByCheques:" . $lastFiltering);
+                Log::info("getFilteredByCheques:" . json_encode($lastFiltering));
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,
