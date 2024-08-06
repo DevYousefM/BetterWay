@@ -32,7 +32,8 @@ class WebController extends Controller
                 })
                 ->where("IDPosition", '!=', $position->IDPosition)
                 ->get();
-            echo $clients;
+                
+            echo $clients . "\n";
         }
         // return view('web.index');
     }
