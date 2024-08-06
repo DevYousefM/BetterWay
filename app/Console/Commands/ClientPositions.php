@@ -27,14 +27,15 @@ class ClientPositions extends Command
         foreach ($Positions as $position) {
             Log::info("Position:{$position->PositionTitleEn}");
 
-            // Log::info("HERE: " . Client::find(344)->referrals);
+            Log::info("HERE: " . Client::find(344)->referrals);
 
-            $clients = Client::with(['referrals'])
+            $clients = Client::with(['referrals', 'visits' => function ($query) {
+                $query->where('ClientBrandProductStatus', 'USED');
+            }])
                 ->whereHas('referrals', function ($query) {
                     $query->whereNotNull('IDReferral');
                 })
                 ->where("IDPosition", '!=', $position->IDPosition)
-                ->where("IDClient", 344)
                 ->get();
             Log::info("Clients: " . $clients);
             $PositionReferralNumber = $position->PositionReferralNumber;
