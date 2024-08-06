@@ -22,8 +22,10 @@ class ClientPositions extends Command
 
     public function handle()
     {
+        Log::info("Client Positions Starts");
         $Positions = Position::all();
         foreach ($Positions as $position) {
+            Log::info("Position:{$position->PositionName}");
             $clients = Client::with(['referrals', 'visits' => function ($query) {
                 $query->where('ClientBrandProductStatus', 'USED');
             }])
@@ -32,6 +34,7 @@ class ClientPositions extends Command
                 })
                 ->where("IDPosition", '!=', $position->IDPosition)
                 ->get();
+            Log::info("Clients: " . $clients);
             $PositionReferralNumber = $position->PositionReferralNumber;
             $PositionReferralInterval = $position->PositionReferralInterval;
 
@@ -60,23 +63,30 @@ class ClientPositions extends Command
             if (count($lastFiltering) > 0) {
 
                 $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
+                Log::info("getFilteredByVisits:" . $lastFiltering);
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
+                    Log::info("getFilteredByTotalPersons:" . $lastFiltering);
                 } else {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
+                    Log::info("getFilteredByBalancePersons:" . $lastFiltering);
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
+                    Log::info("getFilteredByTotalPoints:" . $lastFiltering);
                 } else {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
+                    Log::info("getFilteredByBalancePoints:" . $lastFiltering);
                 }
                 $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
+                Log::info("getFilteredByCheques:" . $lastFiltering);
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,
                         'IDPosition' => $position->IDPosition,
                     ];
                 })->unique('IDClient')->values();
+                Log::info("simplifiedClients:" . $simplifiedClients);
                 foreach ($simplifiedClients as $clientData) {
                     PositionsForClients::firstOrCreate(
                         ['IDClient' => $clientData['IDClient'], 'IDPosition' => $clientData['IDPosition']],
