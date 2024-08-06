@@ -60,6 +60,7 @@ class ClientPositions extends Command
 
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
+            Log::info("getFilteredByReferral:" . $lastFiltering);
             if (count($lastFiltering) > 0) {
 
                 $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
