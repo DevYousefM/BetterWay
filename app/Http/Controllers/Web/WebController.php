@@ -33,7 +33,7 @@ class WebController extends Controller
                 ->where(function ($query) use ($position) {
                     $query->where("IDPosition", '!=', $position->IDPosition)
                         ->orWhereNull("IDPosition");
-                })->where("IDClient", 344)
+                })
                 ->get();
 
             echo $clients . "\n";
