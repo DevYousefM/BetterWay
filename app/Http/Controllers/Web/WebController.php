@@ -30,8 +30,10 @@ class WebController extends Controller
                 ->whereHas('referrals', function ($query) {
                     $query->whereNotNull('IDReferral');
                 })
-                ->where("IDPosition", '!=', $position->IDPosition)
-                ->where("IDClient", 344)
+                ->where(function ($query) use ($position) {
+                    $query->where("IDPosition", '!=', $position->IDPosition)
+                        ->orWhereNull("IDPosition");
+                })->where("IDClient", 344)
                 ->get();
 
             echo $clients . "\n";
