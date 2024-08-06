@@ -66,7 +66,7 @@ class ClientPositions extends Command
             Log::info("getFilteredByReferral:" . json_encode($lastFiltering));
             if (count($lastFiltering) > 0) {
 
-                $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
+                if ($PositionVisitsNumber > 0 && $PositionVisitsInterval) $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
                 Log::info("getFilteredByVisits:" . json_encode($lastFiltering));
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
