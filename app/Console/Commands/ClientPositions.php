@@ -95,6 +95,7 @@ class ClientPositions extends Command
                 }
             }
         }
+        Log::info("Client Positions End");
         return 0;
     }
     function getFilteredByReferral($clients, $intervalMinutes, $referralNumber)
