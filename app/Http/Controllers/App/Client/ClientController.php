@@ -1892,11 +1892,6 @@ class ClientController extends Controller
             return RespondWithBadRequest(1);
         }
 
-        $BrandReview = BrandRating::where("IDClient", $Client->IDClient)->where("IDBrand", $IDBrand)->first();
-        if ($BrandReview) {
-            return RespondWithBadRequest(37);
-        }
-
         $BrandRating = new BrandRating;
         $BrandRating->IDClient = $Client->IDClient;
         $BrandRating->IDBrand = $IDBrand;
