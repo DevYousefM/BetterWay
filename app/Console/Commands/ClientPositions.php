@@ -37,7 +37,7 @@ class ClientPositions extends Command
                     $query->where("IDPosition", '!=', $position->IDPosition)
                         ->orWhereNull("IDPosition");
                 })->get();
-            Log::info("Clients: " . $clients);
+            Log::info("Clients: " . extractIDClientsFromJson($clients));
             $PositionReferralNumber = $position->PositionReferralNumber;
             $PositionReferralInterval = $position->PositionReferralInterval;
 
@@ -63,29 +63,29 @@ class ClientPositions extends Command
 
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
-            Log::info("getFilteredByReferral:" . extractIDClients($lastFiltering));
+            Log::info("getFilteredByReferral:" . extractIDClientsFromJson($lastFiltering));
             if (count($lastFiltering) > 0) {
 
                 if ($PositionVisitsNumber > 0 && $PositionVisitsInterval) $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
-                Log::info("getFilteredByVisits:" . extractIDClients($lastFiltering));
+                Log::info("getFilteredByVisits:" . extractIDClientsFromJson($lastFiltering));
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
-                    Log::info("getFilteredByTotalPersons:" . extractIDClients($lastFiltering));
+                    Log::info("getFilteredByTotalPersons:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
-                    Log::info("getFilteredByBalancePersons:" . extractIDClients($lastFiltering));
+                    Log::info("getFilteredByBalancePersons:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
-                    Log::info("getFilteredByTotalPoints:" . extractIDClients($lastFiltering));
+                    Log::info("getFilteredByTotalPoints:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionRightPointsNumber && $PositionLeftPointsNumber && $PositionRightPointsNumber != 0 && $PositionLeftPointsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
-                    Log::info("getFilteredByBalancePoints:" . extractIDClients($lastFiltering));
+                    Log::info("getFilteredByBalancePoints:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionChequeValue && $PositionChequeValue > 0) $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
-                Log::info("getFilteredByCheques:" . extractIDClients($lastFiltering));
+                Log::info("getFilteredByCheques:" . extractIDClientsFromJson($lastFiltering));
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,

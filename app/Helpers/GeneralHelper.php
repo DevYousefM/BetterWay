@@ -799,22 +799,32 @@ function SMSMsegat($ClientPhone, $Message)
 
     log::info($response);
 }
-function extractIDClients($lastFiltering)
+function extractIDClientsFromJson($jsonString)
 {
-    return json_encode(array_map(function ($item) {
-        $mainIDClient = $item->IDClient;
+    // Decode JSON into an associative array
+    $data = json_decode($jsonString, true);
 
+    // Map through the array to extract IDClient values
+    $filteredArray = array_map(function ($item) {
+        $mainIDClient = $item['IDClient'];
+
+        // Extract IDClient values from referrals
         $referralIDClients = array_map(function ($referral) {
-            return $referral->IDClient;
-        }, $item->referrals);
+            return $referral['IDClient'];
+        }, $item['referrals']);
 
-        $visits = array_map(function ($visit) {
-            return $visit->IDClient;
-        }, $item->visits);
+        // Extract IDClient values from visits
+        $visitIDClients = array_map(function ($visit) {
+            return $visit['IDClient'];
+        }, $item['visits']);
+
         return [
             'IDClient' => $mainIDClient,
             'referrals' => $referralIDClients,
-            'visits' => $visits
+            'visits' => $visitIDClients,
         ];
-    }, $lastFiltering));
+    }, $data);
+
+    // Encode the processed array back to JSON
+    return json_encode($filteredArray);
 }
