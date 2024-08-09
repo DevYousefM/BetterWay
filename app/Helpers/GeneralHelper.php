@@ -799,3 +799,22 @@ function SMSMsegat($ClientPhone, $Message)
 
     log::info($response);
 }
+function extractIDClients($lastFiltering)
+{
+    return json_encode(array_map(function ($item) {
+        $mainIDClient = $item->IDClient;
+
+        $referralIDClients = array_map(function ($referral) {
+            return $referral->IDClient;
+        }, $item->referrals);
+
+        $visits = array_map(function ($visit) {
+            return $visit->IDClient;
+        }, $item->visits);
+        return [
+            'IDClient' => $mainIDClient,
+            'referrals' => $referralIDClients,
+            'visits' => $visits
+        ];
+    }, $lastFiltering));
+}

@@ -63,29 +63,29 @@ class ClientPositions extends Command
 
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
-            Log::info("getFilteredByReferral:" . json_encode($lastFiltering));
+            Log::info("getFilteredByReferral:" . extractIDClients($lastFiltering));
             if (count($lastFiltering) > 0) {
 
                 if ($PositionVisitsNumber > 0 && $PositionVisitsInterval) $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
-                Log::info("getFilteredByVisits:" . json_encode($lastFiltering));
+                Log::info("getFilteredByVisits:" . extractIDClients($lastFiltering));
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
-                    Log::info("getFilteredByTotalPersons:" . json_encode($lastFiltering));
+                    Log::info("getFilteredByTotalPersons:" . extractIDClients($lastFiltering));
                 }
                 if ($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
-                    Log::info("getFilteredByBalancePersons:" . json_encode($lastFiltering));
+                    Log::info("getFilteredByBalancePersons:" . extractIDClients($lastFiltering));
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
-                    Log::info("getFilteredByTotalPoints:" . json_encode($lastFiltering));
+                    Log::info("getFilteredByTotalPoints:" . extractIDClients($lastFiltering));
                 }
                 if ($PositionRightPointsNumber && $PositionLeftPointsNumber && $PositionRightPointsNumber != 0 && $PositionLeftPointsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
-                    Log::info("getFilteredByBalancePoints:" . json_encode($lastFiltering));
+                    Log::info("getFilteredByBalancePoints:" . extractIDClients($lastFiltering));
                 }
                 if ($PositionChequeValue && $PositionChequeValue > 0) $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
-                Log::info("getFilteredByCheques:" . json_encode($lastFiltering));
+                Log::info("getFilteredByCheques:" . extractIDClients($lastFiltering));
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,
@@ -130,8 +130,7 @@ class ClientPositions extends Command
 
                 return false;
             });
-        }
-        else return $clients;
+        } else return $clients;
     }
     function getFilteredByVisits($clients, $intervalMinutes, $visitsNumber)
     {
