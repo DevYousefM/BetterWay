@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class PositionsForClients extends Model
 {
     protected $table = 'positionsforclients';
-    protected $primaryKey = 'IDPositionsForClients';
+    protected $primaryKey = 'IDPositionForClient';
     protected $guarded = [];
     public function client()
     {

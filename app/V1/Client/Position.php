@@ -11,6 +11,11 @@ class Position extends Model
 
     public function positionforclients()
     {
-        return $this->hasMany(PositionsForClients::class, "IDPosition");
+        return $this->hasMany(PositionsForClients::class, "IDPosition")->where('Status', 'PENDING');
+    }
+    public function rejectedPositionForClients()
+    {
+        return $this->hasMany(PositionsForClients::class, 'IDPosition')
+            ->where('Status', 'REJECTED');
     }
 }

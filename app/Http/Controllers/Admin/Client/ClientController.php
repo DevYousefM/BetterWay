@@ -36,6 +36,7 @@ use App\V1\Client\PositionBrand;
 use App\V1\Client\ClientBonanza;
 use App\V1\Client\ClientDocument;
 use App\V1\Client\ClientBrandProduct;
+use App\V1\Client\PositionsForClients as ClientPositionsForClients;
 use App\V1\General\APICode;
 use App\V1\General\SocialMedia;
 use App\V1\General\GeneralSetting;
@@ -2865,6 +2866,23 @@ class ClientController extends Controller
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => PositionsForClients::collection($FullData)
+        );
+        return $Response;
+    }
+    public function PositionClientsReject($id)
+    {
+        $PositionForClient = ClientPositionsForClients::where("IDPositionForClient", $id)->first();
+
+        $PositionForClient->update([
+            'Status' => "REJECTED",
+        ]);
+        
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => null,
         );
         return $Response;
     }
