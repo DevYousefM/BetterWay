@@ -106,28 +106,32 @@ class ClientPositions extends Command
     }
     function getFilteredByReferral($clients, $intervalMinutes, $referralNumber)
     {
-        return $clients->filter(function ($client) use ($intervalMinutes, $referralNumber) {
-            $now = Carbon::now();
-            $recentReferrals = $client->referrals->filter(function ($referral) use ($now, $intervalMinutes) {
-                return Carbon::parse($referral->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
+        if ($referralNumber > 0) {
 
-            $sortedReferrals = $recentReferrals->sortBy('created_at');
+            return $clients->filter(function ($client) use ($intervalMinutes, $referralNumber) {
+                $now = Carbon::now();
+                $recentReferrals = $client->referrals->filter(function ($referral) use ($now, $intervalMinutes) {
+                    return Carbon::parse($referral->created_at)->diffInMinutes($now) <= $intervalMinutes;
+                });
 
-            foreach ($sortedReferrals as $referral) {
-                $currentReferralTime = Carbon::parse($referral->created_at);
+                $sortedReferrals = $recentReferrals->sortBy('created_at');
 
-                $referralCount = $sortedReferrals->filter(function ($r) use ($currentReferralTime, $intervalMinutes) {
-                    return Carbon::parse($r->created_at)->diffInMinutes($currentReferralTime) <= $intervalMinutes;
-                })->count();
+                foreach ($sortedReferrals as $referral) {
+                    $currentReferralTime = Carbon::parse($referral->created_at);
 
-                if ($referralCount >= $referralNumber) {
-                    return true;
+                    $referralCount = $sortedReferrals->filter(function ($r) use ($currentReferralTime, $intervalMinutes) {
+                        return Carbon::parse($r->created_at)->diffInMinutes($currentReferralTime) <= $intervalMinutes;
+                    })->count();
+
+                    if ($referralCount >= $referralNumber) {
+                        return true;
+                    }
                 }
-            }
 
-            return false;
-        });
+                return false;
+            });
+        }
+        else return $clients;
     }
     function getFilteredByVisits($clients, $intervalMinutes, $visitsNumber)
     {

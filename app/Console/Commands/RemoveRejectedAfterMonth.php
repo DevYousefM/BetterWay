@@ -26,8 +26,8 @@ class RemoveRejectedAfterMonth extends Command
         $PositionsForClients = PositionsForClients::whereDate('created_at', '<=', Carbon::now()->subDays(30)->toDateString())
             ->where("Status", "REJECTED");
 
-        Log::info("Rejected Clients Removed: " . $PositionsForClients->get());
-        Log::info("Rejected Clients Removed: " . $PositionsForClients->count());
+        Log::info("Rejected Clients: " . $PositionsForClients->get());
+        Log::info("Rejected Clients: " . $PositionsForClients->count());
 
         $PositionsForClients->delete();
 
