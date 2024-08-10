@@ -71,8 +71,6 @@ class ChequeCycle extends Command
                 $AgencyNumber = $Person->PlanNetworkAgencyNumber;
                 $Counter = 1;
                 $AmountGet = 0;
-                $PreviousBalance = $Person->ClientBalance;
-
                 while ($Counter <= $AgencyNumber) {
                     Log::info("Processing Agency Number: " . $Counter);
 
@@ -178,7 +176,15 @@ class ChequeCycle extends Command
 
                         Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
 
-                        ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        if ($AmountGet < $ChequeMaxOut && $ChequeMaxOut - $AmountGet >= $ChequeValue) {
+                            $AmountGet += $ChequeValue;
+                            ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        }
+                        if ($AmountGet < $ChequeMaxOut && $ChequeMaxOut - $AmountGet < $ChequeValue) {
+                            $AmountGet += $ChequeMaxOut - $AmountGet;
+                            ChequesLedger($Client, $ChequeMaxOut - $AmountGet, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        }
+
 
                         $CompanyLedger = new CompanyLedger;
                         $CompanyLedger->IDSubCategory = 19;
