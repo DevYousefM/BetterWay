@@ -23,7 +23,8 @@ class PlanNetworkResource extends JsonResource
         $PositionName = "Networker";
         $Position = Position::find($this->IDPosition);
         if ($Position) {
-            $PositionName = $Position->$ClientLanguage;
+            $PositionTitle = "PositionTitle".$ClientLanguage;
+            $PositionName = $Position->$PositionTitle;
         }
 
 
