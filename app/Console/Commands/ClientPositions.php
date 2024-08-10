@@ -41,6 +41,8 @@ class ClientPositions extends Command
             $PositionVisitsNumber = $position->PositionVisits;
             $PositionVisitsInterval = $position->PositionVisitInterval;
 
+            $IsPositionUniqueVisits = $position->PositionUniqueVisits;
+
             $PositionTotalPersonsNumber = $position->PositionAllNumber;
 
             $PositionRightPersonsNumber = $position->PositionRightNumber;
@@ -65,6 +67,10 @@ class ClientPositions extends Command
 
                 if ($PositionVisitsNumber > 0 && $PositionVisitsInterval) $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
                 Log::info("getFilteredByVisits:" . extractIDClientsFromJson($lastFiltering));
+
+                if ($IsPositionUniqueVisits) $lastFiltering = $this->getFilteredByUniqueVisits($lastFiltering, $position);
+                Log::info("getFilteredByUniqueVisits:" . extractIDClientsFromJson($lastFiltering));
+
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
                     Log::info("getFilteredByTotalPersons:" . extractIDClientsFromJson($lastFiltering));
@@ -147,6 +153,38 @@ class ClientPositions extends Command
                     return true;
                 }
             }
+            return false;
+        });
+    }
+    function getFilteredByUniqueVisits($clients, $position)
+    {
+        return $clients->filter(function ($client) use ($position) {
+            $interval = $position->PositionUniqueVisitInterval;
+            $position_brands = $position->position_brands()->with('brand')->get();
+            $isValid = true;
+
+            foreach ($position_brands as $position_brand) {
+                $brandId = $position_brand->IDBrand;
+                $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
+
+                $visitCount = $client->visits()
+                    ->where("ClientBrandProductStatus", 'USED')
+                    ->whereHas('brandproduct', function ($query) use ($brandId) {
+                        $query->where('IDBrand', $brandId);
+                    })
+                    ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
+                    ->count();
+
+                if ($visitCount < $expectedVisitNumber) {
+                    $isValid = false;
+                    break;
+                }
+            }
+
+            if ($isValid) {
+                return true;
+            }
+
             return false;
         });
     }

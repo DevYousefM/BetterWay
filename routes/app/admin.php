@@ -4,6 +4,9 @@ use App\Http\Controllers\Admin\Admin\AdminController;
 use App\Http\Controllers\Admin\Client\ClientController;
 use App\Http\Controllers\Admin\Brand\BrandController;
 use App\Http\Controllers\External\GhazalController;
+use App\V1\Client\Client;
+use App\V1\Client\Position;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -94,7 +97,6 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/tools/edit', [AdminController::class, 'ToolEdit']);
     Route::get('/tools/gallery/remove/{id}', [AdminController::class, 'ToolGalleryRemove']);
 
-    Route::post('/clients', [AdminController::class, 'ClientList']);
     Route::post('/clients/status', [AdminController::class, 'ClientStatus']);
     Route::post('/clients/balance/update', [AdminController::class, 'ClientBalanceUpdate']);
     Route::post('/clients/ledger', [AdminController::class, 'ClientLedger']);
@@ -239,4 +241,38 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/test', [ClientController::class, 'test']);
     Route::get('/backup', [AdminController::class, 'backup']);
     Route::post('/send-notifications', [AdminController::class, 'sendNotifications']);
+
+    // Test
+    Route::get('/position/{id}', function ($id) {
+
+        $client = Client::find(1);
+        $position = Position::find($id);
+        $interval = $position->PositionUniqueVisitInterval;
+        $position_brands = $position->position_brands()->with('brand')->get();
+        $isValid = true;
+
+        foreach ($position_brands as $position_brand) {
+            $brandId = $position_brand->IDBrand;
+            $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
+
+            $visitCount = $client->visits()
+                ->where("ClientBrandProductStatus", 'USED')
+                ->whereHas('brandproduct', function ($query) use ($brandId) {
+                    $query->where('IDBrand', $brandId);
+                })
+                ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
+                ->count();
+
+            if ($visitCount < $expectedVisitNumber) {
+                $isValid = false;
+                break;
+            }
+        }
+
+        if ($isValid) {
+            return 'done';
+        } else {
+            return 'not done';
+        }
+    });
 });

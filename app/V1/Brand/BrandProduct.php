@@ -8,4 +8,8 @@ class BrandProduct extends Model
 {
     protected $table = 'brandproducts';
     protected $primaryKey = 'IDBrandProduct';
+
+    public function brand(){
+        return $this->belongsTo(Brand::class, "IDBrand");
+    }
 }

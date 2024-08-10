@@ -18,4 +18,7 @@ class Position extends Model
         return $this->hasMany(PositionsForClients::class, 'IDPosition')
             ->where('Status', 'REJECTED');
     }
+    public function position_brands(){
+        return $this->hasMany(PositionBrand::class, 'IDPosition');
+    }
 }

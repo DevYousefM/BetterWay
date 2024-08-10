@@ -351,7 +351,9 @@ class ClientController extends Controller
             'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
             'ClientPrivacy' => $Client->ClientPrivacy,
             "IDArea" => $IDArea,
-            'ClientBalance' => 0, "ClientGender" => $ClientGender, 'ClientStatus' => "INACTIVE"
+            'ClientBalance' => 0,
+            "ClientGender" => $ClientGender,
+            'ClientStatus' => "INACTIVE"
         );
         $response_array = array('Success' => true, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
         $response = Response::json($response_array, $response_code);
@@ -1309,6 +1311,10 @@ class ClientController extends Controller
         $PositionPointInterval = $request->PositionPointInterval;
         $PositionVisits = $request->PositionVisits;
         $PositionVisitInterval = $request->PositionVisitInterval;
+
+        $PositionUniqueVisitInterval = $request->PositionUniqueVisitInterval;
+        $PositionUniqueVisits = $request->IsPositionUniqueVisits;
+
         $PositionChequeValue = $request->PositionChequeValue;
         $PositionChequeInterval = $request->PositionChequeInterval;
 
@@ -1351,8 +1357,8 @@ class ClientController extends Controller
         if (!$PositionVisits) {
             $PositionVisits = 0;
         }
-        if (!$PositionVisitInterval) {
-            $PositionVisitInterval = 0;
+        if (!$PositionUniqueVisits){
+            $PositionUniqueVisitInterval = 0;
         }
         if (!$PositionChequeValue) {
             $PositionChequeValue = 0;
@@ -1402,6 +1408,8 @@ class ClientController extends Controller
         $Position->PositionPointInterval = $PositionPointInterval;
         $Position->PositionVisits = $PositionVisits;
         $Position->PositionVisitInterval = $PositionVisitInterval;
+        $Position->IsPositionUniqueVisits = $PositionUniqueVisits;
+        $Position->PositionUniqueVisitInterval = $PositionUniqueVisitInterval;
         $Position->PositionChequeValue = $PositionChequeValue;
         $Position->PositionChequeInterval = $PositionChequeInterval;
         $Position->PositionStatus = "PENDING";
@@ -1455,6 +1463,10 @@ class ClientController extends Controller
         $PositionPointInterval = $request->PositionPointInterval;
         $PositionVisits = $request->PositionVisits;
         $PositionVisitInterval = $request->PositionVisitInterval;
+        
+        $PositionUniqueVisits = $request->IsPositionUniqueVisits;
+        $PositionUniqueVisitInterval = $request->PositionUniqueVisitInterval;
+        
         $PositionChequeValue = $request->PositionChequeValue;
         $PositionChequeInterval = $request->PositionChequeInterval;
         $PositionAllNumber = $request->PositionAllNumber;
@@ -1558,6 +1570,13 @@ class ClientController extends Controller
         if ($PositionVisitInterval) {
             $Desc = $Desc . ", Position visit interval changed from " . $Position->PositionVisitInterval . " to " . $PositionVisitInterval;
             $Position->PositionVisitInterval = $PositionVisitInterval;
+        }
+        if ($PositionUniqueVisits) {
+            $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitInterval . " to " . $PositionUniqueVisitInterval;
+            $Position->PositionUniqueVisitInterval = $PositionUniqueVisitInterval;
+        }else{
+            $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitInterval . " to " . 0;
+            $Position->PositionUniqueVisitInterval = 0;
         }
 
         if ($PositionPointInterval) {
@@ -2876,7 +2895,7 @@ class ClientController extends Controller
         $PositionForClient->update([
             'Status' => "REJECTED",
         ]);
-        
+
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
