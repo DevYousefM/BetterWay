@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\App;
 
+use App\V1\Client\Position;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
 
@@ -20,8 +21,12 @@ class PlanNetworkResource extends JsonResource
             $ClientPicture = Null;
         }
         $PositionName = "Networker";
+        $Position = Position::find($this->IDPosition);
         if ($ClientLanguage == "Ar") {
             $PositionName = "Networker";
+        }
+        if ($Position) {
+            $PositionName = $Position->$ClientLanguage;
         }
 
 
@@ -35,7 +40,7 @@ class PlanNetworkResource extends JsonResource
             'LeftPoints'           => $this->ClientLeftPoints,
             'RightPoints'          => $this->ClientRightPoints,
             'NetworkPosition'      => $this->PlanNetworkPosition,
-            'PositionName'         => ($this->PositionName) ? $this->PositionName : $PositionName,
+            'PositionName'         => $PositionName,
             'PlanNetworkAgencies'  => ($this->PlanNetworkAgencies) ? $this->PlanNetworkAgencies : [],
             'ChildrenNetwork'      => ($this->ChildrenNetwork) ? $this->ChildrenNetwork : [],
         ];
