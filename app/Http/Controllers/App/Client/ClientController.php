@@ -501,14 +501,17 @@ class ClientController extends Controller
             'ClientName' => $ClientName,
             'ClientEmail' => $ClientEmail,
             'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
-            'ClientPrivacy' => $Client->ClientPrivacy, "IDArea" => $IDArea,
+            'ClientPrivacy' => $Client->ClientPrivacy,
+            "IDArea" => $IDArea,
             'ClientBalance' => 0,
             'ClientStatus' => "PENDING",
             'AccessToken' => $AccessToken
         );
         $response_array = array(
             'Success' => true,
-            'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response
+            'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $response
         );
         $response = Response::json($response_array, $response_code);
         return $response;
@@ -1098,7 +1101,8 @@ class ClientController extends Controller
             'ClientEmail' => $Client->ClientEmail,
             'ClientPicture' => $Client->ClientPicture,
             "ClientCoverImage" => $Client->ClientCoverImage,
-            'CityName' => $CityName, 'IDCity' => $City->IDCity,
+            'CityName' => $CityName,
+            'IDCity' => $City->IDCity,
             "ClientNationality" => $ClientNationality,
             "ClientPosition" => $ClientPosition,
             "AreaName" => $AreaName,
@@ -2149,7 +2153,7 @@ class ClientController extends Controller
             $AgencyNumber = 1;
         }
 
-        $ParentNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDClient", $IDParentClient)->select("plannetwork.IDPlanNetwork", "plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->first();
+        $ParentNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDClient", $IDParentClient)->select("plannetwork.IDPlanNetwork", "plannetwork.PlanNetworkPosition", "c1.IDClient","c1.IDPosition", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->first();
         if (!$ParentNetwork) {
             return RespondWithBadRequest(1);
         }
@@ -2166,9 +2170,9 @@ class ClientController extends Controller
 
         $ParentNetwork->PositionName = $PositionName;
         $ParentNetwork->PlanNetworkAgencies = $PlanNetworkAgencies;
-        $ChildrenNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDParentClient", $IDParentClient)->where("plannetwork.PlanNetworkAgency", $AgencyNumber)->select("plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->get();
+        $ChildrenNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDParentClient", $IDParentClient)->where("plannetwork.PlanNetworkAgency", $AgencyNumber)->select("plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.IDPosition",  "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->get();
         foreach ($ChildrenNetwork as $Child) {
-            $SubChildrenNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDParentClient", $Child->IDClient)->where("plannetwork.PlanNetworkAgency", 1)->select("plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->get();
+            $SubChildrenNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDParentClient", $Child->IDClient)->where("plannetwork.PlanNetworkAgency", 1)->select("plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.IDPosition",  "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->get();
             $SubChildrenNetwork = PlanNetworkResource::collection($SubChildrenNetwork);
             $Child->ChildrenNetwork = $SubChildrenNetwork;
         }
@@ -2936,7 +2940,7 @@ class ClientController extends Controller
         if ($FriendPosition) {
             $FriendPositionName = $FriendPosition->$FriendPositionLanguageName;
         }
-        
+
         $Friend->PositionName = $FriendPositionName;
         $Friend = FriendResource::collection([$Friend])[0];
 

@@ -20,13 +20,12 @@ class PlanNetworkResource extends JsonResource
             $ClientContact = $this->ClientAppID;
             $ClientPicture = Null;
         }
-        $PositionName = "Networkers";
+        $PositionName = "Networker";
         $Position = Position::find($this->IDPosition);
         if ($Position) {
-            $PositionTitle = "PositionTitle".$ClientLanguage;
+            $PositionTitle = "PositionTitle" . $ClientLanguage;
             $PositionName = $Position->$PositionTitle;
         }
-
 
         return [
             'IDClient'             => $this->IDClient,

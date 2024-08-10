@@ -41,15 +41,9 @@ class Client extends Authenticatable implements JWTSubject
     {
         return $this->ClientPassword;
     }
-    public function getRememberToken()
-    {
-    }
-    public function setRememberToken($value)
-    {
-    }
-    public function getRememberTokenName()
-    {
-    }
+    public function getRememberToken() {}
+    public function setRememberToken($value) {}
+    public function getRememberTokenName() {}
 
     public function getNationality()
     {
@@ -98,6 +92,12 @@ class Client extends Authenticatable implements JWTSubject
         $extractedIDs = array_unique($extractedIDs);
         return Client::whereIn('IDClient', $extractedIDs)->get();
     }
+    public function position()
+    {
+        if(!$this->IDPosition) return null;
+        return $this->hasOne(Position::class, 'IDPosition');
+    }
+
     public function getRightPersonsAttribute()
     {
         $IDClient = $this->IDClient;
