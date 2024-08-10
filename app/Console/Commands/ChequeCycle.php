@@ -175,6 +175,9 @@ class ChequeCycle extends Command
 
 
                         Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
+                        Log::info("AmountGet: " . $AmountGet);
+                        Log::info("ChequeMaxOut: " . $ChequeMaxOut);
+                        Log::info("ChequeValue: " . $ChequeValue);
 
                         if ($AmountGet < $ChequeMaxOut && $ChequeMaxOut - $AmountGet >= $ChequeValue) {
                             $AmountGet += $ChequeValue;
