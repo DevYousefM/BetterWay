@@ -70,7 +70,6 @@ class ChequeCycle extends Command
                 $IDClient = $Person->IDClient;
                 $AgencyNumber = $Person->PlanNetworkAgencyNumber;
                 $Counter = 1;
-                $AmountGet = 0;
                 while ($Counter <= $AgencyNumber) {
                     Log::info("Processing Agency Number: " . $Counter);
 
@@ -175,17 +174,17 @@ class ChequeCycle extends Command
 
 
                         Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
-                        Log::info("AmountGet: " . $AmountGet);
                         Log::info("ChequeMaxOut: " . $ChequeMaxOut);
                         Log::info("ChequeValue: " . $ChequeValue);
+                        Log::info("-Client: " . $Client->IDClient);
 
-                        if ($AmountGet < $ChequeMaxOut && $ChequeMaxOut - $AmountGet >= $ChequeValue) {
-                            $AmountGet += $ChequeValue;
+                        if ($ChequeValue < $ChequeMaxOut) {
+                            Log::info("Add Cheque Co1: " . $ChequeValue);
                             ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
                         }
-                        if ($AmountGet < $ChequeMaxOut && $ChequeMaxOut - $AmountGet < $ChequeValue) {
-                            $AmountGet += $ChequeMaxOut - $AmountGet;
-                            ChequesLedger($Client, $ChequeMaxOut - $AmountGet, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        if ($ChequeValue > $ChequeMaxOut) {
+                            Log::info("Add Cheque Co2: " . $ChequeMaxOut);
+                            ChequesLedger($Client, $ChequeMaxOut, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
                         }
 
 
@@ -213,6 +212,7 @@ class ChequeCycle extends Command
                             $PlanNetworkChequeDetail->save();
                         }
                         Log::info("PlanNetworkChequeDetail records created for IDPlanNetworkCheque: " . $IDPlanNetworkCheque);
+                        Log::info(" ---------------------------------------------------");
                     }
 
                     $Counter++;
