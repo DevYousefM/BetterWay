@@ -41,7 +41,6 @@ class SendNotifications extends Command
      */
     public function handle()
     {
-        Log::info("Notification Started");
 
         try {
             // Query to fetch users who need notifications
@@ -101,7 +100,6 @@ class SendNotifications extends Command
                     if (isset($result['message_id'])) {
                         // Notification sent successfully
                         $user = $users[$key];
-                        Log::info("UserID: " . $user->IDClient);
                         // Store notification in database
                         Notification::create([
                             'client_id' => $user->IDClient,
@@ -109,7 +107,6 @@ class SendNotifications extends Command
                             'body' => $body,
                         ]);
                     } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
-                        Log::info("ERROR: NotRegistered");
                         // Handle "NotRegistered" error - remove token from your database or list
                         $invalidToken = $firebaseTokens[$key];
                         Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
@@ -118,7 +115,6 @@ class SendNotifications extends Command
             }
 
             curl_close($ch);
-            Log::info("Done");
         } catch (\Exception $e) {
             Log::error("Exception occurred: " . $e->getMessage());
             return response()->json(['error' => 'Something went wrong.'], 500);

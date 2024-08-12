@@ -46,15 +46,11 @@ class ChequeCycle extends Command
      */
     public function handle()
     {
-        Log::info("Handler started");
         $CurrentTime = new DateTime('now');
         $Day = strtoupper($CurrentTime->format('l'));
-        Log::info("Current Day: " . $Day);
 
         $Plans = Plan::where("PlanStatus", "ACTIVE")->where('ChequeEarnDay', 'like', '%' . $Day . '%')->get();
-        Log::info("Number of active plans: " . count($Plans));
         foreach ($Plans as $Plan) {
-            Log::info("Processing Plan ID: " . $Plan->IDPlan);
 
             $LeftBalanceNumber = $Plan->LeftBalanceNumber;
             $RightBalanceNumber = $Plan->RightBalanceNumber;
@@ -64,14 +60,12 @@ class ChequeCycle extends Command
             $ChequeMaxOut = $Plan->ChequeMaxOut;
 
             $PlanNetwork = PlanNetwork::where("IDPlan", $Plan->IDPlan)->get();
-            Log::info("PlanNetwork count for Plan ID " . $Plan->IDPlan . ": " . count($PlanNetwork));
 
             foreach ($PlanNetwork as $Person) {
                 $IDClient = $Person->IDClient;
                 $AgencyNumber = $Person->PlanNetworkAgencyNumber;
                 $Counter = 1;
                 while ($Counter <= $AgencyNumber) {
-                    Log::info("Processing Agency Number: " . $Counter);
 
                     $LeftNetworkNumber = 0;
                     $RightNetworkNumber = 0;
@@ -82,7 +76,6 @@ class ChequeCycle extends Command
                     $RightNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "RIGHT")->first();
 
                     if ($LeftNetwork) {
-                        Log::info("Left Network found for IDClient: " . $IDClient . " at Counter: " . $Counter);
 
                         $IDClient = $LeftNetwork->IDClient;
                         $Key = $IDClient . "-";
@@ -103,11 +96,9 @@ class ChequeCycle extends Command
                             array_push($LeftNetwork, $IDClient);
                             $LeftNetworkNumber++;
                         }
-                        Log::info("Left Network Number: " . $LeftNetworkNumber);
                     }
 
                     if ($RightNetwork) {
-                        Log::info("Right Network found for IDClient: " . $IDClient . " at Counter: " . $Counter);
 
                         $IDClient = $RightNetwork->IDClient;
                         $Key = $IDClient . "-";
@@ -128,7 +119,6 @@ class ChequeCycle extends Command
                             array_push($RightNetwork, $IDClient);
                             $RightNetworkNumber++;
                         }
-                        Log::info("Right Network Number: " . $RightNetworkNumber);
                     }
 
                     if ($LeftNetworkNumber > $LeftMaxOutNumber) {
@@ -149,7 +139,6 @@ class ChequeCycle extends Command
                             $Number = $RightNumber;
                         }
                         $ChequeValue = $Number * $PlanChequeValue;
-                        Log::info("Cheque Value: " . $ChequeValue);
 
                         $LeftNumber = $Number * $LeftBalanceNumber;
                         $RightNumber = $Number * $RightBalanceNumber;
@@ -172,18 +161,10 @@ class ChequeCycle extends Command
                         $PlanNetworkCheque->AgencyNumber = $Counter;
                         $PlanNetworkCheque->save();
 
-
-                        Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
-                        Log::info("ChequeMaxOut: " . $ChequeMaxOut);
-                        Log::info("ChequeValue: " . $ChequeValue);
-                        Log::info("-Client: " . $Client->IDClient);
-
                         if ($ChequeValue < $ChequeMaxOut) {
-                            Log::info("Add Cheque Co1: " . $ChequeValue);
                             ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
                         }
                         if ($ChequeValue > $ChequeMaxOut) {
-                            Log::info("Add Cheque Co2: " . $ChequeMaxOut);
                             ChequesLedger($Client, $ChequeMaxOut, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
                         }
 
@@ -211,15 +192,11 @@ class ChequeCycle extends Command
                             $PlanNetworkChequeDetail->IDClientNetwork = $RightNetwork[$I];
                             $PlanNetworkChequeDetail->save();
                         }
-                        Log::info("PlanNetworkChequeDetail records created for IDPlanNetworkCheque: " . $IDPlanNetworkCheque);
-                        Log::info(" ---------------------------------------------------");
                     }
 
                     $Counter++;
                 }
             }
         }
-        Log::info("Handler completed");
-        Log::info(" ");
     }
 }

@@ -22,10 +22,8 @@ class ClientPositions extends Command
 
     public function handle()
     {
-        Log::info("Client Positions Starts");
         $Positions = Position::all();
         foreach ($Positions as $position) {
-            Log::info("Position:{$position->PositionTitleEn}");
 
             $clients = Client::with(['referrals', 'visits' => function ($query) {
                 $query->where('ClientBrandProductStatus', 'USED');
@@ -34,7 +32,6 @@ class ClientPositions extends Command
                     $query->where("IDPosition", '!=', $position->IDPosition)
                         ->orWhereNull("IDPosition");
                 })->get();
-            Log::info("Clients: " . extractIDClientsFromJson($clients));
             $PositionReferralNumber = $position->PositionReferralNumber;
             $PositionReferralInterval = $position->PositionReferralInterval;
 
@@ -62,40 +59,31 @@ class ClientPositions extends Command
 
             $lastFiltering = [];
             count($clients) > 0 && $lastFiltering = $this->getFilteredByReferral($clients, $PositionReferralInterval, $PositionReferralNumber);
-            Log::info("getFilteredByReferral:" . extractIDClientsFromJson($lastFiltering));
             if (count($lastFiltering) > 0) {
 
                 if ($PositionVisitsNumber > 0 && $PositionVisitsInterval) $lastFiltering = $this->getFilteredByVisits($lastFiltering, $PositionVisitsInterval, $PositionVisitsNumber);
-                Log::info("getFilteredByVisits:" . extractIDClientsFromJson($lastFiltering));
 
                 if ($IsPositionUniqueVisits) $lastFiltering = $this->getFilteredByUniqueVisits($lastFiltering, $position);
-                Log::info("getFilteredByUniqueVisits:" . extractIDClientsFromJson($lastFiltering));
 
                 if ($PositionTotalPersonsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPersons($lastFiltering, $PositionTotalPersonsInterval, $PositionTotalPersonsNumber);
-                    Log::info("getFilteredByTotalPersons:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionRightPersonsNumber && $PositionLeftPersonsNumber && $PositionRightPersonsNumber != 0 && $PositionLeftPersonsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePersons($lastFiltering, $PositionTotalPersonsInterval, $PositionRightPersonsNumber, $PositionLeftPersonsNumber);
-                    Log::info("getFilteredByBalancePersons:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionTotalPointsNumber > 0) {
                     $lastFiltering = $this->getFilteredByTotalPoints($lastFiltering, $PositionPointsInterval, $PositionTotalPointsNumber);
-                    Log::info("getFilteredByTotalPoints:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionRightPointsNumber && $PositionLeftPointsNumber && $PositionRightPointsNumber != 0 && $PositionLeftPointsNumber != 0) {
                     $lastFiltering = $this->getFilteredByBalancePoints($lastFiltering, $PositionPointsInterval, $PositionRightPointsNumber, $PositionLeftPointsNumber);
-                    Log::info("getFilteredByBalancePoints:" . extractIDClientsFromJson($lastFiltering));
                 }
                 if ($PositionChequeValue && $PositionChequeValue > 0) $lastFiltering = $this->getFilteredByCheques($lastFiltering, $PositionChequeInterval, $PositionChequeValue);
-                Log::info("getFilteredByCheques:" . extractIDClientsFromJson($lastFiltering));
                 $simplifiedClients = $lastFiltering->map(function ($client) use ($position) {
                     return [
                         'IDClient' => $client->IDClient,
                         'IDPosition' => $position->IDPosition,
                     ];
                 })->unique('IDClient')->values();
-                Log::info("simplifiedClients:" . $simplifiedClients);
                 foreach ($simplifiedClients as $clientData) {
                     PositionsForClients::firstOrCreate(
                         ['IDClient' => $clientData['IDClient'], 'IDPosition' => $clientData['IDPosition']],
@@ -104,7 +92,6 @@ class ClientPositions extends Command
                 }
             }
         }
-        Log::info("Client Positions End");
         return 0;
     }
     function getFilteredByReferral($clients, $intervalMinutes, $referralNumber)

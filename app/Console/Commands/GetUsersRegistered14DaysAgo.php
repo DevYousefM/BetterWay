@@ -34,7 +34,6 @@ class GetUsersRegistered14DaysAgo extends Command
         foreach ($clients as $client) {
             $client->ClientStatus = "PENDING";
             $client->save();
-            Log::info("clients:{$client->ClientAppID}");
         }
         return 0;
     }
