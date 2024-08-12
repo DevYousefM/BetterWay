@@ -1312,8 +1312,8 @@ class ClientController extends Controller
         $PositionVisits = $request->PositionVisits;
         $PositionVisitInterval = $request->PositionVisitInterval;
 
-        $PositionUniqueVisitInterval = $request->PositionUniqueVisitInterval;
-        $PositionUniqueVisits = $request->IsPositionUniqueVisits;
+        $PositionUniqueVisitsInterval = $request->PositionUniqueVisitsInterval;
+        $IsPositionUniqueVisits = $request->IsPositionUniqueVisits;
 
         $PositionChequeValue = $request->PositionChequeValue;
         $PositionChequeInterval = $request->PositionChequeInterval;
@@ -1357,8 +1357,8 @@ class ClientController extends Controller
         if (!$PositionVisits) {
             $PositionVisits = 0;
         }
-        if (!$PositionUniqueVisits){
-            $PositionUniqueVisitInterval = 0;
+        if (!$IsPositionUniqueVisits) {
+            $PositionUniqueVisitsInterval = 0;
         }
         if (!$PositionChequeValue) {
             $PositionChequeValue = 0;
@@ -1408,8 +1408,8 @@ class ClientController extends Controller
         $Position->PositionPointInterval = $PositionPointInterval;
         $Position->PositionVisits = $PositionVisits;
         $Position->PositionVisitInterval = $PositionVisitInterval;
-        $Position->IsPositionUniqueVisits = $PositionUniqueVisits;
-        $Position->PositionUniqueVisitInterval = $PositionUniqueVisitInterval;
+        $Position->IsPositionUniqueVisits = $IsPositionUniqueVisits;
+        $Position->PositionUniqueVisitsInterval = $PositionUniqueVisitsInterval;
         $Position->PositionChequeValue = $PositionChequeValue;
         $Position->PositionChequeInterval = $PositionChequeInterval;
         $Position->PositionStatus = "PENDING";
@@ -1463,10 +1463,10 @@ class ClientController extends Controller
         $PositionPointInterval = $request->PositionPointInterval;
         $PositionVisits = $request->PositionVisits;
         $PositionVisitInterval = $request->PositionVisitInterval;
-        
-        $PositionUniqueVisits = $request->IsPositionUniqueVisits;
-        $PositionUniqueVisitInterval = $request->PositionUniqueVisitInterval;
-        
+
+        $IsPositionUniqueVisits = $request->IsPositionUniqueVisits;
+        $PositionUniqueVisitsInterval = $request->PositionUniqueVisitsInterval;
+
         $PositionChequeValue = $request->PositionChequeValue;
         $PositionChequeInterval = $request->PositionChequeInterval;
         $PositionAllNumber = $request->PositionAllNumber;
@@ -1571,12 +1571,12 @@ class ClientController extends Controller
             $Desc = $Desc . ", Position visit interval changed from " . $Position->PositionVisitInterval . " to " . $PositionVisitInterval;
             $Position->PositionVisitInterval = $PositionVisitInterval;
         }
-        if ($PositionUniqueVisits) {
-            $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitInterval . " to " . $PositionUniqueVisitInterval;
-            $Position->PositionUniqueVisitInterval = $PositionUniqueVisitInterval;
-        }else{
+        if ($IsPositionUniqueVisits) {
+            $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitsInterval . " to " . $PositionUniqueVisitsInterval;
+            $Position->PositionUniqueVisitsInterval = $PositionUniqueVisitsInterval;
+        } else {
             $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitInterval . " to " . 0;
-            $Position->PositionUniqueVisitInterval = 0;
+            $Position->PositionUniqueVisitsInterval = 0;
         }
 
         if ($PositionPointInterval) {
