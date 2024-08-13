@@ -168,17 +168,24 @@ class ChequeCycle extends Command
 
                         if ($ChequeValue <= $remainingAllowance) {
                             ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                            $CompanyLedger = new CompanyLedger;
+                            $CompanyLedger->IDSubCategory = 19;
+                            $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
+                            $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
+                            $CompanyLedger->CompanyLedgerProcess = "AUTO";
+                            $CompanyLedger->CompanyLedgerType = "DEBIT";
+                            $CompanyLedger->save();
                         } elseif ($remainingAllowance > 0) {
                             ChequesLedger($Client, $remainingAllowance, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                            $CompanyLedger = new CompanyLedger;
+                            $CompanyLedger->IDSubCategory = 19;
+                            $CompanyLedger->CompanyLedgerAmount = $remainingAllowance;
+                            $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
+                            $CompanyLedger->CompanyLedgerProcess = "AUTO";
+                            $CompanyLedger->CompanyLedgerType = "DEBIT";
+                            $CompanyLedger->save();
                         }
 
-                        $CompanyLedger = new CompanyLedger;
-                        $CompanyLedger->IDSubCategory = 19;
-                        $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
-                        $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
-                        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                        $CompanyLedger->CompanyLedgerType = "DEBIT";
-                        $CompanyLedger->save();
 
                         $IDPlanNetworkCheque = $PlanNetworkCheque->IDPlanNetworkCheque;
 
