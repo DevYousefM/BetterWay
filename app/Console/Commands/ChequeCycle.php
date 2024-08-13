@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\V1\Client\Client;
+use App\V1\Client\ClientLedger;
 use App\V1\Plan\Plan;
 use App\V1\Plan\PlanNetwork;
 use App\V1\Plan\PlanNetworkCheque;
@@ -161,13 +162,15 @@ class ChequeCycle extends Command
                         $PlanNetworkCheque->AgencyNumber = $Counter;
                         $PlanNetworkCheque->save();
 
-                        if ($ChequeValue < $ChequeMaxOut) {
-                            ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
-                        }
-                        if ($ChequeValue > $ChequeMaxOut) {
-                            ChequesLedger($Client, $ChequeMaxOut, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
-                        }
+                        $whatsGetToday = ClientLedger::where('IDClient', $Client->IDClient)->where('ClientLedgerSource', 'CHEQUE')->whereDate('created_at', now())->sum('ClientLedgerAmount');
 
+                        $remainingAllowance = $ChequeMaxOut - $whatsGetToday;
+
+                        if ($ChequeValue <= $remainingAllowance) {
+                            ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        } elseif ($remainingAllowance > 0) {
+                            ChequesLedger($Client, $remainingAllowance, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        }
 
                         $CompanyLedger = new CompanyLedger;
                         $CompanyLedger->IDSubCategory = 19;
