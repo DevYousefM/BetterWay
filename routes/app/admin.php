@@ -245,16 +245,14 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     // Test
     Route::get('/position/{id}', function ($id) {
 
-        $client = Client::find(1);
+        $client = Client::find(328);
         $position = Position::find($id);
         $interval = $position->PositionUniqueVisitInterval;
         $position_brands = $position->position_brands()->with('brand')->get();
         $isValid = true;
-
         foreach ($position_brands as $position_brand) {
             $brandId = $position_brand->IDBrand;
             $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
-
             $visitCount = $client->visits()
                 ->where("ClientBrandProductStatus", 'USED')
                 ->whereHas('brandproduct', function ($query) use ($brandId) {

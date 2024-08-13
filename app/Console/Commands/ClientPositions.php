@@ -38,7 +38,7 @@ class ClientPositions extends Command
             $PositionVisitsNumber = $position->PositionVisits;
             $PositionVisitsInterval = $position->PositionVisitInterval;
 
-            $IsPositionUniqueVisits = $position->PositionUniqueVisits;
+            $IsPositionUniqueVisits = $position->IsPositionUniqueVisits;
 
             $PositionTotalPersonsNumber = $position->PositionAllNumber;
 
@@ -161,7 +161,6 @@ class ClientPositions extends Command
                     })
                     ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
                     ->count();
-
                 if ($visitCount < $expectedVisitNumber) {
                     $isValid = false;
                     break;
