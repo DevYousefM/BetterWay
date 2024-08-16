@@ -55,9 +55,11 @@ class BonanzaEnd extends Command
         foreach ($Clients as $Client) {
             $IDClient = $Client->IDClient;
             foreach ($Bonanzas as $Bonanza) {
+                $Bonanza->BonanzaStatus = "EXPIRED";
+                $Bonanza->save();
+
                 $StartDate = $Bonanza->BonanzaStartTime;
                 $EndDate = $Bonanza->BonanzaEndTime;
-
                 $BonanzaLeftPoints = $Bonanza->BonanzaLeftPoints;
                 $BonanzaRightPoints = $Bonanza->BonanzaRightPoints;
 
@@ -124,8 +126,7 @@ class BonanzaEnd extends Command
                 if ($Bonanza->BonanzaRewardPoints > 0) {
                     AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
                 }
-                $Bonanza->BonanzaStatus = "EXPIRED";
-                $Bonanza->save();
+
                 if ($Bonanza->BonanzaChequeValue > 0) {
                     $CompanyLedger = new CompanyLedger;
                     $CompanyLedger->IDSubCategory = 22;
