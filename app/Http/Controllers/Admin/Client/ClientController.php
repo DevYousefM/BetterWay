@@ -1574,6 +1574,7 @@ class ClientController extends Controller
         if ($IsPositionUniqueVisits) {
             $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitsInterval . " to " . $PositionUniqueVisitsInterval;
             $Position->PositionUniqueVisitsInterval = $PositionUniqueVisitsInterval;
+            $Position->IsPositionUniqueVisits = $IsPositionUniqueVisits;
         } else {
             $Desc = $Desc . ", Position unique visit interval changed from " . $Position->PositionUniqueVisitInterval . " to " . 0;
             $Position->PositionUniqueVisitsInterval = 0;
