@@ -2613,11 +2613,25 @@ class ClientController extends Controller
         $Bonanza->BonanzaEndTime = $BonanzaEndTime;
         $Bonanza->BonanzaRewardPoints = $BonanzaRewardPoints;
         $Bonanza->BonanzaChequeValue = $BonanzaChequeValue;
-        $Bonanza->BonanzaLeftPoints = $BonanzaLeftPoints;
-        $Bonanza->BonanzaRightPoints = $BonanzaRightPoints;
-        $Bonanza->BonanzaTotalPoints = $BonanzaTotalPoints;
+        if ($request->BonanzaPoints == "Total") {
+            $Bonanza->BonanzaLeftPoints = 0;
+            $Bonanza->BonanzaRightPoints = 0;
+            $Bonanza->BonanzaTotalPoints = $BonanzaTotalPoints;
+        } else if ($request->BonanzaPoints == "Balance") {
+            $Bonanza->BonanzaLeftPoints = $BonanzaLeftPoints;
+            $Bonanza->BonanzaRightPoints = $BonanzaRightPoints;
+            $Bonanza->BonanzaTotalPoints = 0;
+        } else {
+            abort(404);
+        }
+        if ($request->IsBonanzaUniqueVisits) {
+            $Bonanza->IsBonanzaUniqueVisits = $request->IsBonanzaUniqueVisits;
+            $Bonanza->BonanzaVisitNumber = 0;
+        } else {
+            $Bonanza->IsBonanzaUniqueVisits = $request->IsBonanzaUniqueVisits;
+            $Bonanza->BonanzaVisitNumber = $BonanzaVisitNumber;
+        }
         $Bonanza->BonanzaReferralNumber = $BonanzaReferralNumber;
-        $Bonanza->BonanzaVisitNumber = $BonanzaVisitNumber;
         $Bonanza->BonanzaProductValue = $BonanzaProductValue;
         $Bonanza->BonanzaStatus = "PENDING";
         $Bonanza->save();
@@ -2683,22 +2697,42 @@ class ClientController extends Controller
             $Desc = $Desc . ", Bonanza arabic title changed from " . $Bonanza->BonanzaTitleAr . " to " . $BonanzaTitleAr;
             $Bonanza->BonanzaTitleAr = $BonanzaTitleAr;
         }
-        if ($BonanzaLeftPoints) {
-            $Desc = $Desc . ", Bonanza left points changed from " . $Bonanza->BonanzaLeftPoints . " to " . $BonanzaLeftPoints;
-            $Bonanza->BonanzaLeftPoints = $BonanzaLeftPoints;
+
+        if ($request->BonanzaPoints == "Total") {
+            $Desc = $Desc . ", Bonanza left points changed from " . $Bonanza->BonanzaLeftPoints . " to " . 0;
+            $Bonanza->BonanzaLeftPoints = 0;
+
+            $Desc = $Desc . ", Bonanza right points changed from " . $Bonanza->BonanzaRightPoints . " to " . 0;
+            $Bonanza->BonanzaRightPoints = 0;
+
+            if ($BonanzaTotalPoints) {
+                $Desc = $Desc . ", Bonanza total points changed from " . $Bonanza->BonanzaTotalPoints . " to " . $BonanzaTotalPoints;
+                $Bonanza->BonanzaTotalPoints = $BonanzaTotalPoints;
+            }
+        } else if ($request->BonanzaPoints == "Balance") {
+            if ($BonanzaLeftPoints) {
+                $Desc = $Desc . ", Bonanza left points changed from " . $Bonanza->BonanzaLeftPoints . " to " . $BonanzaLeftPoints;
+                $Bonanza->BonanzaLeftPoints = $BonanzaLeftPoints;
+            }
+            if ($BonanzaRightPoints) {
+                $Desc = $Desc . ", Bonanza right points changed from " . $Bonanza->BonanzaRightPoints . " to " . $BonanzaRightPoints;
+                $Bonanza->BonanzaRightPoints = $BonanzaRightPoints;
+            }
+            $Desc = $Desc . ", Bonanza total points changed from " . $Bonanza->BonanzaTotalPoints . " to " . 0;
+            $Bonanza->BonanzaTotalPoints = 0;
+        } else {
+            abort(404);
         }
-        if ($BonanzaRightPoints) {
-            $Desc = $Desc . ", Bonanza right points changed from " . $Bonanza->BonanzaRightPoints . " to " . $BonanzaRightPoints;
-            $Bonanza->BonanzaRightPoints = $BonanzaRightPoints;
-        }
-        if ($BonanzaTotalPoints) {
-            $Desc = $Desc . ", Bonanza total points changed from " . $Bonanza->BonanzaTotalPoints . " to " . $BonanzaTotalPoints;
-            $Bonanza->BonanzaTotalPoints = $BonanzaTotalPoints;
-        }
-        if ($BonanzaVisitNumber) {
+
+        if ($request->IsBonanzaUniqueVisits) {
+            $Bonanza->IsBonanzaUniqueVisits = $request->IsBonanzaUniqueVisits;
+            $Bonanza->BonanzaVisitNumber = 0;
+        } else {
+            $Bonanza->IsBonanzaUniqueVisits = $request->IsBonanzaUniqueVisits;
             $Desc = $Desc . ", Bonanza visit number changed from " . $Bonanza->BonanzaVisitNumber . " to " . $BonanzaVisitNumber;
             $Bonanza->BonanzaVisitNumber = $BonanzaVisitNumber;
         }
+
         if ($BonanzaReferralNumber) {
             $Desc = $Desc . ", Bonanza referral number changed from " . $Bonanza->BonanzaReferralNumber . " to " . $BonanzaReferralNumber;
             $Bonanza->BonanzaReferralNumber = $BonanzaReferralNumber;
@@ -2794,7 +2828,7 @@ class ClientController extends Controller
             if ($BonanzaBrandVisitNumber) {
                 $BonanzaBrand->BonanzaBrandVisitNumber = $BonanzaBrandVisitNumber;
             }
-            if ($BonanzaBrandVisitNumber == 0) {
+            if ($BonanzaBrandVisitNumber == 0 && $BonanzaBrand->BonanzaBrandVisitNumber == 0) {
                 $BonanzaBrand->BonanzaBrandVisitNumber = 0;
             }
             $Desc = "brand status in bonanza changed with visit number " . $BonanzaBrand->BonanzaBrandVisitNumber;
