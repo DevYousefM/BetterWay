@@ -243,34 +243,42 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/send-notifications', [AdminController::class, 'sendNotifications']);
 
     // Test
-    Route::get('/position/{id}', function ($id) {
+    Route::get(
+        '/position',
+        // function ($id) {
 
-        $client = Client::find(328);
-        $position = Position::find($id);
-        $interval = $position->PositionUniqueVisitInterval;
-        $position_brands = $position->position_brands()->with('brand')->get();
-        $isValid = true;
-        foreach ($position_brands as $position_brand) {
-            $brandId = $position_brand->IDBrand;
-            $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
-            $visitCount = $client->visits()
-                ->where("ClientBrandProductStatus", 'USED')
-                ->whereHas('brandproduct', function ($query) use ($brandId) {
-                    $query->where('IDBrand', $brandId);
-                })
-                ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
-                ->count();
+        //     // $client = Client::find(328);
+        //     // $position = Position::find($id);
+        //     // $interval = $position->PositionUniqueVisitInterval;
+        //     // $position_brands = $position->position_brands()->with('brand')->get();
+        //     // $isValid = true;
+        //     // foreach ($position_brands as $position_brand) {
+        //     //     $brandId = $position_brand->IDBrand;
+        //     //     $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
+        //     //     $visitCount = $client->visits()
+        //     //         ->where("ClientBrandProductStatus", 'USED')
+        //     //         ->whereHas('brandproduct', function ($query) use ($brandId) {
+        //     //             $query->where('IDBrand', $brandId);
+        //     //         })
+        //     //         ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
+        //     //         ->count();
 
-            if ($visitCount < $expectedVisitNumber) {
-                $isValid = false;
-                break;
-            }
-        }
+        //     //     if ($visitCount < $expectedVisitNumber) {
+        //     //         $isValid = false;
+        //     //         break;
+        //     //     }
+        //     // }
 
-        if ($isValid) {
-            return 'done';
-        } else {
-            return 'not done';
-        }
-    });
+        //     // if ($isValid) {
+        //     //     return 'done';
+        //     // } else {
+        //     //     return 'not done';
+        //     // }
+
+
+
+
+        // }
+        [ClientController::class, 'test']
+    );
 });

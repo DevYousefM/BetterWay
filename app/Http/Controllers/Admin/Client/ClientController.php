@@ -363,90 +363,185 @@ class ClientController extends Controller
     public function test(Request $request)
     {
 
-        $Referral = $request->Referral;
+        // $Referral = $request->Referral;
 
 
-        if ($request->Filled('Upline')) {
-            $Upline = $request->Upline;
-        } else {
-            $Upline = NULL;
-        }
+        // if ($request->Filled('Upline')) {
+        //     $Upline = $request->Upline;
+        // } else {
+        //     $Upline = NULL;
+        // }
 
-        $PlanNetworkPosition = $request->Position;
-
-        if ($Upline) {
-            if ($Upline[0] == "0") {
-                $Upline = "+2" . $Upline;
-            }
-        }
-
-
-
-        if ($Upline) {
-            $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
-                $query->where('ClientAppID', $Upline)
-                    ->orwhere('ClientEmail', $Upline)
-                    ->orwhere('ClientPhone', $Upline);
-            })->first();
-
-            if (!$ParentClient) {
-
-                return RespondWithBadRequest(23);
-            }
-        } else {
-            $IDParentClient = Null;
-        }
-
-        $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
-            $query->where('ClientAppID', $Referral)
-                ->orwhere('ClientEmail', $Referral)
-                ->orwhere('ClientPhone', $Referral[0] == "0"
-                    ? $Referral = "+2" . $Referral : $Referral);
-        })->first();
-        // return $ReferralClient;
-        if (!$ReferralClient) {
-            return RespondWithBadRequest(23);
-        }
-
-        $IDReferralClient = $ReferralClient->IDClient;
+        // $PlanNetworkPosition = $request->Position;
 
         // if ($Upline) {
-        // $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
-        // $IDParentClient = $ParentClient->IDClient;
-        // $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
-        // $PlanNetworkPath = explode("-", $PlanNetworkPath);
-        // if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
-        //     return "adf";
+        //     if ($Upline[0] == "0") {
+        //         $Upline = "+2" . $Upline;
+        //     }
         // }
 
-        // $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
-        // $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
-        // $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
-        // if ($ParentNetwork == $ChildNumber) {
-        //     return RespondWithBadRequest(24);
-        // }
-        // if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
-        //     return RespondWithBadRequest(34);
-        // }
-        // }
-        $current = $ReferralClient->IDClient;
-        $lastPlanNetwork = null;
 
-        while (true) {
-            $PlanNetwork = PlanNetwork::where("IDParentClient", $current)
-                ->where("PlanNetworkPosition", "RIGHT")
-                ->first();
 
-            if ($PlanNetwork) {
-                $current = $PlanNetwork->IDClient;
-                $lastPlanNetwork = $PlanNetwork;
-            } else {
-                break;
-            }
-        }
+        // if ($Upline) {
+        //     $ParentClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Upline) {
+        //         $query->where('ClientAppID', $Upline)
+        //             ->orwhere('ClientEmail', $Upline)
+        //             ->orwhere('ClientPhone', $Upline);
+        //     })->first();
 
-        return $lastPlanNetwork;
+        //     if (!$ParentClient) {
+
+        //         return RespondWithBadRequest(23);
+        //     }
+        // } else {
+        //     $IDParentClient = Null;
+        // }
+
+        // $ReferralClient = Client::where("ClientDeleted", 0)->where(function ($query) use ($Referral) {
+        //     $query->where('ClientAppID', $Referral)
+        //         ->orwhere('ClientEmail', $Referral)
+        //         ->orwhere('ClientPhone', $Referral[0] == "0"
+        //             ? $Referral = "+2" . $Referral : $Referral);
+        // })->first();
+        // // return $ReferralClient;
+        // if (!$ReferralClient) {
+        //     return RespondWithBadRequest(23);
+        // }
+
+        // $IDReferralClient = $ReferralClient->IDClient;
+
+        // // if ($Upline) {
+        // // $ParentPlanNetwork = PlanNetwork::where("IDClient", $ParentClient->IDClient)->first();
+        // // $IDParentClient = $ParentClient->IDClient;
+        // // $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
+        // // $PlanNetworkPath = explode("-", $PlanNetworkPath);
+        // // if (!in_array($ReferralClient->IDClient, $PlanNetworkPath) && $IDParentClient != $IDReferralClient) {
+        // //     return "adf";
+        // // }
+
+        // // $ParentNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->count();
+        // // $ParentPositionNetwork = PlanNetwork::where("IDParentClient", $ParentClient->IDClient)->where("PlanNetworkPosition", $PlanNetworkPosition)->count();
+        // // $ChildNumber = $ParentPlanNetwork->PlanNetworkAgencyNumber * 2;
+        // // if ($ParentNetwork == $ChildNumber) {
+        // //     return RespondWithBadRequest(24);
+        // // }
+        // // if ($ParentPositionNetwork == $ParentPlanNetwork->PlanNetworkAgencyNumber) {
+        // //     return RespondWithBadRequest(34);
+        // // }
+        // // }
+        // $current = $ReferralClient->IDClient;
+        // $lastPlanNetwork = null;
+
+        // while (true) {
+        //     $PlanNetwork = PlanNetwork::where("IDParentClient", $current)
+        //         ->where("PlanNetworkPosition", "RIGHT")
+        //         ->first();
+
+        //     if ($PlanNetwork) {
+        //         $current = $PlanNetwork->IDClient;
+        //         $lastPlanNetwork = $PlanNetwork;
+        //     } else {
+        //         break;
+        //     }
+        // }
+
+        // return $lastPlanNetwork;
+
+
+
+        // $CurrentTime = new DateTime('now');
+        // $CurrentTime = $CurrentTime->format('Y-m-d H:i:s');
+
+        // $Clients = Client::where("ClientStatus", "ACTIVE")->where("ClientDeleted", 0)->get();
+        // $Bonanzas = Bonanza::where('BonanzaStatus', 'ACTIVE')->where("BonanzaEndTime", "<", $CurrentTime)->get();
+        // foreach ($Clients as $Client) {
+        //     $IDClient = $Client->IDClient;
+        //     foreach ($Bonanzas as $Bonanza) {
+        //         $StartDate = $Bonanza->BonanzaStartTime;
+        //         $EndDate = $Bonanza->BonanzaEndTime;
+
+        //         $BonanzaLeftPoints = $Bonanza->BonanzaLeftPoints;
+        //         $BonanzaRightPoints = $Bonanza->BonanzaRightPoints;
+
+        //         if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
+        //             if (!$this->checkBalancePoints($Client, $BonanzaLeftPoints, $BonanzaRightPoints, $StartDate, $EndDate)) {
+        //                 break;
+        //             }
+        //         }
+
+        //         $BonanzaTotalPoints = $Bonanza->BonanzaTotalPoints;
+        //         if ($BonanzaTotalPoints > 0) {
+        //             if (!$this->checkTotalPoints($Client, $BonanzaTotalPoints, $StartDate, $EndDate)) {
+        //                 break;
+        //             }
+        //         }
+
+        //         $BonanzaVisitNumber = $Bonanza->BonanzaVisitNumber;
+
+        //         if ($BonanzaVisitNumber > 0) {
+        //             if (!$this->checkVisitsNumber($Client, $BonanzaVisitNumber, $StartDate, $EndDate)) {
+        //                 break;
+        //             }
+        //         }
+
+        //         $IsBonanzaUniqueVisits = $Bonanza->IsBonanzaUniqueVisits;
+        //         if ($IsBonanzaUniqueVisits) {
+        //             if (!$this->checkUniqueVisits($Client, $Bonanza, $StartDate, $EndDate)) {
+        //                 break;
+        //             }
+        //         }
+
+        //         $BonanzaReferralNumber = $Bonanza->BonanzaReferralNumber;
+        //         if ($BonanzaReferralNumber > 0) {
+        //             if (!$this->checkReferralsNumber($Client, $BonanzaReferralNumber, $StartDate, $EndDate)) {
+        //                 break;
+        //             }
+        //         }
+
+
+        //         $ClientBonanza = new ClientBonanza;
+        //         $ClientBonanza->IDBonanza = $Bonanza->IDBonanza;
+        //         $ClientBonanza->IDClient = $IDClient;
+        //         if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
+        //             $ClientBonanza->ClientLeftPoints =   $this->getFilteredLeftPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+        //             $ClientBonanza->ClientRightPoints = $this->getFilteredRightPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+        //         }
+        //         if ($BonanzaTotalPoints > 0) {
+        //             $ClientBonanza->ClientTotalPoints = $this->getFilteredTotalPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+        //         }
+        //         if ($BonanzaVisitNumber > 0) $ClientBonanza->ClientVisitNumber =  $this->getFilteredVisits($Client, $StartDate, $EndDate)->count();
+        //         if ($BonanzaReferralNumber > 0) $ClientBonanza->BonanzaReferralNumber = $this->getFilteredReferral($Client, $StartDate, $EndDate)->count();
+        //         $ClientBonanza->BrandVisit = 0;
+
+        //         $ClientBonanza->save();
+
+        //         $BatchNumber = "#B" . $ClientBonanza->IDClientBonanza;
+        //         $TimeFormat = new DateTime('now');
+        //         $Time = $TimeFormat->format('H');
+        //         $Time = $Time . $TimeFormat->format('i');
+        //         $BatchNumber = $BatchNumber . $Time;
+
+        //         if ($Bonanza->BonanzaChequeValue > 0) {
+        //             ChequesLedger($Client, $Bonanza->BonanzaChequeValue, 'BONANZA', "REWARD", 'WALLET', $BatchNumber);
+        //         }
+        //         if ($Bonanza->BonanzaRewardPoints > 0) {
+        //             AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
+        //         }
+        //         $Bonanza->BonanzaStatus = "EXPIRED";
+        //         $Bonanza->save();
+        //         if ($Bonanza->BonanzaChequeValue > 0) {
+        //             $CompanyLedger = new CompanyLedger;
+        //             $CompanyLedger->IDSubCategory = 22;
+        //             $CompanyLedger->CompanyLedgerAmount = $Bonanza->BonanzaChequeValue;
+        //             $CompanyLedger->CompanyLedgerDesc = "Bonanza Payment to Client " . $Client->ClientName;
+        //             $CompanyLedger->CompanyLedgerProcess = "AUTO";
+        //             $CompanyLedger->CompanyLedgerType = "DEBIT";
+        //             $CompanyLedger->save();
+        //         }
+        //     }
+        // }
     }
+
     public function ClientNetworkAdd(Request $request)
     {
         $Admin = auth('user')->user();
@@ -2828,7 +2923,7 @@ class ClientController extends Controller
             if ($BonanzaBrandVisitNumber) {
                 $BonanzaBrand->BonanzaBrandVisitNumber = $BonanzaBrandVisitNumber;
             }
-            if ($BonanzaBrandVisitNumber == 0 && $BonanzaBrand->BonanzaBrandVisitNumber == 0) {
+            if ($BonanzaBrandVisitNumber == 0) {
                 $BonanzaBrand->BonanzaBrandVisitNumber = 0;
             }
             $Desc = "brand status in bonanza changed with visit number " . $BonanzaBrand->BonanzaBrandVisitNumber;

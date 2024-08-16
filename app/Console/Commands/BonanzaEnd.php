@@ -55,291 +55,189 @@ class BonanzaEnd extends Command
         foreach ($Clients as $Client) {
             $IDClient = $Client->IDClient;
             foreach ($Bonanzas as $Bonanza) {
+                $StartDate = $Bonanza->BonanzaStartTime;
+                $EndDate = $Bonanza->BonanzaEndTime;
+
                 $BonanzaLeftPoints = $Bonanza->BonanzaLeftPoints;
+                $BonanzaRightPoints = $Bonanza->BonanzaRightPoints;
 
-                $BonanzaLeftPoints > 0 && $this->getFilteredByReferral($Client, $Bonanza->BonanzaReferralNumber, $BonanzaLeftPoints);
-
-                if ($Bonanza->BonanzaLeftPoints) {
-                    if ($Client->ClientLeftPoints < $Bonanza->BonanzaLeftPoints) {
-                        continue;
+                if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
+                    if (!$this->checkBalancePoints($Client, $BonanzaLeftPoints, $BonanzaRightPoints, $StartDate, $EndDate)) {
+                        break;
                     }
                 }
 
-                if ($Bonanza->BonanzaRightPoints) {
-                    if ($Client->ClientRightPoints < $Bonanza->BonanzaRightPoints) {
-                        continue;
-                    }
-                }
-                if ($Bonanza->BonanzaTotalPoints) {
-                    if ($Client->ClientTotalPoints < $Bonanza->BonanzaTotalPoints) {
-                        continue;
+                $BonanzaTotalPoints = $Bonanza->BonanzaTotalPoints;
+                if ($BonanzaTotalPoints > 0) {
+                    if (!$this->checkTotalPoints($Client, $BonanzaTotalPoints, $StartDate, $EndDate)) {
+                        break;
                     }
                 }
 
-                $PlanNetwork = 0;
-                if ($Bonanza->BonanzaReferralNumber) {
-                    $PlanNetwork = PlanNetwork::where("IDReferralClient", $IDClient)->count();
-                    if ($PlanNetwork < $Bonanza->BonanzaReferralNumber) {
-                        continue;
+                $BonanzaVisitNumber = $Bonanza->BonanzaVisitNumber;
+
+                if ($BonanzaVisitNumber > 0) {
+                    if (!$this->checkVisitsNumber($Client, $BonanzaVisitNumber, $StartDate, $EndDate)) {
+                        break;
                     }
                 }
 
-                $ClientProductValue = 0;
-                if ($Bonanza->BonanzaProductValue) {
-                    $ClientBrandProduct = ClientBrandProduct::where("IDClient", $IDClient)->where("ClientBrandProductStatus", "USED")->sum("ProductTotalAmount");
-                    if ($ClientBrandProduct < $Bonanza->BonanzaProductValue) {
-                        continue;
-                    }
-                    $ClientProductValue = $ClientBrandProduct;
-                }
-
-                $ClientVisitNumber = 0;
-                $BrandVisit = 0;
-                $BonanzaBrands = BonanzaBrand::where("IDBonanza", $Bonanza->IDBonanza)->where("BonanzaBrandDeleted", 0)->get();
-                if (count($BonanzaBrands) || $Bonanza->BonanzaVisitNumber) {
-                    if ($Bonanza->BonanzaVisitNumber) {
-                        $ClientBrandProduct = ClientBrandProduct::where("IDClient", $IDClient)->where("ClientBrandProductStatus", "USED")->count();
-                        if ($ClientBrandProduct < $Bonanza->BonanzaVisitNumber) {
-                            continue;
-                        }
-                        $ClientVisitNumber = $ClientBrandProduct;
-                    }
-
-                    if (count($BonanzaBrands)) {
-                        $Flag = True;
-                        foreach ($BonanzaBrands as $BonanzaBrand) {
-                            $ClientBrandProduct = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->where("clientbrandproducts.IDClient", $IDClient)->where("clientbrandproducts.ClientBrandProductStatus", "USED")->where("brandproducts.IDBrand", $BonanzaBrand->IDBrand)->count();
-                            if ($ClientBrandProduct < $BonanzaBrand->BonanzaBrandVisitNumber) {
-                                $Flag = False;
-                                break;
-                            }
-                        }
-                        if (!$Flag) {
-                            continue;
-                        }
-                        $BrandVisit = 1;
+                $IsBonanzaUniqueVisits = $Bonanza->IsBonanzaUniqueVisits;
+                if ($IsBonanzaUniqueVisits) {
+                    if (!$this->checkUniqueVisits($Client, $Bonanza, $StartDate, $EndDate)) {
+                        break;
                     }
                 }
 
+                $BonanzaReferralNumber = $Bonanza->BonanzaReferralNumber;
+                if ($BonanzaReferralNumber > 0) {
+                    if (!$this->checkReferralsNumber($Client, $BonanzaReferralNumber, $StartDate, $EndDate)) {
+                        break;
+                    }
+                }
 
                 $ClientBonanza = new ClientBonanza;
                 $ClientBonanza->IDBonanza = $Bonanza->IDBonanza;
                 $ClientBonanza->IDClient = $IDClient;
-                $ClientBonanza->ClientLeftPoints = $Client->ClientLeftPoints;
-                $ClientBonanza->ClientRightPoints = $Client->ClientRightPoints;
-                $ClientBonanza->ClientTotalPoints = $Client->ClientTotalPoints;
-                $ClientBonanza->ClientProductValue = $ClientProductValue;
-                $ClientBonanza->BonanzaReferralNumber = $PlanNetwork;
-                $ClientBonanza->ClientVisitNumber = $ClientVisitNumber;
-                $ClientBonanza->BrandVisit = $BrandVisit;
-                $ClientBonanza->save();
+                if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
+                    $ClientBonanza->ClientLeftPoints =   $this->getFilteredLeftPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+                    $ClientBonanza->ClientRightPoints = $this->getFilteredRightPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+                }
+                if ($BonanzaTotalPoints > 0) {
+                    $ClientBonanza->ClientTotalPoints = $this->getFilteredTotalPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
+                }
+                if ($BonanzaVisitNumber > 0) $ClientBonanza->ClientVisitNumber =  $this->getFilteredVisits($Client, $StartDate, $EndDate)->count();
+                if ($BonanzaReferralNumber > 0) $ClientBonanza->BonanzaReferralNumber = $this->getFilteredReferral($Client, $StartDate, $EndDate)->count();
+                $ClientBonanza->BrandVisit = 0;
 
+                $ClientBonanza->save();
 
                 $BatchNumber = "#B" . $ClientBonanza->IDClientBonanza;
                 $TimeFormat = new DateTime('now');
                 $Time = $TimeFormat->format('H');
                 $Time = $Time . $TimeFormat->format('i');
                 $BatchNumber = $BatchNumber . $Time;
-                AdjustLedger($Client, $Bonanza->BonanzaChequeValue, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
 
+                if ($Bonanza->BonanzaChequeValue > 0) {
+                    ChequesLedger($Client, $Bonanza->BonanzaChequeValue, 'BONANZA', "REWARD", 'WALLET', $BatchNumber);
+                }
+                if ($Bonanza->BonanzaRewardPoints > 0) {
+                    AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
+                }
                 $Bonanza->BonanzaStatus = "EXPIRED";
                 $Bonanza->save();
-
-                $CompanyLedger = new CompanyLedger;
-                $CompanyLedger->IDSubCategory = 22;
-                $CompanyLedger->CompanyLedgerAmount = $Bonanza->BonanzaChequeValue;
-                $CompanyLedger->CompanyLedgerDesc = "Bonanza Payment to Client " . $Client->ClientName;
-                $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                $CompanyLedger->CompanyLedgerType = "DEBIT";
-                $CompanyLedger->save();
+                if ($Bonanza->BonanzaChequeValue > 0) {
+                    $CompanyLedger = new CompanyLedger;
+                    $CompanyLedger->IDSubCategory = 22;
+                    $CompanyLedger->CompanyLedgerAmount = $Bonanza->BonanzaChequeValue;
+                    $CompanyLedger->CompanyLedgerDesc = "Bonanza Payment to Client " . $Client->ClientName;
+                    $CompanyLedger->CompanyLedgerProcess = "AUTO";
+                    $CompanyLedger->CompanyLedgerType = "DEBIT";
+                    $CompanyLedger->save();
+                }
             }
         }
-
         return 0;
     }
-    function getFilteredByReferral($client, $intervalMinutes, $referralNumber)
+
+    function checkBalancePoints($client, $rightPointsNumber, $leftPointsNumber, $StartDate, $EndDate)
+    {
+        $startDate = Carbon::parse($StartDate);
+        $endDate = Carbon::parse($EndDate);
+
+        $rightPointsCount = $this->getFilteredRightPoints($client, $startDate, $endDate)->sum('ClientLedgerPoints');
+
+        $leftPointsCount = $this->getFilteredLeftPoints($client, $startDate, $endDate)->sum('ClientLedgerPoints');
+
+        return $rightPointsCount >= $rightPointsNumber && $leftPointsCount >= $leftPointsNumber;
+    }
+    function getFilteredRightPoints($client, $startDate, $endDate)
+    {
+        $filteredPointsHistory = $client->points_history->filter(function ($point) use ($startDate, $endDate) {
+            $createdAt = Carbon::parse($point->created_at);
+            return $createdAt->between($startDate, $endDate);
+        });
+
+        return $filteredPointsHistory->filter(function ($point) {
+            return $point->ClientLedgerPosition === 'RIGHT';
+        });
+    }
+    function getFilteredLeftPoints($client, $startDate, $endDate)
+    {
+        $filteredPointsHistory = $client->points_history->filter(function ($point) use ($startDate, $endDate) {
+            $createdAt = Carbon::parse($point->created_at);
+            return $createdAt->between($startDate, $endDate);
+        });
+        return $filteredPointsHistory->filter(function ($point) {
+            return $point->ClientLedgerPosition === 'LEFT';
+        });
+    }
+    function checkTotalPoints($client, $totalPoints, $StartDate, $EndDate)
+    {
+        $startDate = Carbon::parse($StartDate);
+        $endDate = Carbon::parse($EndDate);
+
+        $filteredPointsHistory = $this->getFilteredTotalPoints($client, $startDate, $endDate);
+
+        $totalPointsCount = $filteredPointsHistory->sum('ClientLedgerPoints');
+
+        return $totalPointsCount >= $totalPoints;
+    }
+    function getFilteredTotalPoints($client, $startDate, $endDate)
+    {
+        return $client->points_history->filter(function ($point) use ($startDate, $endDate) {
+            $createdAt = Carbon::parse($point->created_at);
+            return $createdAt->between($startDate, $endDate);
+        });
+    }
+    function checkVisitsNumber($client, $visitsNumber, $StartDate, $EndDate)
+    {
+        $filteredVisits = $this->getFilteredVisits($client, $StartDate, $EndDate);
+
+        return $filteredVisits->count() >= $visitsNumber;
+    }
+    function getFilteredVisits($client, $startDate, $endDate)
+    {
+        return $client->visits->filter(function ($visit) use ($startDate, $endDate) {
+            $used_at = Carbon::parse($visit->UsedAt);
+            return $used_at->between($startDate, $endDate);
+        });
+    }
+    function checkUniqueVisits($client, $bonanza, $StartDate, $EndDate)
+    {
+        $bonanza_brands = $bonanza->bonanza_brands()->where('BonanzaBrandDeleted', 1)->with('brand')->get();
+        $isValid = true;
+
+        foreach ($bonanza_brands as $bonanza_brand) {
+            $brandId = $bonanza_brand->IDBrand;
+            $expectedVisitNumber = $bonanza_brand->BonanzaBrandVisitNumber;
+
+            $visitCount = $client->visits()
+                ->where("ClientBrandProductStatus", 'USED')
+                ->whereHas('brandproduct', function ($query) use ($brandId) {
+                    $query->where('IDBrand', $brandId);
+                })
+                ->whereBetween('UsedAt', [$StartDate, $EndDate])
+                ->count();
+            if ($visitCount < $expectedVisitNumber) {
+                $isValid = false;
+                break;
+            }
+        }
+        return $isValid;
+    }
+    function checkReferralsNumber($client, $referralNumber, $StartDate, $EndDate)
     {
         if ($referralNumber > 0) {
-            $now = Carbon::now();
-            $recentReferrals = $client->referrals->filter(function ($referral) use ($now, $intervalMinutes) {
-                return Carbon::parse($referral->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $sortedReferrals = $recentReferrals->sortBy('created_at');
-
-            foreach ($sortedReferrals as $referral) {
-                $currentReferralTime = Carbon::parse($referral->created_at);
-
-                $referralCount = $sortedReferrals->filter(function ($r) use ($currentReferralTime, $intervalMinutes) {
-                    return Carbon::parse($r->created_at)->diffInMinutes($currentReferralTime) <= $intervalMinutes;
-                })->count();
-
-                if ($referralCount >= $referralNumber) {
-                    return true;
-                }
-            }
-
-            return false;
+            $recentReferrals = $this->getFilteredReferral($client, $StartDate, $EndDate);
+            $referralCount = $recentReferrals->count();
+            return $referralCount >= $referralNumber;
         } else return true;
     }
-    function getFilteredByVisits($clients, $intervalMinutes, $visitsNumber)
+    function getFilteredReferral($client, $startDate, $endDate)
     {
-        return $clients->filter(function ($client) use ($intervalMinutes, $visitsNumber) {
-            $now = Carbon::now();
-            $recentVisits = $client->visits->filter(function ($visit) use ($now, $intervalMinutes) {
-                return Carbon::parse($visit->UsedAt)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $sortedVisits = $recentVisits->sortBy('UsedAt');
-            foreach ($sortedVisits as $visit) {
-                $currentVisitTime = Carbon::parse($visit->UsedAt);
-                $visitCount = $sortedVisits->filter(function ($v) use ($currentVisitTime, $intervalMinutes) {
-                    return Carbon::parse($v->UsedAt)->diffInMinutes($currentVisitTime) <= $intervalMinutes;
-                })->count();
-                if ($visitCount >= $visitsNumber) {
-                    return true;
-                }
-            }
-            return false;
-        });
-    }
-    function getFilteredByUniqueVisits($clients, $position)
-    {
-        return $clients->filter(function ($client) use ($position) {
-            $interval = $position->PositionUniqueVisitInterval;
-            $position_brands = $position->position_brands()->with('brand')->get();
-            $isValid = true;
-
-            foreach ($position_brands as $position_brand) {
-                $brandId = $position_brand->IDBrand;
-                $expectedVisitNumber = $position_brand->PositionBrandVisitNumber;
-
-                $visitCount = $client->visits()
-                    ->where("ClientBrandProductStatus", 'USED')
-                    ->whereHas('brandproduct', function ($query) use ($brandId) {
-                        $query->where('IDBrand', $brandId);
-                    })
-                    ->where('UsedAt', '>=', Carbon::now()->subMinutes($interval))
-                    ->count();
-                if ($visitCount < $expectedVisitNumber) {
-                    $isValid = false;
-                    break;
-                }
-            }
-
-            if ($isValid) {
-                return true;
-            }
-
-            return false;
-        });
-    }
-    function getFilteredByTotalPersons($clients, $intervalMinutes, $personsNumber)
-    {
-        return $clients->filter(function ($client) use ($intervalMinutes, $personsNumber) {
-            $now = Carbon::now();
-
-            $recentPersons = $client->persons->filter(function ($person) use ($now, $intervalMinutes) {
-                return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $sortedPersons = $recentPersons->sortBy('created_at');
-
-            foreach ($sortedPersons as $person) {
-                $currentPersonTime = Carbon::parse($person->created_at);
-
-                $personsCount = $sortedPersons->filter(function ($p) use ($currentPersonTime, $intervalMinutes) {
-                    return Carbon::parse($p->created_at)->diffInMinutes($currentPersonTime) <= $intervalMinutes;
-                })->count();
-
-                if ($personsCount >= $personsNumber) {
-                    return true;
-                }
-            }
-
-            return false;
-        });
-    }
-    function getFilteredByBalancePersons($clients, $intervalMinutes, $rightPersonsNumber, $leftPersonsNumber)
-    {
-        return $clients->filter(function ($client) use ($intervalMinutes, $rightPersonsNumber, $leftPersonsNumber) {
-            $now = Carbon::now();
-
-            $recentRightPersons = $client->right_persons->filter(function ($person) use ($now, $intervalMinutes) {
-                return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $recentLeftPersons = $client->left_persons->filter(function ($person) use ($now, $intervalMinutes) {
-                return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            if ($recentRightPersons->count() >= $rightPersonsNumber && $recentLeftPersons->count() >= $leftPersonsNumber) {
-                return true;
-            }
-
-            return false;
-        });
-    }
-    function getFilteredByTotalPoints($clients, $intervalMinutes, $pointsNumber)
-    {
-        return $clients->filter(function ($client) use ($intervalMinutes, $pointsNumber) {
-            $now = Carbon::now();
-            $recentPointsHistory = $client->points_history->filter(function ($point) use ($now, $intervalMinutes, $client) {
-                return Carbon::parse($point->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $pointsCount = $recentPointsHistory->sum('ClientLedgerPoints');
-
-            return $pointsCount >= $pointsNumber;
-        });
-    }
-    function getFilteredByCheques($clients, $intervalMinutes, $chequesValue)
-    {
-        return $clients->filter(function ($client) use ($intervalMinutes, $chequesValue) {
-            $now = Carbon::now();
-            $recentChequesHistory = $client->ChequesHistory->filter(function ($cheque) use ($now, $intervalMinutes, $client) {
-                return Carbon::parse($cheque->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $chequesCount = $recentChequesHistory->sum('ClientLedgerAmount');
-
-            return $chequesCount >= $chequesValue;
-        });
-    }
-    function getFilteredByBalancePoints($clients, $intervalMinutes, $rightPointsNumber, $leftPointsNumber)
-    {
-        return $clients->filter(function ($client) use ($intervalMinutes, $rightPointsNumber, $leftPointsNumber) {
-            $now = Carbon::now();
-
-            $recentPointsHistory = $client->points_history->filter(function ($point) use ($now, $intervalMinutes) {
-                return Carbon::parse($point->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
-
-            $sortedPointsHistory = $recentPointsHistory->sortBy('created_at');
-
-            foreach ($sortedPointsHistory as $point) {
-                $currentPointsTime = Carbon::parse($point->created_at);
-
-                $intervalEnd = $currentPointsTime->copy()->addMinutes($intervalMinutes);
-
-                $pointsInInterval = $sortedPointsHistory->filter(function ($r) use ($currentPointsTime, $intervalEnd) {
-                    $createdTime = Carbon::parse($r->created_at);
-                    return $createdTime->between($currentPointsTime, $intervalEnd);
-                });
-
-                $rightPointsCount = $pointsInInterval->filter(function ($r) {
-                    return $r->ClientLedgerPosition === 'RIGHT';
-                })->sum('ClientLedgerPoints');
-
-                $leftPointsCount = $pointsInInterval->filter(function ($r) {
-                    return $r->ClientLedgerPosition === 'LEFT';
-                })->sum('ClientLedgerPoints');
-                if ($rightPointsCount >= $rightPointsNumber && $leftPointsCount >= $leftPointsNumber) {
-                    return true;
-                }
-            }
-
-            return false;
+        return $client->referrals->filter(function ($referral) use ($startDate, $endDate) {
+            return Carbon::parse($referral->created_at)->between($startDate, $endDate);
         });
     }
 }

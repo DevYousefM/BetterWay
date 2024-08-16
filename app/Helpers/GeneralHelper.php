@@ -28,10 +28,6 @@ use LaravelFCM\Message\PayloadDataBuilder;
 use LaravelFCM\Message\PayloadNotificationBuilder;
 use Illuminate\Support\Facades\Response;
 use LaravelFCM\Facades\FCM;
-// use Location;
-// use DB;
-// use DateTime;
-// use DateInterval;
 
 function RespondWithBadRequest($Code, $Variable = Null)
 {
@@ -549,7 +545,10 @@ function SplitForwardList($entities)
     }
     $forwardList = [
         'forwardList' => $forward,
-        'forwardTokenEn' => $forwardTokenEn, 'forwardTokenAr' => $forwardTokenAr, 'forwardTokenHMSEn' => $forwardTokenHMSEn, 'forwardTokenHMSAr' => $forwardTokenHMSAr
+        'forwardTokenEn' => $forwardTokenEn,
+        'forwardTokenAr' => $forwardTokenAr,
+        'forwardTokenHMSEn' => $forwardTokenHMSEn,
+        'forwardTokenHMSAr' => $forwardTokenHMSAr
     ];
     return $forwardList;
 }
@@ -801,19 +800,15 @@ function SMSMsegat($ClientPhone, $Message)
 }
 function extractIDClientsFromJson($jsonString)
 {
-    // Decode JSON into an associative array
     $data = json_decode($jsonString, true);
 
-    // Map through the array to extract IDClient values
     $filteredArray = array_map(function ($item) {
         $mainIDClient = $item['IDClient'];
 
-        // Extract IDClient values from referrals
         $referralIDClients = array_map(function ($referral) {
             return $referral['IDClient'];
         }, $item['referrals']);
 
-        // Extract IDClient values from visits
         $visitIDClients = array_map(function ($visit) {
             return $visit['IDClient'];
         }, $item['visits']);
@@ -825,6 +820,5 @@ function extractIDClientsFromJson($jsonString)
         ];
     }, $data);
 
-    // Encode the processed array back to JSON
     return json_encode($filteredArray);
 }

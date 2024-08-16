@@ -8,4 +8,9 @@ class Bonanza extends Model
 {
     protected $table = 'bonanza';
     protected $primaryKey = 'IDBonanza';
+
+    public function bonanza_brands()
+    {
+        return $this->hasMany(BonanzaBrand::class, 'IDBonanza');
+    }
 }
