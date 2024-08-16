@@ -65,14 +65,14 @@ class BonanzaEnd extends Command
 
                 if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
                     if (!$this->checkBalancePoints($Client, $BonanzaLeftPoints, $BonanzaRightPoints, $StartDate, $EndDate)) {
-                        break;
+                        continue;
                     }
                 }
 
                 $BonanzaTotalPoints = $Bonanza->BonanzaTotalPoints;
                 if ($BonanzaTotalPoints > 0) {
                     if (!$this->checkTotalPoints($Client, $BonanzaTotalPoints, $StartDate, $EndDate)) {
-                        break;
+                        continue;
                     }
                 }
 
@@ -80,21 +80,21 @@ class BonanzaEnd extends Command
 
                 if ($BonanzaVisitNumber > 0) {
                     if (!$this->checkVisitsNumber($Client, $BonanzaVisitNumber, $StartDate, $EndDate)) {
-                        break;
+                        continue;
                     }
                 }
 
                 $IsBonanzaUniqueVisits = $Bonanza->IsBonanzaUniqueVisits;
                 if ($IsBonanzaUniqueVisits) {
                     if (!$this->checkUniqueVisits($Client, $Bonanza, $StartDate, $EndDate)) {
-                        break;
+                        continue;
                     }
                 }
 
                 $BonanzaReferralNumber = $Bonanza->BonanzaReferralNumber;
                 if ($BonanzaReferralNumber > 0) {
                     if (!$this->checkReferralsNumber($Client, $BonanzaReferralNumber, $StartDate, $EndDate)) {
-                        break;
+                        continue;
                     }
                 }
 
@@ -222,7 +222,7 @@ class BonanzaEnd extends Command
                 ->count();
             if ($visitCount < $expectedVisitNumber) {
                 $isValid = false;
-                break;
+                continue;
             }
         }
         return $isValid;
