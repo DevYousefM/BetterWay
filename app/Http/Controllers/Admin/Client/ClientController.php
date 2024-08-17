@@ -815,6 +815,12 @@ class ClientController extends Controller
         $ClientStatus = $request->ClientStatus;
         $ClientDeleted = $request->ClientDeleted;
 
+        $CashFrom = $request->CashFrom;
+        $CashTo = $request->CashTo;
+
+        $RewardPointsFrom = $request->RewardPointsFrom;
+        $RewardPointsTo = $request->RewardPointsTo;
+
         $ClientContractCompleted = $request->ClientContractCompleted;
 
         $BalanceSort = $request->BalanceSort;
@@ -824,31 +830,37 @@ class ClientController extends Controller
         //     $IDPage = ($request->IDPage - 1) * 20;
         // }
 
-        $Clients = $Clients->leftjoin("positions", "positions.IDPosition", "clients.IDPosition")->leftjoin("areas", "areas.IDArea", "clients.IDArea")->leftjoin("cities", "cities.IDCity", "areas.IDCity")->leftjoin("plannetwork", "plannetwork.IDClient", "clients.IDClient")->leftjoin("clients as C2", "C2.IDClient", "plannetwork.IDParentClient")->leftjoin("clients as C3", "C3.IDClient", "plannetwork.IDReferralClient")->leftjoin("plans", "plans.IDPlan", "plannetwork.IDPlan")->where("clients.ClientDeleted", 0);
-        if ($SearchKey) {
+        $Clients = $Clients
+            ->leftjoin("positions", "positions.IDPosition", "clients.IDPosition")
+            ->leftjoin("areas", "areas.IDArea", "clients.IDArea")
+            ->leftjoin("cities", "cities.IDCity", "areas.IDCity")
+            ->leftjoin("plannetwork", "plannetwork.IDClient", "clients.IDClient")
+            ->leftjoin("clients as C2", "C2.IDClient", "plannetwork.IDParentClient")
+            ->leftjoin("clients as C3", "C3.IDClient", "plannetwork.IDReferralClient")
+            ->leftjoin("plans", "plans.IDPlan", "plannetwork.IDPlan")->where("clients.ClientDeleted", 0);
+
+        if ($SearchKey != "") {
             $Clients = $Clients->where(function ($query) use ($SearchKey) {
                 $query->where('clients.ClientName', 'like', '%' . $SearchKey . '%')
                     ->orwhere('clients.ClientAppID', 'like', '%' . $SearchKey . '%')
-                    ->orwhere('clients.ClientEmail', 'like', '%' . $SearchKey . '%')
                     ->orwhere('clients.ClientPhone', 'like', '%' . $SearchKey . '%');
             });
         }
-        if ($UplineSearchKey) {
+        if ($UplineSearchKey != "") {
             $Clients = $Clients->where(function ($query) use ($UplineSearchKey) {
                 $query->where('C2.ClientName', 'like', '%' . $UplineSearchKey . '%')
                     ->orwhere('C2.ClientAppID', 'like', '%' . $UplineSearchKey . '%')
-                    ->orwhere('C2.ClientEmail', 'like', '%' . $UplineSearchKey . '%')
                     ->orwhere('C2.ClientPhone', 'like', '%' . $UplineSearchKey . '%');
             });
         }
-        if ($ReferralSearchKey) {
+        if ($ReferralSearchKey != "") {
             $Clients = $Clients->where(function ($query) use ($ReferralSearchKey) {
                 $query->where('C3.ClientName', 'like', '%' . $ReferralSearchKey . '%')
                     ->orwhere('C3.ClientAppID', 'like', '%' . $ReferralSearchKey . '%')
-                    ->orwhere('C3.ClientEmail', 'like', '%' . $ReferralSearchKey . '%')
                     ->orwhere('C3.ClientPhone', 'like', '%' . $ReferralSearchKey . '%');
             });
         }
+
         if ($ClientStatus) {
             $Clients = $Clients->where("clients.ClientStatus", $ClientStatus);
         }
@@ -880,6 +892,30 @@ class ClientController extends Controller
         }
         if ($EndDate) {
             $Clients = $Clients->where("clients.created_at", "<=", $EndDate);
+        }
+
+        if ($CashFrom && $CashTo) {
+            if ($CashFrom == $CashTo) {
+                $Clients = $Clients->where("clients.ClientBalance", $CashFrom);
+            } else {
+                $Clients = $Clients->whereBetween("clients.ClientBalance", [$CashFrom, $CashTo]);
+            }
+        } elseif ($CashFrom) {
+            $Clients = $Clients->where("clients.ClientBalance", ">=", $CashFrom);
+        } elseif ($CashTo) {
+            $Clients = $Clients->where("clients.ClientBalance", "<=", $CashTo);
+        }
+
+        if ($RewardPointsFrom && $RewardPointsTo) {
+            if ($RewardPointsFrom == $RewardPointsTo) {
+                $Clients = $Clients->where("clients.ClientRewardPoints", $RewardPointsFrom);
+            } else {
+                $Clients = $Clients->whereBetween("clients.ClientRewardPoints", [$RewardPointsFrom, $RewardPointsTo]);
+            }
+        } elseif ($RewardPointsFrom) {
+            $Clients = $Clients->where("clients.ClientRewardPoints", ">=", $RewardPointsFrom);
+        } elseif ($RewardPointsTo) {
+            $Clients = $Clients->where("clients.ClientRewardPoints", "<=", $RewardPointsTo);
         }
 
         $ClientNumber = $Clients->count();
@@ -2758,7 +2794,7 @@ class ClientController extends Controller
         ActionBackLog($Admin->IDUser, $Bonanza->IDBonanza, "ADD_BONANZA", $Desc);
 
         SendBonanzaNotifications::dispatch($Bonanza->IDBonanza);
-        
+
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
