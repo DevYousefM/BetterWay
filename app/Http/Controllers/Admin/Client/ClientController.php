@@ -920,7 +920,13 @@ class ClientController extends Controller
 
         $ClientNumber = $Clients->count();
         $ClientTotalRewardPoints = $Clients->sum("clients.ClientRewardPoints");
-        $ClientTotalPoints = $Clients->sum("clients.ClientTotalPoints");
+
+        $Client = Client::first();
+        if ($Client) {
+            $ClientTotalPoints = $Client->ClientTotalPoints; 
+        } else {
+            $ClientTotalPoints = 0;
+        }
         // $Pages = ceil($Clients->count() / 20);
         if ($BalanceSort) {
             $Clients = $Clients->orderby("clients.ClientBalance", $BalanceSort);
