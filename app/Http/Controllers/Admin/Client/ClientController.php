@@ -21,6 +21,7 @@ use App\Http\Resources\Admin\AreaResource;
 use App\Http\Resources\Admin\BalanceTransferResource;
 use App\Http\Resources\ClientContractsResource;
 use App\Http\Resources\PositionsForClients;
+use App\Jobs\SendBonanzaNotifications;
 use App\V1\GhazalCart;
 use App\V1\Brand\Brand;
 use App\V1\Brand\BrandProduct;
@@ -2756,9 +2757,8 @@ class ClientController extends Controller
         $Desc = "Bonanza " . $BonanzaTitleEn . " was added";
         ActionBackLog($Admin->IDUser, $Bonanza->IDBonanza, "ADD_BONANZA", $Desc);
 
-        Artisan::call('notify:clients', [
-            'bonanza_id' => $Bonanza->IDBonanza
-        ]);
+        SendBonanzaNotifications::dispatch($Bonanza->IDBonanza);
+        
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
