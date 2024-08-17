@@ -923,10 +923,13 @@ class ClientController extends Controller
 
         $Client = Client::first();
         if ($Client) {
-            $ClientTotalPoints = $Client->ClientTotalPoints; 
+            $ClientTotalPoints = $Client->ClientTotalPoints;
         } else {
             $ClientTotalPoints = 0;
         }
+
+        $ActiveNetworkers = Client::where("ClientStatus", "ACTIVE")->where("ClientDeleted", 0)->count();
+
         // $Pages = ceil($Clients->count() / 20);
         if ($BalanceSort) {
             $Clients = $Clients->orderby("clients.ClientBalance", $BalanceSort);
@@ -935,7 +938,7 @@ class ClientController extends Controller
         }
         $Clients = $Clients->select("clients.IDClient", "clients.ClientName", "clients.ClientEmail", "clients.ClientPhone", "clients.ClientSecondPhone", "clients.ClientAppID", "clients.ClientStatus", "clients.ClientPicture", "clients.ClientBalance", "clients.ClientContractCompleted", "clients.ClientGender", "clients.ClientBirthDate", "clients.ClientNationalID", "clients.ClientRewardPoints", "clients.ClientLeftPoints", "clients.ClientRightPoints", "clients.ClientLeftNumber", "clients.ClientRightNumber", "clients.ClientPrivacy", "clients.ClientNameArabic", "clients.ClientDeleted", "clients.ClientCurrentAddress", "clients.ClientIDAddress", "clients.ClientPassport", "clients.ClientNationality", "areas.AreaNameEn", "areas.AreaNameAr", "cities.CityNameEn", "cities.CityNameAr", "clients.created_at", "positions.PositionTitleEn", "positions.PositionTitleAr", "plannetwork.IDParentClient", "clients.IDNationality", "plannetwork.IDReferralClient", "plans.PlanNameEn", "plans.PlanNameAr", "C2.ClientName as ParentName", "C2.ClientPhone as ParentPhone", "C3.ClientName as ReferralName", "C3.ClientPhone as ReferralPhone")->get();
         $Clients = ClientResource::collection($Clients);
-        $Response = array("Clients" => $Clients, "ClientNumber" => $ClientNumber, "ClientTotalRewardPoints" => $ClientTotalRewardPoints, "ClientTotalPoints" => $ClientTotalPoints);
+        $Response = array("Clients" => $Clients, "ClientNumber" => $ClientNumber, "ClientTotalRewardPoints" => $ClientTotalRewardPoints, "ClientTotalPoints" => $ClientTotalPoints, "ActiveNetworkers" => $ActiveNetworkers);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
