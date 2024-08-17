@@ -76,6 +76,7 @@ use Response;
 use Cookie;
 use Exception;
 use Facade\FlareClient\Http\Exceptions\BadResponse;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Paytabscom\Laravel_paytabs\Facades\paypage;
 use Mpdf\Mpdf;
@@ -2755,6 +2756,9 @@ class ClientController extends Controller
         $Desc = "Bonanza " . $BonanzaTitleEn . " was added";
         ActionBackLog($Admin->IDUser, $Bonanza->IDBonanza, "ADD_BONANZA", $Desc);
 
+        Artisan::call('notify:clients', [
+            'bonanza_id' => $Bonanza->IDBonanza
+        ]);
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
