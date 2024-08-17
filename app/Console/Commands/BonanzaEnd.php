@@ -60,9 +60,9 @@ class BonanzaEnd extends Command
 
                 $StartDate = $Bonanza->BonanzaStartTime;
                 $EndDate = $Bonanza->BonanzaEndTime;
+
                 $BonanzaLeftPoints = $Bonanza->BonanzaLeftPoints;
                 $BonanzaRightPoints = $Bonanza->BonanzaRightPoints;
-
                 if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
                     if (!$this->checkBalancePoints($Client, $BonanzaLeftPoints, $BonanzaRightPoints, $StartDate, $EndDate)) {
                         continue;
@@ -72,6 +72,21 @@ class BonanzaEnd extends Command
                 $BonanzaTotalPoints = $Bonanza->BonanzaTotalPoints;
                 if ($BonanzaTotalPoints > 0) {
                     if (!$this->checkTotalPoints($Client, $BonanzaTotalPoints, $StartDate, $EndDate)) {
+                        continue;
+                    }
+                }
+
+                $BonanzaLeftPersons = $Bonanza->BonanzaLeftPersons;
+                $BonanzaRightPersons = $Bonanza->BonanzaRightPersons;
+                if ($BonanzaLeftPersons > 0 && $BonanzaRightPersons > 0) {
+                    if (!$this->checkBalancePersons($Client, $BonanzaLeftPersons, $BonanzaRightPersons, $StartDate, $EndDate)) {
+                        continue;
+                    }
+                }
+
+                $BonanzaTotalPersons = $Bonanza->BonanzaTotalPersons;
+                if ($BonanzaTotalPersons > 0) {
+                    if (!$this->checkTotalPersons($Client, $BonanzaTotalPersons, $StartDate, $EndDate)) {
                         continue;
                     }
                 }
@@ -101,13 +116,23 @@ class BonanzaEnd extends Command
                 $ClientBonanza = new ClientBonanza;
                 $ClientBonanza->IDBonanza = $Bonanza->IDBonanza;
                 $ClientBonanza->IDClient = $IDClient;
-                if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
+                if ($BonanzaLeftPoints > 0 || $BonanzaRightPoints > 0) {
                     $ClientBonanza->ClientLeftPoints =   $this->getFilteredLeftPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
                     $ClientBonanza->ClientRightPoints = $this->getFilteredRightPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
                 }
                 if ($BonanzaTotalPoints > 0) {
                     $ClientBonanza->ClientTotalPoints = $this->getFilteredTotalPoints($Client, $StartDate, $EndDate)->sum('ClientLedgerPoints');
                 }
+
+                if ($BonanzaLeftPersons > 0 || $BonanzaRightPersons > 0) {
+                    $ClientBonanza->ClientLeftPersons =  $this->getFilteredLeftPersons($Client, $StartDate, $EndDate)->count();
+                    $ClientBonanza->ClientRightPersons = $this->getFilteredRightPersons($Client, $StartDate, $EndDate)->count();
+                }
+
+                if ($BonanzaTotalPersons > 0) {
+                    $ClientBonanza->ClientTotalPersons = $this->getFilteredTotalPersons($Client, $StartDate, $EndDate)->count();
+                }
+
                 if ($BonanzaVisitNumber > 0) $ClientBonanza->ClientVisitNumber =  $this->getFilteredVisits($Client, $StartDate, $EndDate)->count();
                 if ($BonanzaReferralNumber > 0) $ClientBonanza->BonanzaReferralNumber = $this->getFilteredReferral($Client, $StartDate, $EndDate)->count();
                 $ClientBonanza->BrandVisit = 0;
@@ -173,6 +198,7 @@ class BonanzaEnd extends Command
             return $point->ClientLedgerPosition === 'LEFT';
         });
     }
+
     function checkTotalPoints($client, $totalPoints, $StartDate, $EndDate)
     {
         $startDate = Carbon::parse($StartDate);
@@ -188,6 +214,49 @@ class BonanzaEnd extends Command
     {
         return $client->points_history->filter(function ($point) use ($startDate, $endDate) {
             $createdAt = Carbon::parse($point->created_at);
+            return $createdAt->between($startDate, $endDate);
+        });
+    }
+    function checkTotalPersons($client, $totalPersons, $StartDate, $EndDate)
+    {
+        $startDate = Carbon::parse($StartDate);
+        $endDate = Carbon::parse($EndDate);
+
+        $recentPersons = $this->getFilteredTotalPersons($client, $startDate, $endDate);
+
+        $personsCount = $recentPersons->count();
+        return $personsCount >= $totalPersons;
+    }
+    function getFilteredTotalPersons($client, $startDate, $endDate)
+    {
+        return $client->persons->filter(function ($person) use ($startDate, $endDate) {
+            $created_at = Carbon::parse($person->created_at);
+            return $created_at->between($startDate, $endDate);
+        });
+    }
+    function checkBalancePersons($client, $rightPersonsNumber, $leftPersonsNumber, $StartDate, $EndDate)
+    {
+        $startDate = Carbon::parse($StartDate);
+        $endDate = Carbon::parse($EndDate);
+
+        $rightPersonsCount = $this->getFilteredRightPersons($client, $startDate, $endDate)->count();
+
+        $leftPersonsCount = $this->getFilteredLeftPersons($client, $startDate, $endDate)->count();
+
+        return $rightPersonsCount >= $rightPersonsNumber && $leftPersonsCount >= $leftPersonsNumber;
+    }
+
+    function getFilteredRightPersons($client, $startDate, $endDate)
+    {
+        return $client->right_persons->filter(function ($person) use ($startDate, $endDate) {
+            $createdAt = Carbon::parse($person->created_at);
+            return $createdAt->between($startDate, $endDate);
+        });
+    }
+    function getFilteredLeftPersons($client, $startDate, $endDate)
+    {
+        return $client->left_persons->filter(function ($person) use ($startDate, $endDate) {
+            $createdAt = Carbon::parse($person->created_at);
             return $createdAt->between($startDate, $endDate);
         });
     }
