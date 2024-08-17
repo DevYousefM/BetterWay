@@ -173,6 +173,7 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/tools', [ClientController::class, 'ClientTools']);
     Route::post('/clients/brandproducts', [ClientController::class, 'ClientBrandProducts']);
     Route::post('/clients/position/update', [ClientController::class, 'ClientPositionUpdate']);
+    Route::post('/clients/position/log', [ClientController::class, 'ClientPositionLog']);
     Route::post('/clients/ledger', [ClientController::class, 'ClientLedger']);
     Route::post('/clients/rename', [ClientController::class, 'ClientRename']);
     Route::post("/clients/check", [ClientController::class, "ClientCheck"]);

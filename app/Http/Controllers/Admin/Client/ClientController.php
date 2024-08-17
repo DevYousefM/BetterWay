@@ -20,6 +20,7 @@ use App\Http\Resources\Admin\CityResource;
 use App\Http\Resources\Admin\AreaResource;
 use App\Http\Resources\Admin\BalanceTransferResource;
 use App\Http\Resources\ClientContractsResource;
+use App\Http\Resources\ClientPositionLog;
 use App\Http\Resources\PositionsForClients;
 use App\Jobs\SendBonanzaNotifications;
 use App\V1\GhazalCart;
@@ -59,6 +60,7 @@ use App\V1\Tool\Tool;
 use App\V1\Tool\ClientTool;
 use App\V1\Payment\BalanceTransfer;
 use App\V1\Payment\CompanyLedger;
+use App\V1\User\ActionBackLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\support\Facades\Input;
@@ -1320,15 +1322,48 @@ class ClientController extends Controller
             return RespondWithBadRequest(1);
         }
 
+        $Position = Position::find($IDPosition);
+
         $Client = Client::find($IDClient);
-        $Desc = "Client Position Changed";
+        $Desc = $Position->PositionTitleEn;
         $Client->IDPosition = $IDPosition;
         $Client->save();
 
-        ActionBackLog($Admin->IDUser, $Client->IDClient, "EDIT_CLIENT", $Desc);
+        ActionBackLog($Admin->IDUser, $Client->IDClient, "EDIT_CLIENT_POSITION", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
+    public function ClientPositionLog(Request $request)
+    {
+        $User = auth('user')->user();
+
+        $IDClient = $request->IDClient;
+
+        $Client = Client::find($IDClient);
+        $clientPositionLogs = ActionBackLog::where('IDLink', $IDClient)
+            ->where("ActionBackLogType", "EDIT_CLIENT_POSITION")
+            ->get();
+
+        $newObject = [
+            'Position' => 'Networker',
+            'Date' => $Client->created_at->format('Y-m-d'),
+        ];
+
+        if ($clientPositionLogs->isEmpty()) {
+            $clientPositionLogs = collect([$newObject]);
+        } else {
+            $clientPositionLogs->prepend((object) $newObject);
+        }
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => ClientPositionLog::collection($clientPositionLogs)
+        );
+        return $Response;
+    }
     public function ClientLedger(Request $request, ClientLedger $ClientLedger)
     {
         $IDPage = $request->IDPage;
@@ -1432,7 +1467,7 @@ class ClientController extends Controller
         $Position->PositionStatus = $PositionStatus;
         $Position->save();
 
-        ActionBackLog($Admin->IDUser, $Position->IDPosition, "EDIT_POSITION", $Desc);
+        ActionBackLog($Admin->IDUser, $Position->IDPosition, "EDIT_CLIENT_POSITION", $Desc);
         return RespondWithSuccessRequest(8);
     }
 
