@@ -1335,33 +1335,39 @@ class ClientController extends Controller
 
     public function ClientPositionLog(Request $request)
     {
-        $User = auth('user')->user();
-
+       $User = auth('user')->user();
         $IDClient = $request->IDClient;
-
+        
         $Client = Client::find($IDClient);
         $clientPositionLogs = ActionBackLog::where('IDLink', $IDClient)
             ->where("ActionBackLogType", "EDIT_CLIENT_POSITION")
             ->get();
-
+        
         $newObject = [
             'Position' => 'Networker',
             'Date' => $Client->created_at->format('Y-m-d'),
         ];
-
+        
         if ($clientPositionLogs->isEmpty()) {
             $clientPositionLogs = collect([$newObject]);
         } else {
-            $clientPositionLogs->prepend((object) $newObject);
+            $newObject = (object) $newObject;
+            $clientPositionLogs->prepend($newObject);
         }
-
+        
+        $clientPositionLogsCollection = $clientPositionLogs->map(function ($item) {
+            return (object) $item; // Convert each item to an object
+        });
+        
         $APICode = APICode::where('IDAPICode', 8)->first();
-        $Response = array(
+        
+        $Response = [
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => ClientPositionLog::collection($clientPositionLogs)
-        );
+            'Response' => ClientPositionLog::collection($clientPositionLogsCollection)
+        ];
+        
         return $Response;
     }
     public function ClientLedger(Request $request, ClientLedger $ClientLedger)
