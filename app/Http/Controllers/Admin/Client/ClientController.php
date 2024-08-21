@@ -367,6 +367,11 @@ class ClientController extends Controller
     public function test(Request $request)
     {
 
+        $bon = Bonanza::where('IDBonanza', '17')->with(['bonanza_brands', 'bonanza_brands.brand'])->first();
+
+        return $bon;
+
+
         // $Referral = $request->Referral;
 
 
@@ -1336,39 +1341,39 @@ class ClientController extends Controller
 
     public function ClientPositionLog(Request $request)
     {
-       $User = auth('user')->user();
+        $User = auth('user')->user();
         $IDClient = $request->IDClient;
-        
+
         $Client = Client::find($IDClient);
         $clientPositionLogs = ActionBackLog::where('IDLink', $IDClient)
             ->where("ActionBackLogType", "EDIT_CLIENT_POSITION")
             ->get();
-        
+
         $newObject = [
             'Position' => 'Networker',
             'Date' => $Client->created_at->format('Y-m-d'),
         ];
-        
+
         if ($clientPositionLogs->isEmpty()) {
             $clientPositionLogs = collect([$newObject]);
         } else {
             $newObject = (object) $newObject;
             $clientPositionLogs->prepend($newObject);
         }
-        
+
         $clientPositionLogsCollection = $clientPositionLogs->map(function ($item) {
             return (object) $item; // Convert each item to an object
         });
-        
+
         $APICode = APICode::where('IDAPICode', 8)->first();
-        
+
         $Response = [
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
             'Response' => ClientPositionLog::collection($clientPositionLogsCollection)
         ];
-        
+
         return $Response;
     }
     public function ClientLedger(Request $request, ClientLedger $ClientLedger)
@@ -2726,7 +2731,11 @@ class ClientController extends Controller
         }
 
         $Bonanza = Bonanza::find($IDBonanza);
+        $OldStatus = $Bonanza->BonanzaStatus;
         $Desc = "Bonanza status changed from " . $Bonanza->BonanzaStatus . " to " . $BonanzaStatus;
+        if ($Bonanza->BonanzaStatus != 'ACTIVE' && $BonanzaStatus == 'ACTIVE') {
+            SendBonanzaNotifications::dispatch($Bonanza->IDBonanza);
+        }
         $Bonanza->BonanzaStatus = $BonanzaStatus;
         $Bonanza->save();
 
@@ -2843,8 +2852,6 @@ class ClientController extends Controller
 
         $Desc = "Bonanza " . $BonanzaTitleEn . " was added";
         ActionBackLog($Admin->IDUser, $Bonanza->IDBonanza, "ADD_BONANZA", $Desc);
-
-        SendBonanzaNotifications::dispatch($Bonanza->IDBonanza);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(

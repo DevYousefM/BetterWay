@@ -16,7 +16,7 @@ class SendBonanzaNotifications implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 
-    
+
     protected $bonanza_id;
     /**
      * Create a new job instance.
@@ -36,7 +36,7 @@ class SendBonanzaNotifications implements ShouldQueue
     public function handle()
     {
         $clients = Client::all();
-        $bonanza = Bonanza::find($this->bonanza_id);
+        $bonanza = Bonanza::where('IDBonanza', $this->bonanza_id)->with(['bonanza_brands', 'bonanza_brands.brand'])->first();
 
         foreach ($clients as $client) {
             $dataPayload = [
