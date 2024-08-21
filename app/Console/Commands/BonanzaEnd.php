@@ -52,6 +52,7 @@ class BonanzaEnd extends Command
 
         $Clients = Client::where("ClientStatus", "ACTIVE")->where("ClientDeleted", 0)->get();
         $Bonanzas = Bonanza::where('BonanzaStatus', 'ACTIVE')->where("BonanzaEndTime", "<", $CurrentTime)->get();
+
         foreach ($Clients as $Client) {
             $IDClient = $Client->IDClient;
             foreach ($Bonanzas as $Bonanza) {
@@ -151,6 +152,7 @@ class BonanzaEnd extends Command
                 if ($Bonanza->BonanzaRewardPoints > 0) {
                     AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
                 }
+                sendFirebaseNotification($Client, $Bonanza, "bonanza", 'bonanza end and you got a prize');
 
                 if ($Bonanza->BonanzaChequeValue > 0) {
                     $CompanyLedger = new CompanyLedger;
