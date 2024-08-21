@@ -2733,7 +2733,7 @@ class ClientController extends Controller
         $Bonanza = Bonanza::find($IDBonanza);
         $OldStatus = $Bonanza->BonanzaStatus;
         $Desc = "Bonanza status changed from " . $Bonanza->BonanzaStatus . " to " . $BonanzaStatus;
-        if ($Bonanza->BonanzaStatus != 'ACTIVE' && $BonanzaStatus == 'ACTIVE') {
+        if ($OldStatus != 'ACTIVE' && $BonanzaStatus == 'ACTIVE') {
             SendBonanzaNotifications::dispatch($Bonanza->IDBonanza);
         }
         $Bonanza->BonanzaStatus = $BonanzaStatus;
