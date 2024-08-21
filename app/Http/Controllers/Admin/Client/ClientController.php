@@ -895,9 +895,8 @@ class ClientController extends Controller
             $Clients = $Clients->where("clients.created_at", ">=", $StartDate);
         }
         if ($EndDate) {
-            $Clients = $Clients->where("clients.created_at", "<=", $EndDate);
+            $Clients = $Clients->where("clients.created_at", "<=", $EndDate . ' 23:59:59');
         }
-
         if ($CashFrom && $CashTo) {
             if ($CashFrom == $CashTo) {
                 $Clients = $Clients->where("clients.ClientBalance", $CashFrom);
