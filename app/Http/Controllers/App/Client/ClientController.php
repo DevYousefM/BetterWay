@@ -688,143 +688,164 @@ class ClientController extends Controller
 
     public function ClientLogin(Request $request)
     {
-        if ($request->Filled('ClientAppLanguage')) {
-            $ClientAppLanguage = $request->ClientAppLanguage;
-        } else {
-            $ClientAppLanguage = "ar";
-        }
-
+        // Set Client Application Language
+        $ClientAppLanguage = $request->filled('ClientAppLanguage') ? $request->ClientAppLanguage : 'ar';
         Session::put('ClientAppLanguage', $ClientAppLanguage);
         App::setLocale($ClientAppLanguage);
-
+    
+        // Authenticate Client
         $Client = auth('client')->user();
+        $AccessToken = $request->bearerToken();
+    
         if (!$Client) {
-            //case 2: no token sent or token has expired or invalid
-            if (!$request->filled('UserName')) {
-                return RespondWithBadRequest(1);
-            }
-            if (!$request->filled('Password')) {
-                return RespondWithBadRequest(1);
-            }
-            if (!$request->filled('LoginBy')) {
-                return RespondWithBadRequest(1);
-            }
-
-            $UserName = $request->UserName;
-            $LoginBy = $request->LoginBy;
-
-            if ($LoginBy == "MANUAL") {
-                if ($UserName[0] == "+") {
-                    $Credentials = [
-                        'ClientPhone' => $request->UserName,
-                        'ClientDeleted' => 0,
-                        'password' => $request->Password
-                    ];
-                } else {
-                    $Credentials = [
-                        'ClientEmail' => $request->UserName,
-                        'ClientDeleted' => 0,
-                        'password' => $request->Password
-                    ];
-                }
-            } else {
-                $Credentials = [
-                    'ClientSocialUniqueID' => $request->UserName,
-                    'ClientDeleted' => 0,
-                    'password' => $request->Password
-                ];
-            }
-
-            $AccessToken = CreateToken($Credentials, 'client');
-
-            if (!$AccessToken) {
+            // Case 2: No token sent or token is expired/invalid
+            $this->validateClientLogin($request);
+    
+            $Credentials = $this->prepareCredentials($request);
+            $tokenData = CreateToken($Credentials, 'client');
+    
+            if (!$tokenData) {
                 return RespondWithBadRequest(6);
             }
-
-            $AccessToken = $AccessToken['accessToken'];
+    
+            $AccessToken = $tokenData['accessToken'];
             $Client = auth('client')->user();
+        }
+    
+        // Update Client Details
+        $this->updateClientDetails($Client, $request);
+        
+        // Determine Response Status and Flow
+        [$Success, $IDAPICode] = $this->determineClientStatus($Client, $request->LoginBy);
+        $FlowStatus = $this->determineFlowStatus($Client);
+    
+        // Prepare Position Details
+        $PositionName = $this->getPositionName($Client);
+    
+        // Prepare Response
+        $response = $this->prepareResponse($Client, $AccessToken, $FlowStatus, $PositionName);
+    
+        return Response::json($this->prepareResponseArray($Success, $IDAPICode, $response), 200);
+    }
+    
+    private function validateClientLogin(Request $request)
+    {
+        if (!$request->filled(['UserName', 'Password', 'LoginBy'])) {
+            return RespondWithBadRequest(1);
+        }
+    }
+    
+    private function prepareCredentials(Request $request)
+    {
+        $UserName = $request->UserName;
+    
+        if ($request->LoginBy == "MANUAL") {
+            return [
+                $this->getLoginField($UserName) => $UserName,
+                'ClientDeleted' => 0,
+                'password' => $request->Password
+            ];
         } else {
-            $AccessToken = $request->bearerToken();
+            return [
+                'ClientSocialUniqueID' => $UserName,
+                'ClientDeleted' => 0,
+                'password' => $request->Password
+            ];
         }
-
-        if ($request->filled('ClientDeviceToken')) {
-            $Client->ClientDeviceToken = $request->ClientDeviceToken;
+    }
+    
+    private function getLoginField($UserName)
+    {
+        return $UserName[0] == "+" ? 'ClientPhone' : 'ClientEmail';
+    }
+    
+    private function updateClientDetails($Client, Request $request)
+    {
+        $fields = ['ClientDeviceToken', 'ClientDeviceType', 'ClientMobileService', 'ClientAppVersion', 'ClientAppLanguage'];
+    
+        foreach ($fields as $field) {
+            if ($request->filled($field)) {
+                $Client->$field = $request->$field;
+            }
         }
-        if ($request->filled('ClientDeviceType')) {
-            $Client->ClientDeviceType = $request->ClientDeviceType;
-        }
-        if ($request->filled('ClientMobileService')) {
-            $Client->ClientMobileService = $request->ClientMobileService;
-        }
-        if ($request->filled('ClientAppVersion')) {
-            $Client->ClientAppVersion = $request->ClientAppVersion;
-        }
-        if ($request->filled('ClientAppLanguage')) {
-            $Client->ClientAppLanguage = $request->ClientAppLanguage;
-        }
+    
         $Client->save();
-
+    }
+    
+    private function determineClientStatus($Client, $LoginBy)
+    {
         $Success = true;
         $IDAPICode = 7;
-        if ($Client->ClientStatus != "ACTIVE") {
-            if ($Client->ClientStatus == "BLOCKED") {
+    
+        switch ($Client->ClientStatus) {
+            case 'BLOCKED':
                 $IDAPICode = 16;
                 $Success = false;
-            }
-            if ($Client->ClientStatus == "INACTIVE" && $LoginBy == "MANUAL") {
-                $IDAPICode = 17;
-                $Success = false;
-            }
+                break;
+            case 'INACTIVE':
+                if ($LoginBy == 'MANUAL') {
+                    $IDAPICode = 17;
+                    $Success = false;
+                }
+                break;
         }
-
-        $FlowStatus = "PRODUCT";
-        if ($Client->ClientStatus == "PENDING") {
-            $FlowStatus = "PRODUCT";
+    
+        return [$Success, $IDAPICode];
+    }
+    
+    private function determineFlowStatus($Client)
+    {
+        if ($Client->ClientStatus == 'PENDING' || !$Client->ClientNationalID && !$Client->ClientPassport) {
+            $PlanNetwork = PlanNetwork::where('IDClient', $Client->IDClient)->first();
+            return $PlanNetwork ? 'FORM' : 'PRODUCT';
         }
-        if ($Client->ClientNationalID || $Client->ClientPassport) {
-            $FlowStatus = "HOME";
-        } else {
-            $PlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
-            if ($PlanNetwork) {
-                $FlowStatus = "FORM";
-            }
-        }
-
+    
+        return 'HOME';
+    }
+    
+    private function getPositionName($Client)
+    {
         $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
-        $PositionLanguageName = "PositionTitle" . $ClientLanguage;
+        $PositionLanguageName = 'PositionTitle' . $ClientLanguage;
+    
         $Position = Position::find($Client->IDPosition);
-        $PositionName = "Networker";
-        if ($Position) {
-            $PositionName = $Position->$PositionLanguageName;
-        }
-
-        $CoForClient = GetCoForClient($Client);
-
-        $response_code = 200;
-        $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
-
-        $response = array(
+        return $Position ? $Position->$PositionLanguageName : 'Networker';
+    }
+    
+    private function prepareResponse($Client, $AccessToken, $FlowStatus, $PositionName)
+    {
+        return [
             'IDClient' => $Client->IDClient,
-            "ClientAppID" => $Client->ClientAppID,
-            'Co' => $CoForClient,
+            'ClientAppID' => $Client->ClientAppID,
+            'Co' => GetCoForClient($Client),
             'ClientPhone' => $Client->ClientPhone,
             'ClientPhoneFlag' => $Client->ClientPhoneFlag,
             'ClientName' => $Client->ClientName,
             'ClientEmail' => $Client->ClientEmail,
-            'ClientPicture' => ($Client->ClientPicture) ? asset($Client->ClientPicture) : '',
-            'ClientCoverImage' => ($Client->ClientCoverImage) ? asset($Client->ClientCoverImage) : '',
+            'ClientPicture' => $Client->ClientPicture ? asset($Client->ClientPicture) : '',
+            'ClientCoverImage' => $Client->ClientCoverImage ? asset($Client->ClientCoverImage) : '',
             'ClientStatus' => $Client->ClientStatus,
-            "FlowStatus" => $FlowStatus,
+            'FlowStatus' => $FlowStatus,
             'ClientBalance' => $Client->ClientBalance,
-            "ClientGender" => $Client->ClientGender,
-            "PositionName" => $PositionName,
+            'ClientGender' => $Client->ClientGender,
+            'PositionName' => $PositionName,
             'AccessToken' => $AccessToken,
-            'ClientDeviceToken' => $Client->ClientDeviceToken
-        );
-        $response_array = array('Success' => $Success, 'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode), 'ApiCode' => $APICode->IDApiCode, 'Response' => $response);
-        $response = Response::json($response_array, $response_code);
-        return $response;
+            'ClientDeviceToken' => $Client->ClientDeviceToken,
+        ];
     }
+    
+    private function prepareResponseArray($Success, $IDAPICode, $response)
+    {
+        $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
+    
+        return [
+            'Success' => $Success,
+            'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $response
+        ];
+    }
+    
 
     public function ResendVerificationCode()
     {
