@@ -872,7 +872,9 @@ class ClientController extends Controller
             });
         }
         if ($ClientContractCompleted == 0 && !is_null($ClientContractCompleted)) {
-            $Clients = $Clients->where("clients.ClientContractCompleted", 0);
+            $Clients = $Clients->whereDoesntHave("clientdocuments", function ($query) {
+                $query->where('ClientDocumentType', 'CONTRACT');
+            });
         }
         if ($IDCity) {
             $Clients = $Clients->where("areas.IDCity", $IDCity);
