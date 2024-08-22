@@ -32,7 +32,6 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::get('/cities/{id}', [ClientController::class, 'Cities']);
     Route::get('/areas/{id}', [ClientController::class, 'Areas']);
 
-
     Route::post('/home', [ClientController::class, 'ClientHome']);
     Route::post('/brands', [ClientController::class, 'Brands']);
     Route::post('/categories', [ClientController::class, 'Categories']);

@@ -114,6 +114,10 @@ class BonanzaEnd extends Command
                     }
                 }
 
+                if($Client->ClientStatus != "ACTIVE"){
+                    continue;
+                }
+
                 $ClientBonanza = new ClientBonanza;
                 $ClientBonanza->IDBonanza = $Bonanza->IDBonanza;
                 $ClientBonanza->IDClient = $IDClient;

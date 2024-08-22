@@ -1,31 +1,32 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Console\Commands;
 
 use App\V1\Client\Client;
+use App\V1\Payment\CompanyLedger;
 use App\V1\Plan\PlanNetwork;
 use App\V1\Plan\PlanProduct;
 use App\V1\Plan\PlanProductUpgrade;
-use App\V1\Payment\CompanyLedger;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
-use DateTime;
 use DateInterval;
+use DateTime;
+use Illuminate\Console\Command;
 
-class ProductRenewal implements ShouldQueue
+class ProductRenewal extends Command
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    public $tries = 3;
+    protected $signature = 'product:renewal';
 
-    protected $signature = 'log:cron';
+    protected $description = 'Command description';
 
-    public function __construct() {}
+    public function __construct()
+    {
+        parent::__construct();
+    }
 
+    /**
+     * Execute the console command.
+     *
+     * @return int
+     */
     public function handle()
     {
         $CurrentTime = new DateTime('now');
@@ -53,7 +54,7 @@ class ProductRenewal implements ShouldQueue
 
                 AdjustLedger($Client, -$Amount, 0, 0, 0, Null, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
 
-                $CompanyLedger = new CompanyLedger;
+                $CompanyLedger = new CompanyLedger();
                 $CompanyLedger->IDSubCategory = 25;
                 $CompanyLedger->CompanyLedgerAmount = $Amount;
                 $CompanyLedger->CompanyLedgerDesc = "Product Activation by Client " . $Client->ClientName;

@@ -152,6 +152,10 @@ class ChequeCycle extends Command
                         $IDClient = $Person->IDClient;
                         $Client = Client::find($IDClient);
 
+                        if($Client->ClientStatus != "ACTIVE"){
+                            continue;
+                        }
+
                         $PlanNetworkCheque = new PlanNetworkCheque;
                         $PlanNetworkCheque->IDPlanNetwork = $Person->IDPlanNetwork;
                         $PlanNetworkCheque->ChequeLeftNumber = $Number;

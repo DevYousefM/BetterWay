@@ -60,5 +60,10 @@ return [
     '57' => 'Invoice amount below offer minimum.',
     '58' => 'File uploaded successfully.',
     '59' => "Sorry! You're not allowed to login.",
-    '60' => "Please enter invoice value!"
+    '60' => "Please enter invoice value!",
+    '61' => "This product isn't exist or expired!",
+    '62' => "You account is not verified!",
+    '63' => "Receiver account is not verified!",
+    '64' => "Your account is not active!",
+    '65' => "Receiver account is not active!",
 ];

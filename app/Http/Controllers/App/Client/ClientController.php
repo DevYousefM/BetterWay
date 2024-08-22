@@ -688,57 +688,50 @@ class ClientController extends Controller
 
     public function ClientLogin(Request $request)
     {
-        // Set Client Application Language
         $ClientAppLanguage = $request->filled('ClientAppLanguage') ? $request->ClientAppLanguage : 'ar';
         Session::put('ClientAppLanguage', $ClientAppLanguage);
         App::setLocale($ClientAppLanguage);
-    
-        // Authenticate Client
+
         $Client = auth('client')->user();
         $AccessToken = $request->bearerToken();
-    
+
         if (!$Client) {
-            // Case 2: No token sent or token is expired/invalid
             $this->validateClientLogin($request);
-    
+
             $Credentials = $this->prepareCredentials($request);
             $tokenData = CreateToken($Credentials, 'client');
-    
+
             if (!$tokenData) {
                 return RespondWithBadRequest(6);
             }
-    
+
             $AccessToken = $tokenData['accessToken'];
             $Client = auth('client')->user();
         }
-    
-        // Update Client Details
+
         $this->updateClientDetails($Client, $request);
-        
-        // Determine Response Status and Flow
+
         [$Success, $IDAPICode] = $this->determineClientStatus($Client, $request->LoginBy);
         $FlowStatus = $this->determineFlowStatus($Client);
-    
-        // Prepare Position Details
+
         $PositionName = $this->getPositionName($Client);
-    
-        // Prepare Response
+
         $response = $this->prepareResponse($Client, $AccessToken, $FlowStatus, $PositionName);
-    
+
         return Response::json($this->prepareResponseArray($Success, $IDAPICode, $response), 200);
     }
-    
+
     private function validateClientLogin(Request $request)
     {
         if (!$request->filled(['UserName', 'Password', 'LoginBy'])) {
             return RespondWithBadRequest(1);
         }
     }
-    
+
     private function prepareCredentials(Request $request)
     {
         $UserName = $request->UserName;
-    
+
         if ($request->LoginBy == "MANUAL") {
             return [
                 $this->getLoginField($UserName) => $UserName,
@@ -753,30 +746,30 @@ class ClientController extends Controller
             ];
         }
     }
-    
+
     private function getLoginField($UserName)
     {
         return $UserName[0] == "+" ? 'ClientPhone' : 'ClientEmail';
     }
-    
+
     private function updateClientDetails($Client, Request $request)
     {
         $fields = ['ClientDeviceToken', 'ClientDeviceType', 'ClientMobileService', 'ClientAppVersion', 'ClientAppLanguage'];
-    
+
         foreach ($fields as $field) {
             if ($request->filled($field)) {
                 $Client->$field = $request->$field;
             }
         }
-    
+
         $Client->save();
     }
-    
+
     private function determineClientStatus($Client, $LoginBy)
     {
         $Success = true;
         $IDAPICode = 7;
-    
+
         switch ($Client->ClientStatus) {
             case 'BLOCKED':
                 $IDAPICode = 16;
@@ -789,29 +782,29 @@ class ClientController extends Controller
                 }
                 break;
         }
-    
+
         return [$Success, $IDAPICode];
     }
-    
+
     private function determineFlowStatus($Client)
     {
         if ($Client->ClientStatus == 'PENDING' || !$Client->ClientNationalID && !$Client->ClientPassport) {
             $PlanNetwork = PlanNetwork::where('IDClient', $Client->IDClient)->first();
             return $PlanNetwork ? 'FORM' : 'PRODUCT';
         }
-    
+
         return 'HOME';
     }
-    
+
     private function getPositionName($Client)
     {
         $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
         $PositionLanguageName = 'PositionTitle' . $ClientLanguage;
-    
+
         $Position = Position::find($Client->IDPosition);
         return $Position ? $Position->$PositionLanguageName : 'Networker';
     }
-    
+
     private function prepareResponse($Client, $AccessToken, $FlowStatus, $PositionName)
     {
         return [
@@ -833,11 +826,11 @@ class ClientController extends Controller
             'ClientDeviceToken' => $Client->ClientDeviceToken,
         ];
     }
-    
+
     private function prepareResponseArray($Success, $IDAPICode, $response)
     {
         $APICode = APICode::where('IDAPICode', $IDAPICode)->first();
-    
+
         return [
             'Success' => $Success,
             'ApiMsg' => trans('apicodes.' . $APICode->IDApiCode),
@@ -845,7 +838,7 @@ class ClientController extends Controller
             'Response' => $response
         ];
     }
-    
+
 
     public function ResendVerificationCode()
     {
@@ -1942,10 +1935,12 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
+        if ($Client->ClientStatus == "INACTIVE") {
+            return RespondWithBadRequest(64);
+        }
+
         $Today = new DateTime('now');
         $Today = $Today->format('Y-m-d H:i:s');
-
-
 
         $IDBrandProduct = $request->IDBrandProduct;
         $IDPaymentMethod = $request->IDPaymentMethod;
@@ -2174,7 +2169,7 @@ class ClientController extends Controller
             $AgencyNumber = 1;
         }
 
-        $ParentNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDClient", $IDParentClient)->select("plannetwork.IDPlanNetwork", "plannetwork.PlanNetworkPosition", "c1.IDClient","c1.IDPosition", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->first();
+        $ParentNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDClient", $IDParentClient)->select("plannetwork.IDPlanNetwork", "plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.IDPosition", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->first();
         if (!$ParentNetwork) {
             return RespondWithBadRequest(1);
         }
@@ -2477,11 +2472,24 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
+        if ($Client->ClientStatus == "NOT_VERIFIED") {
+            return RespondWithBadRequest(62);
+        }
+        if ($Client->ClientStatus == "INACTIVE") {
+            return RespondWithBadRequest(64);
+        }
 
         $IDReceiver = $request->IDReceiver;
         $Amount = $request->Amount;
         $ClientSecurityCode = $request->ClientSecurityCode;
         $Receiver = Client::find($IDReceiver);
+        if ($Receiver->ClientStatus == "NOT_VERIFIED") {
+            return RespondWithBadRequest(63);
+        }
+        if ($Receiver->ClientStatus == "INACTIVE") {
+            return RespondWithBadRequest(65);
+        }
+
         if (!$Client) {
             return RespondWithBadRequest(23);
         }
@@ -3066,6 +3074,12 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
+        if ($Client->ClientStatus == "NOT_VERIFIED") {
+            return RespondWithBadRequest(62);
+        }
+        if ($Client->ClientStatus == "INACTIVE") {
+            return RespondWithBadRequest(64);
+        }
 
         $Client = Client::find($Client->IDClient);
         if (!$Client->ClientBalance) {
@@ -3255,8 +3269,14 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
+        if ($Client->ClientStatus == "INACTIVE") {
+            return RespondWithBadRequest(64);
+        }
 
-        $Client = Client::find($Client->IDClient);
+        if ($Client->ClientStatus == "NOT_VERIFIED") {
+            return RespondWithBadRequest(62);
+        }
+
         $IDTool = $request->IDTool;
         $Tool = Tool::where("IDTool", $IDTool)->where("ToolStatus", "ACTIVE")->first();
         if (!$Tool) {
@@ -3422,6 +3442,9 @@ class ClientController extends Controller
         $Client = auth('client')->user();
         if (!$Client) {
             return RespondWithBadRequest(10);
+        }
+        if ($Client->ClientStatus == "NOT_VERIFIED") {
+            return RespondWithBadRequest(62);
         }
 
         $IDPlanProduct = $request->IDPlanProduct;

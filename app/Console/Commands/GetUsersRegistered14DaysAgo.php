@@ -32,7 +32,7 @@ class GetUsersRegistered14DaysAgo extends Command
     {
         $clients = Client::whereDate('created_at', '<=', Carbon::now()->subDays(14))->where("ClientNationalID", null)->where("ClientPassport", null)->get();
         foreach ($clients as $client) {
-            $client->ClientStatus = "PENDING";
+            $client->ClientStatus = "NOT_VERIFIED";
             $client->save();
         }
         return 0;
