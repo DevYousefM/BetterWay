@@ -180,6 +180,7 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post("/clients/contracts", [ClientController::class, "ClientContracts"]);
     Route::post("/clients/contract/{id}", [ClientController::class, "ClientDeleteContract"]);
     Route::post("/clients/upload_contract", [ClientController::class, "UploadClientContract"]);
+    Route::post("/clients/chat/send", [ClientController::class, "SendMessageToClients"]);
 
     Route::post('/positions', [ClientController::class, 'PositionList']);
     Route::post('/positions/status', [ClientController::class, 'PositionStatus']);

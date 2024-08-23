@@ -29,6 +29,8 @@ use App\V1\Brand\BrandProduct;
 use App\V1\User\User;
 use App\V1\User\Role;
 use App\V1\Client\Client;
+use App\V1\Client\ClientAdminChat;
+use App\V1\Client\ClientAdminChatDetails;
 use App\V1\Client\ClientLedger;
 use App\V1\Client\Position;
 use App\V1\Client\ClientChatDetail;
@@ -3463,5 +3465,59 @@ class ClientController extends Controller
             'Response' => null
         );
         return $Response;
+    }
+    public function SendMessageToClients(Request $request)
+    {
+        $ClientIDs = $request->ClientIDs;
+        foreach ($ClientIDs as $IDClient) {
+            $Client = Client::find($IDClient);
+            if (!$Client) {
+                continue;
+            }
+
+            $ClientAdminChat = ClientAdminChat::where('IDClient', $IDClient)->first();
+            if (!$ClientAdminChat) {
+                $ClientAdminChat = new ClientAdminChat;
+                $ClientAdminChat->IDClient = $IDClient;
+                $ClientAdminChat->save();
+            }
+
+            $Message = $request->Message;
+            $MessageType = $request->MessageType;
+            if (!$Message) {
+                return RespondWithBadRequest(1);
+            }
+            if (!$MessageType) {
+                return RespondWithBadRequest(1);
+            }
+
+            if ($MessageType == "IMAGE") {
+                $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
+            }
+
+            if ($MessageType == "AUDIO") {
+                $ImageExtArray = ["mp3", "mp4", "m4a"];
+            }
+
+            if ($MessageType != "TEXT") {
+                if ($request->file('Message')) {
+                    if (!in_array($request->Message->extension(), $ImageExtArray)) {
+                        return RespondWithBadRequest(15);
+                    }
+                    $File = SaveImage($request->file('Message'), "admin_chat", $ClientAdminChat->IDClientAdminChat);
+                    $Message = $File;
+                } else {
+                    return RespondWithBadRequest(1);
+                }
+            }
+
+            $ClientAdminChatDetails = new ClientAdminChatDetails;
+            $ClientAdminChatDetails->IDClientAdminChat = $ClientAdminChat->IDClientAdminChat;
+            $ClientAdminChatDetails->Message = $Message;
+            $ClientAdminChatDetails->MessageType = $MessageType;
+            $ClientAdminChatDetails->save();
+        }
+
+        return RespondWithSuccessRequest(8);
     }
 }
