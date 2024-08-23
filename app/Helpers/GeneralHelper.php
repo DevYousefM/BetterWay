@@ -382,7 +382,7 @@ function ChequesLedger($Client, $Amount, $Source, $Destination, $Type, $BatchNum
 function PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber)
 {
     $logMessage = "Points Ledger: PlanProductPoints=$PlanProductPoints, Client=$Client, ChildIDClient=$ChildIDClient, ChildPosition=$ChildPosition, BatchNumber=$BatchNumber";
-    Log::info($logMessage);
+    // Log::info($logMessage);
 
     $ClientPointsLedger = new ClientPointsLedger;
     $ClientPointsLedger->IDClient = $Client->IDClient;
@@ -798,7 +798,7 @@ function SMSMsegat($ClientPhone, $Message)
 
     curl_close($curl);
 
-    log::info($response);
+    // log::info($response);
 }
 function extractIDClientsFromJson($jsonString)
 {
@@ -826,11 +826,11 @@ function extractIDClientsFromJson($jsonString)
 }
 function sendFirebaseNotification($Client, $dataPayload, $title, $body)
 {
-    Log::info('Client: ' . $Client);
+    // Log::info('Client: ' . $Client);
     $firebaseToken = $Client->ClientDeviceToken;
 
     $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
-    Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
+    // Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
 
     $data = [
         "to" => $firebaseToken,
@@ -840,7 +840,7 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
         ],
         "data" => $dataPayload,
     ];
-    Log::info("data: " . json_encode($data));
+    // Log::info("data: " . json_encode($data));
     $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
     $headers = [
         'Authorization: key=' . $SERVER_API_KEY,
