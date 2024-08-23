@@ -84,7 +84,7 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::post('/chat', [ClientController::class, 'ClientChatList']);
     Route::post('/chat/details', [ClientController::class, 'ClientChatDetails']);
     Route::post('/chat/send', [ClientController::class, 'ClientChatSend']);
-
+    Route::post('/chat/all/send', [ClientController::class, 'ClientChatAllSend']);
 
     Route::post('/test', [ClientController::class, 'Test']);
     Route::get('/generate-pdf/{client_id}', [ClientController::class, 'generatePdf']);

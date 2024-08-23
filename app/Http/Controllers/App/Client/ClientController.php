@@ -3928,11 +3928,6 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
-
-        if (!$Client) {
-            return RespondWithBadRequest(10);
-        }
-
         $IDClientChat = $request->IDClientChat;
         $IDFriend = $request->IDFriend;
         if (!$IDFriend && !$IDClientChat) {
@@ -4007,149 +4002,213 @@ class ClientController extends Controller
 
         return RespondWithSuccessRequest(8);
     }
+    public function ClientChatAllSend(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+        $ClientsInNetwork = PlanNetwork::where("PlanNetworkPath", "LIKE", "%$Client->IDClient%")->select("IDClient")->get();
+        foreach ($ClientsInNetwork as $ClientInNetwork) {
+            $ClientChat = ClientChat::Where("IDClient", $Client->IDClient)->where("IDFriend", $ClientInNetwork->IDClient)->first();
+
+            if (!$ClientChat) {
+                $ClientChat = new ClientChat;
+                $ClientChat->IDClient = $Client->IDClient;
+                $ClientChat->IDFriend = $ClientInNetwork->IDClient;
+                $ClientChat->save();
+            }
+            $IDClientChat = $ClientChat->IDClientChat;
+
+            $Message = $request->Message;
+            $MessageType = $request->MessageType;
+            if (!$Message) {
+                return RespondWithBadRequest(1);
+            }
+            if (!$MessageType) {
+                return RespondWithBadRequest(1);
+            }
+
+            if ($MessageType == "IMAGE") {
+                $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
+            }
+
+            if ($MessageType == "AUDIO") {
+                $ImageExtArray = ["mp3", "mp4", "m4a"];
+            }
+
+            if ($MessageType != "TEXT") {
+                if ($request->file('Message')) {
+                    if (!in_array($request->Message->extension(), $ImageExtArray)) {
+                        return RespondWithBadRequest(15);
+                    }
+                    $File = SaveImage($request->file('Message'), "chat", $IDClientChat);
+                    $Message = $File;
+                } else {
+                    return RespondWithBadRequest(1);
+                }
+            }
+
+            $ClientChatDetail = new ClientChatDetail;
+            $ClientChatDetail->IDClientChat = $IDClientChat;
+            $ClientChatDetail->IDSender = $Client->IDClient;
+            $ClientChatDetail->Message = $Message;
+            $ClientChatDetail->MessageType = $MessageType;
+            $ClientChatDetail->save();
+        }
+
+        return RespondWithSuccessRequest(8);
+    }
 
     public function Test(Request $request)
     {
-        $CurrentTime = new DateTime('now');
-        $Day = strtoupper($CurrentTime->format('l'));
+        // $Client = Client::find(343);
 
-        $Plans = Plan::where("PlanStatus", "ACTIVE")->where('ChequeEarnDay', 'like', '%' . $Day . '%')->get();
-        foreach ($Plans as $Plan) {
-            $LeftBalanceNumber = $Plan->LeftBalanceNumber;
-            $RightBalanceNumber = $Plan->RightBalanceNumber;
-            $LeftMaxOutNumber = $Plan->LeftMaxOutNumber;
-            $RightMaxOutNumber = $Plan->RightMaxOutNumber;
-            $PlanChequeValue = $Plan->ChequeValue;
-            $ChequeMaxOut = $Plan->ChequeMaxOut;
+        // $ParentPlanNetwork = PlanNetwork::where("PlanNetworkPath", "LIKE", "%$Client->IDClient%")->get();
+        // $PlanNetworkPath = $ParentPlanNetwork->PlanNetworkPath;
+        // $PlanNetworkPath = explode("-", $PlanNetworkPath);
 
-            $PlanNetwork = PlanNetwork::where("IDPlan", $Plan->IDPlan)->get();
-            foreach ($PlanNetwork as $Person) {
-                $IDClient = $Person->IDClient;
-                $AgencyNumber = $Person->PlanNetworkAgencyNumber;
-                $Counter = 1;
-                while ($Counter <= $AgencyNumber) {
-                    $LeftNetworkNumber = 0;
-                    $RightNetworkNumber = 0;
-                    $ChequeValue = 0;
+        // return $PlanNetworkPath;
+        // $CurrentTime = new DateTime('now');
+        // $Day = strtoupper($CurrentTime->format('l'));
 
-                    $PreviousNetworkClients = PlanNetworkChequeDetail::where("IDClient", $IDClient)->pluck("IDClientNetwork")->toArray();
-                    $LeftNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "LEFT")->first();
-                    $RightNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "RIGHT")->first();
+        // $Plans = Plan::where("PlanStatus", "ACTIVE")->where('ChequeEarnDay', 'like', '%' . $Day . '%')->get();
+        // foreach ($Plans as $Plan) {
+        //     $LeftBalanceNumber = $Plan->LeftBalanceNumber;
+        //     $RightBalanceNumber = $Plan->RightBalanceNumber;
+        //     $LeftMaxOutNumber = $Plan->LeftMaxOutNumber;
+        //     $RightMaxOutNumber = $Plan->RightMaxOutNumber;
+        //     $PlanChequeValue = $Plan->ChequeValue;
+        //     $ChequeMaxOut = $Plan->ChequeMaxOut;
 
-                    if ($LeftNetwork) {
-                        $IDClient = $LeftNetwork->IDClient;
-                        $Key = $IDClient . "-";
-                        $SecondKey = $IDClient . "-";
-                        $ThirdKey = "-" . $IDClient;
-                        $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
-                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
-                            $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
-                        });
+        //     $PlanNetwork = PlanNetwork::where("IDPlan", $Plan->IDPlan)->get();
+        //     foreach ($PlanNetwork as $Person) {
+        //         $IDClient = $Person->IDClient;
+        //         $AgencyNumber = $Person->PlanNetworkAgencyNumber;
+        //         $Counter = 1;
+        //         while ($Counter <= $AgencyNumber) {
+        //             $LeftNetworkNumber = 0;
+        //             $RightNetworkNumber = 0;
+        //             $ChequeValue = 0;
 
-                        $LeftNetworkNumber = $AllNetwork->count();
-                        $LeftNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
-                        if (!in_array($IDClient, $PreviousNetworkClients)) {
-                            array_push($LeftNetwork, $IDClient);
-                            $LeftNetworkNumber++;
-                        }
-                    }
+        //             $PreviousNetworkClients = PlanNetworkChequeDetail::where("IDClient", $IDClient)->pluck("IDClientNetwork")->toArray();
+        //             $LeftNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "LEFT")->first();
+        //             $RightNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "RIGHT")->first();
 
-                    if ($RightNetwork) {
-                        $IDClient = $RightNetwork->IDClient;
-                        $Key = $IDClient . "-";
-                        $SecondKey = $IDClient . "-";
-                        $ThirdKey = "-" . $IDClient;
-                        $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
-                        $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
-                            $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
-                                ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
-                        });
+        //             if ($LeftNetwork) {
+        //                 $IDClient = $LeftNetwork->IDClient;
+        //                 $Key = $IDClient . "-";
+        //                 $SecondKey = $IDClient . "-";
+        //                 $ThirdKey = "-" . $IDClient;
+        //                 $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
+        //                 $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
+        //                     $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
+        //                 });
 
-                        $RightNetworkNumber = $AllNetwork->count();
-                        $RightNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
-                        if (!in_array($IDClient, $PreviousNetworkClients)) {
-                            array_push($RightNetwork, $IDClient);
-                            $RightNetworkNumber++;
-                        }
-                    }
+        //                 $LeftNetworkNumber = $AllNetwork->count();
+        //                 $LeftNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
+        //                 if (!in_array($IDClient, $PreviousNetworkClients)) {
+        //                     array_push($LeftNetwork, $IDClient);
+        //                     $LeftNetworkNumber++;
+        //                 }
+        //             }
 
-                    if ($LeftNetworkNumber > $LeftMaxOutNumber) {
-                        $LeftNetworkNumber = $LeftMaxOutNumber;
-                    }
-                    if ($RightNetworkNumber > $RightMaxOutNumber) {
-                        $RightNetworkNumber = $RightMaxOutNumber;
-                    }
+        //             if ($RightNetwork) {
+        //                 $IDClient = $RightNetwork->IDClient;
+        //                 $Key = $IDClient . "-";
+        //                 $SecondKey = $IDClient . "-";
+        //                 $ThirdKey = "-" . $IDClient;
+        //                 $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->leftjoin("clients as C1", "C1.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.PlanNetworkAgency", $Counter)->whereNotIn("plannetwork.IDClient", $PreviousNetworkClients);
+        //                 $AllNetwork = $AllNetwork->where(function ($query) use ($IDClient, $Key, $SecondKey, $ThirdKey) {
+        //                     $query->where("plannetwork.PlanNetworkPath", 'like', $IDClient . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", $IDClient)
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', $Key . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $SecondKey . '%')
+        //                         ->orwhere("plannetwork.PlanNetworkPath", 'like', '%' . $ThirdKey . '%');
+        //                 });
 
-                    if ($LeftBalanceNumber <= $LeftNetworkNumber && $RightBalanceNumber <= $RightNetworkNumber) {
+        //                 $RightNetworkNumber = $AllNetwork->count();
+        //                 $RightNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
+        //                 if (!in_array($IDClient, $PreviousNetworkClients)) {
+        //                     array_push($RightNetwork, $IDClient);
+        //                     $RightNetworkNumber++;
+        //                 }
+        //             }
 
-                        $LeftNumber = intdiv($LeftNetworkNumber, $LeftBalanceNumber);
-                        $RightNumber = intdiv($RightNetworkNumber, $RightBalanceNumber);
-                        if ($LeftNumber <= $RightNumber) {
-                            $Number = $LeftNumber;
-                        }
-                        if ($RightNumber <= $LeftNumber) {
-                            $Number = $RightNumber;
-                        }
-                        $ChequeValue = $Number * $PlanChequeValue;
+        //             if ($LeftNetworkNumber > $LeftMaxOutNumber) {
+        //                 $LeftNetworkNumber = $LeftMaxOutNumber;
+        //             }
+        //             if ($RightNetworkNumber > $RightMaxOutNumber) {
+        //                 $RightNetworkNumber = $RightMaxOutNumber;
+        //             }
 
-                        $LeftNumber = $Number * $LeftBalanceNumber;
-                        $RightNumber = $Number * $RightBalanceNumber;
-                        if ($LeftNumber <= $RightNumber) {
-                            $Number = $LeftNumber;
-                        }
-                        if ($RightNumber <= $LeftNumber) {
-                            $Number = $RightNumber;
-                        }
-                        $IDClient = $Person->IDClient;
-                        $Client = Client::find($IDClient);
+        //             if ($LeftBalanceNumber <= $LeftNetworkNumber && $RightBalanceNumber <= $RightNetworkNumber) {
 
-                        $PlanNetworkCheque = new PlanNetworkCheque;
-                        $PlanNetworkCheque->IDPlanNetwork = $Person->IDPlanNetwork;
-                        $PlanNetworkCheque->ChequeLeftNumber = $Number;
-                        $PlanNetworkCheque->ChequeRightNumber = $Number;
-                        $PlanNetworkCheque->ChequeLeftReachedNumber = $LeftNetworkNumber;
-                        $PlanNetworkCheque->ChequeRightReachedNumber = $RightNetworkNumber;
-                        $PlanNetworkCheque->ChequeValue = $ChequeValue;
-                        $PlanNetworkCheque->AgencyNumber = $Counter;
-                        $PlanNetworkCheque->save();
+        //                 $LeftNumber = intdiv($LeftNetworkNumber, $LeftBalanceNumber);
+        //                 $RightNumber = intdiv($RightNetworkNumber, $RightBalanceNumber);
+        //                 if ($LeftNumber <= $RightNumber) {
+        //                     $Number = $LeftNumber;
+        //                 }
+        //                 if ($RightNumber <= $LeftNumber) {
+        //                     $Number = $RightNumber;
+        //                 }
+        //                 $ChequeValue = $Number * $PlanChequeValue;
 
-                        $CompanyLedger = new CompanyLedger;
-                        $CompanyLedger->IDSubCategory = 19;
-                        $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
-                        $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
-                        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                        $CompanyLedger->CompanyLedgerType = "DEBIT";
-                        $CompanyLedger->save();
+        //                 $LeftNumber = $Number * $LeftBalanceNumber;
+        //                 $RightNumber = $Number * $RightBalanceNumber;
+        //                 if ($LeftNumber <= $RightNumber) {
+        //                     $Number = $LeftNumber;
+        //                 }
+        //                 if ($RightNumber <= $LeftNumber) {
+        //                     $Number = $RightNumber;
+        //                 }
+        //                 $IDClient = $Person->IDClient;
+        //                 $Client = Client::find($IDClient);
+
+        //                 $PlanNetworkCheque = new PlanNetworkCheque;
+        //                 $PlanNetworkCheque->IDPlanNetwork = $Person->IDPlanNetwork;
+        //                 $PlanNetworkCheque->ChequeLeftNumber = $Number;
+        //                 $PlanNetworkCheque->ChequeRightNumber = $Number;
+        //                 $PlanNetworkCheque->ChequeLeftReachedNumber = $LeftNetworkNumber;
+        //                 $PlanNetworkCheque->ChequeRightReachedNumber = $RightNetworkNumber;
+        //                 $PlanNetworkCheque->ChequeValue = $ChequeValue;
+        //                 $PlanNetworkCheque->AgencyNumber = $Counter;
+        //                 $PlanNetworkCheque->save();
+
+        //                 $CompanyLedger = new CompanyLedger;
+        //                 $CompanyLedger->IDSubCategory = 19;
+        //                 $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
+        //                 $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
+        //                 $CompanyLedger->CompanyLedgerProcess = "AUTO";
+        //                 $CompanyLedger->CompanyLedgerType = "DEBIT";
+        //                 $CompanyLedger->save();
 
 
-                        $IDPlanNetworkCheque = $PlanNetworkCheque->IDPlanNetworkCheque;
+        //                 $IDPlanNetworkCheque = $PlanNetworkCheque->IDPlanNetworkCheque;
 
-                        for ($I = 0; $I < $Number; $I++) {
-                            $PlanNetworkChequeDetail = new PlanNetworkChequeDetail;
-                            $PlanNetworkChequeDetail->IDPlanNetworkCheque = $IDPlanNetworkCheque;
-                            $PlanNetworkChequeDetail->IDClient = $IDClient;
-                            $PlanNetworkChequeDetail->IDClientNetwork = $LeftNetwork[$I];
-                            $PlanNetworkChequeDetail->save();
+        //                 for ($I = 0; $I < $Number; $I++) {
+        //                     $PlanNetworkChequeDetail = new PlanNetworkChequeDetail;
+        //                     $PlanNetworkChequeDetail->IDPlanNetworkCheque = $IDPlanNetworkCheque;
+        //                     $PlanNetworkChequeDetail->IDClient = $IDClient;
+        //                     $PlanNetworkChequeDetail->IDClientNetwork = $LeftNetwork[$I];
+        //                     $PlanNetworkChequeDetail->save();
 
-                            $PlanNetworkChequeDetail = new PlanNetworkChequeDetail;
-                            $PlanNetworkChequeDetail->IDPlanNetworkCheque = $IDPlanNetworkCheque;
-                            $PlanNetworkChequeDetail->IDClient = $IDClient;
-                            $PlanNetworkChequeDetail->IDClientNetwork = $RightNetwork[$I];
-                            $PlanNetworkChequeDetail->save();
-                        }
-                    }
+        //                     $PlanNetworkChequeDetail = new PlanNetworkChequeDetail;
+        //                     $PlanNetworkChequeDetail->IDPlanNetworkCheque = $IDPlanNetworkCheque;
+        //                     $PlanNetworkChequeDetail->IDClient = $IDClient;
+        //                     $PlanNetworkChequeDetail->IDClientNetwork = $RightNetwork[$I];
+        //                     $PlanNetworkChequeDetail->save();
+        //                 }
+        //             }
 
-                    $Counter++;
-                }
-            }
-        }
+        //             $Counter++;
+        //         }
+        //     }
+        // }
     }
     public function generatePdf($Client_id)
     {
