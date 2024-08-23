@@ -22,6 +22,8 @@ use App\Http\Resources\App\BalanceTransferResource;
 use App\Http\Resources\App\BrandProductResource;
 use App\Http\Resources\App\AdvertisementResource;
 use App\Http\Resources\App\BrandSocialMediaResource;
+use App\Http\Resources\App\ClientAdminChatDetailsResource;
+use App\Http\Resources\App\ClientAdminChatResource;
 use App\Http\Resources\App\ClientBrandProductResource;
 use App\V1\Event\Event;
 use App\V1\Event\EventGallery;
@@ -46,6 +48,8 @@ use App\V1\General\ContactUs;
 use App\V1\General\Advertisement;
 use App\V1\General\Nationality;
 use App\V1\Client\Client;
+use App\V1\Client\ClientAdminChat;
+use App\V1\Client\ClientAdminChatDetails;
 use App\V1\Client\ClientChatDetail;
 use App\V1\Client\ClientChat;
 use App\V1\Client\ClientLedger;
@@ -3845,6 +3849,46 @@ class ClientController extends Controller
         );
         return $Response;
     }
+    public function ClientAdminChat(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+
+        $IDPage = $request->IDPage;
+        if (!$IDPage) {
+            $IDPage = 0;
+        } else {
+            $IDPage = ($request->IDPage - 1) * 20;
+        }
+
+        $ClientAdminChat = ClientAdminChat::where("IDClient", $Client->IDClient);
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        if ($ClientAdminChat->count() == 0) {
+            return $Response = array(
+                'Success' => true,
+                'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+                'ApiCode' => $APICode->IDApiCode,
+                'Response' => []
+            );
+        }
+
+        $ClientAdminChat = $ClientAdminChat->select("IDClientAdminChat", "IDClient",  "created_at", "updated_at")->first();
+
+        $ClientAdminChat = ClientAdminChatResource::make($ClientAdminChat);
+        $Response = array("ClientAdminChat" => $ClientAdminChat);
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $Response
+        );
+        return $Response;
+    }
 
     public function ClientChatDetails(Request $request)
     {
@@ -3911,6 +3955,59 @@ class ClientController extends Controller
             $IDClientChat = "";
         }
         $Response = array("IDClientChat" => $IDClientChat, "ClientChatDetails" => $ClientChatDetails, "Pages" => $Pages);
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $Response
+        );
+        return $Response;
+    }
+    public function ClientAdminChatDetails(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+
+        $IDClient = $Client->IDClient;
+        $ClientAdminChat = ClientAdminChat::where("IDClient", $IDClient)->first();
+        if (!$ClientAdminChat) {
+            return RespondWithBadRequest(1);
+        }
+        $IDClientAdminChat = $ClientAdminChat->IDClientAdminChat;
+
+        $IDPage = $request->IDPage;
+        if (!$IDPage) {
+            $IDPage = 0;
+        } else {
+            $IDPage = ($request->IDPage - 1) * 20;
+        }
+
+        if (!$IDClientAdminChat) {
+            return RespondWithBadRequest(1);
+        }
+
+        if ($IDClientAdminChat) {
+            $ClientAdminChat = ClientAdminChat::find($IDClientAdminChat);
+            if (!$ClientAdminChat) {
+                return RespondWithBadRequest(1);
+            }
+        }
+        if ($ClientAdminChat->IDClient != $Client->IDClient) {
+            return RespondWithBadRequest(1);
+        }
+
+        $ClientAdminChatDetails = ClientAdminChatDetails::where("IDClientAdminChat", $IDClientAdminChat);
+        $ClientAdminChatDetails = $ClientAdminChatDetails->select("IDClientAdminChatDetails", "Message", "MessageType", "MessageStatus", "created_at", "updated_at",)->orderby("IDClientAdminChatDetails", "DESC");
+        $Pages = ceil($ClientAdminChatDetails->count() / 20);
+        $ClientAdminChatDetails = $ClientAdminChatDetails->skip($IDPage)->take(20)->get();
+
+        $ClientAdminChatDetails = ClientAdminChatDetailsResource::collection($ClientAdminChatDetails);
+
+        $Response = array("IDClientAdminChat" => $IDClientAdminChat, "ClientAdminChatDetails" => $ClientAdminChatDetails, "Pages" => $Pages);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(

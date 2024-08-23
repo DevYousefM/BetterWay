@@ -82,6 +82,8 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::post('/plan/network/agencies/edit', [ClientController::class, 'PlanNetworkAgencyEdit']);
 
     Route::post('/chat', [ClientController::class, 'ClientChatList']);
+    Route::post('/admin/chat', [ClientController::class, 'ClientAdminChat']);
+    Route::post('/admin/chat/details', [ClientController::class, 'ClientAdminChatDetails']);
     Route::post('/chat/details', [ClientController::class, 'ClientChatDetails']);
     Route::post('/chat/send', [ClientController::class, 'ClientChatSend']);
     Route::post('/chat/all/send', [ClientController::class, 'ClientChatAllSend']);
