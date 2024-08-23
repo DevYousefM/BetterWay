@@ -4025,36 +4025,24 @@ class ClientController extends Controller
         if (!$Client) {
             return RespondWithBadRequest(10);
         }
-        $IDClientChat = $request->IDClientChat;
         $IDFriend = $request->IDFriend;
-        if (!$IDFriend && !$IDClientChat) {
+        if (!$IDFriend) {
             return RespondWithBadRequest(1);
-        }
-
-        if ($IDClientChat) {
-            $ClientChat = ClientChat::find($IDClientChat);
-            if (!$IDClientChat) {
-                return RespondWithBadRequest(1);
-            }
-            if ($ClientChat->IDClient != $Client->IDClient && $ClientChat->IDFriend != $Client->IDClient) {
-                return RespondWithBadRequest(1);
-            }
         }
 
         if ($IDFriend) {
             $ClientChat = ClientChat::where("IDClient", $Client->IDClient)->where("IDFriend", $IDFriend)->first();
-            if ($ClientChat) {
-                return RespondWithBadRequest(1);
-            }
-            $ClientChat = ClientChat::where("IDFriend", $Client->IDClient)->where("IDClient", $IDFriend)->first();
-            if ($ClientChat) {
-                return RespondWithBadRequest(1);
+            if (!$ClientChat) {
+                $ClientChat = ClientChat::where("IDFriend", $Client->IDClient)->where("IDClient", $IDFriend)->first();
             }
 
-            $ClientChat = new ClientChat;
-            $ClientChat->IDClient = $Client->IDClient;
-            $ClientChat->IDFriend = $IDFriend;
-            $ClientChat->save();
+            if (!$ClientChat) {
+
+                $ClientChat = new ClientChat;
+                $ClientChat->IDClient = $Client->IDClient;
+                $ClientChat->IDFriend = $IDFriend;
+                $ClientChat->save();
+            }
             $IDClientChat = $ClientChat->IDClientChat;
         }
 
@@ -4097,6 +4085,19 @@ class ClientController extends Controller
 
         $ClientChat->save();
 
+        $Friend = Client::find($IDFriend);
+
+        switch ($ClientChatDetail->MessageType) {
+            case 'TEXT':
+                sendFirebaseNotification($Friend, $ClientChatDetail, "$Client->ClientName: ", $Message);
+                break;
+            case "IMAGE":
+                sendFirebaseNotification($Friend, [], "$Client->ClientName ", "send an image");
+                break;
+            case "AUDIO":
+                sendFirebaseNotification($Friend, [], "$Client->ClientName ", 'send an audio');
+                break;
+        }
         return RespondWithSuccessRequest(8);
     }
     public function ClientChatAllSend(Request $request)
@@ -4152,6 +4153,19 @@ class ClientController extends Controller
             $ClientChatDetail->Message = $Message;
             $ClientChatDetail->MessageType = $MessageType;
             $ClientChatDetail->save();
+
+            $Receiver = Client::find($ClientInNetwork->IDClient);
+            switch ($ClientChatDetail->MessageType) {
+                case 'TEXT':
+                    sendFirebaseNotification($Receiver, $ClientChatDetail, "$Client->ClientName: ", $Message);
+                    break;
+                case "IMAGE":
+                    sendFirebaseNotification($Receiver, [], "$Client->ClientName ", "send an image");
+                    break;
+                case "AUDIO":
+                    sendFirebaseNotification($Receiver, [], "$Client->ClientName ", 'send an audio');
+                    break;
+            }
         }
 
         return RespondWithSuccessRequest(8);

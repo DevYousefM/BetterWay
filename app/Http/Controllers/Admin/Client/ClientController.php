@@ -3516,6 +3516,18 @@ class ClientController extends Controller
             $ClientAdminChatDetails->Message = $Message;
             $ClientAdminChatDetails->MessageType = $MessageType;
             $ClientAdminChatDetails->save();
+
+            switch ($ClientAdminChatDetails->MessageType) {
+                case 'TEXT':
+                    sendFirebaseNotification($Client, $ClientAdminChatDetails, "BetterWay: ", $Message);
+                    break;
+                case "IMAGE":
+                    sendFirebaseNotification($Client, [], "BetterWay ", "send an image");
+                    break;
+                case "AUDIO":
+                    sendFirebaseNotification($Client, [], "BetterWay ", 'send an audio');
+                    break;
+            }
         }
 
         return RespondWithSuccessRequest(8);

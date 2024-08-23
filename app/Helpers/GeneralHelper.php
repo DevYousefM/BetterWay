@@ -826,11 +826,11 @@ function extractIDClientsFromJson($jsonString)
 }
 function sendFirebaseNotification($Client, $dataPayload, $title, $body)
 {
-    // Log::info('Client: ' . $Client);
+    Log::info('Client: ' . $Client);
     $firebaseToken = $Client->ClientDeviceToken;
 
     $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
-    // Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
+    Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
 
     $data = [
         "to" => $firebaseToken,
@@ -840,7 +840,7 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
         ],
         "data" => $dataPayload,
     ];
-    // Log::info("data: " . json_encode($data));
+    Log::info("data: " . json_encode($data));
     $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
     $headers = [
         'Authorization: key=' . $SERVER_API_KEY,
@@ -864,7 +864,7 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
     }
 
     $responseData = json_decode($response, true);
-    // Log::info("responseData: " . $response);
+    Log::info("responseData: " . $response);
 
     if (isset($responseData['results'])) {
         foreach ($responseData['results'] as $key => $result) {
@@ -876,9 +876,9 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
                     'created_at' => Carbon::now(),
                 ]);
             } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
-                // Log::info("NotRegistered error: " . $result['error']);
-                // Log::info("Token: " . $firebaseToken);
-                // Log::info("Result: " . json_encode($result));
+                Log::info("NotRegistered error: " . $result['error']);
+                Log::info("Token: " . $firebaseToken);
+                Log::info("Result: " . json_encode($result));
                 // Client::where('ClientDeviceToken', $firebaseToken)->update(['ClientDeviceToken' => null]);
             }
         }
