@@ -2701,7 +2701,10 @@ class ClientController extends Controller
             $ClientLedger = $ClientLedger->where("created_at", ">=", $EndDate);
         }
         if ($Type) {
-            $ClientLedger = $ClientLedger->where("ClientLedgerDestination", $Type)->orWhere("ClientLedgerSource", $Type);
+            $ClientLedger = $ClientLedger->where("ClientLedgerDestination", $Type);
+            if($ClientLedger->count() == 0){
+                $ClientLedger = $ClientLedger->where("ClientLedgerSource", $Type );
+            }
         }
 
         $TotalAmount = $ClientLedger->sum("ClientLedgerPoints");
