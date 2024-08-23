@@ -2693,17 +2693,16 @@ class ClientController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $ClientLedger = $ClientLedger->where("IDClient", $Client->IDClient);
-        // $ClientLedger = $ClientLedger->where("IDClient", $Client->IDClient)->where("ClientLedgerPoints", ">", 0)->where("ClientLedgerType", "<>", "CANCELLATION");
-        // if ($StartDate) {
-        //     $ClientLedger = $ClientLedger->where("created_at", "<=", $StartDate);
-        // }
-        // if ($EndDate) {
-        //     $ClientLedger = $ClientLedger->where("created_at", ">=", $EndDate);
-        // }
-        // if ($Type) {
-        //     $ClientLedger = $ClientLedger->where("ClientLedgerDestination", $Type)->orWhere("ClientLedgerSource", $Type);
-        // }
+        $ClientLedger = $ClientLedger->where("IDClient", $Client->IDClient)->where("ClientLedgerPoints", ">", 0)->where("ClientLedgerType", "<>", "CANCELLATION");
+        if ($StartDate) {
+            $ClientLedger = $ClientLedger->where("created_at", "<=", $StartDate);
+        }
+        if ($EndDate) {
+            $ClientLedger = $ClientLedger->where("created_at", ">=", $EndDate);
+        }
+        if ($Type) {
+            $ClientLedger = $ClientLedger->where("ClientLedgerDestination", $Type)->orWhere("ClientLedgerSource", $Type);
+        }
 
 
         $TotalAmount = $ClientLedger->sum("ClientLedgerPoints");
