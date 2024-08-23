@@ -3086,12 +3086,12 @@ class ClientController extends Controller
         if ($Client->ClientStatus == "INACTIVE") {
             return RespondWithBadRequest(64);
         }
-        if (!$ClientSecurityCode) {
-            return RespondWithBadRequest(1);
-        }
-        if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
-            return RespondWithBadRequest(38);
-        }
+        // if (!$ClientSecurityCode) {
+        //     return RespondWithBadRequest(1);
+        // }
+        // if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
+        //     return RespondWithBadRequest(38);
+        // }
         $Client = Client::find($Client->IDClient);
         if (!$Client->ClientBalance) {
             return RespondWithBadRequest(26);
@@ -3286,13 +3286,13 @@ class ClientController extends Controller
         if ($Client->ClientStatus == "NOT_VERIFIED") {
             return RespondWithBadRequest(62);
         }
-        $ClientSecurityCode = $request->ClientSecurityCode;
-        if (!$ClientSecurityCode) {
-            return RespondWithBadRequest(1);
-        }
-        if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
-            return RespondWithBadRequest(38);
-        }
+        // $ClientSecurityCode = $request->ClientSecurityCode;
+        // if (!$ClientSecurityCode) {
+        //     return RespondWithBadRequest(1);
+        // }
+        // if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
+        //     return RespondWithBadRequest(38);
+        // }
         $IDTool = $request->IDTool;
         $Tool = Tool::where("IDTool", $IDTool)->where("ToolStatus", "ACTIVE")->first();
         if (!$Tool) {
@@ -3462,13 +3462,13 @@ class ClientController extends Controller
         if ($Client->ClientStatus == "NOT_VERIFIED") {
             return RespondWithBadRequest(62);
         }
-        $ClientSecurityCode = $request->ClientSecurityCode;
-        if (!$ClientSecurityCode) {
-            return RespondWithBadRequest(1);
-        }
-        if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
-            return RespondWithBadRequest(38);
-        }
+        // $ClientSecurityCode = $request->ClientSecurityCode;
+        // if (!$ClientSecurityCode) {
+        //     return RespondWithBadRequest(1);
+        // }
+        // if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
+        //     return RespondWithBadRequest(38);
+        // }
 
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanProduct = PlanProduct::where("PlanProductStatus", "ACTIVE")->where("IDPlanProduct", $IDPlanProduct)->first();
