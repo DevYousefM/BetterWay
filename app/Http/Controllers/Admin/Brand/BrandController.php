@@ -90,7 +90,7 @@ class BrandController extends Controller
 
         $Brands = $Brands->select("brands.IDBrand", "brands.IDUser", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandDescEn", "brands.BrandDescAr", "brands.BrandPolicyEn", "brands.BrandPolicyAr", "brands.BrandLogo", "brands.BrandNumber", "brands.BrandEmail", "brands.BrandRating", "brands.BrandStatus", "brands.created_at", "users.UserName", "users.UserPhone");
         $Pages = ceil($Brands->count() / 20);
-        $Brands = $Brands->skip($IDPage)->take(20)->get();
+        $Brands = $Brands->orderBy('created_at', 'desc')->skip($IDPage)->take(20)->get();
         $Brands = BrandResource::collection($Brands);
         $Response = array("Brands" => $Brands, "Pages" => $Pages);
 
@@ -951,7 +951,7 @@ class BrandController extends Controller
         }
 
         $Pages = ceil($Branches->count() / 20);
-        $Branches = $Branches->skip($IDPage)->take(20)->get();
+        $Branches = $Branches->orderBy('branches.created_at', 'desc')->skip($IDPage)->take(20)->get();
         $Branches = BranchResource::collection($Branches);
         $Response = array("Branches" => $Branches, "Pages" => $Pages);
 
