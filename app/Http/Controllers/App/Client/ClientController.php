@@ -3110,6 +3110,15 @@ class ClientController extends Controller
         $PlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
         $EventAttendee = EventAttendee::where("IDEvent", $IDEvent)->where("IDClient", $Client->IDClient)->where("EventAttendeeStatus", "<>", "CANCELLED")->first();
         if ($EventAttendee) {
+            
+            if($EventAttendee->EventAttendeeStatus == "REMOVED"){
+                $EventAttendee->EventAttendeePaidAmount = 0;
+                $EventAttendee->EventAttendeeStatus = "PENDING";
+                $Event->EventClientNumber = $Event->EventClientNumber + 1;
+                $Event->save();
+                $EventAttendee->save();
+            }
+
             $RemainingAmount = $Event->EventPrice - $EventAttendee->EventAttendeePaidAmount;
             $Amount = $Client->ClientBalance - $RemainingAmount;
             if ($Amount >= 0) {

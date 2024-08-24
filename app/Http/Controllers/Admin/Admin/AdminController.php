@@ -2498,8 +2498,8 @@ class AdminController extends Controller
         $EventPoints = 0;
         $Amount = $EventAttendee->EventAttendeePaidAmount;
 
+        $Event = Event::find($EventAttendee->IDEvent);
         if ($EventAttendee->EventAttendeeStatus == "PAID") {
-            $Event = Event::find($EventAttendee->IDEvent);
             $EventPoints = $Event->EventPoints;
         }
 
@@ -2507,7 +2507,8 @@ class AdminController extends Controller
 
         $EventAttendee->EventAttendeeStatus = "REMOVED";
         $EventAttendee->save();
-
+        $Event->EventClientNumber = $Event->EventClientNumber - 1;
+        $Event->save();
         $Desc = "Client " . $Client->ClientName . " was Removed from event";
         ActionBackLog($Admin->IDUser, $EventAttendee->IDEventAttendee, "REMOVE_EVENT_ATTENDEE", $Desc);
 
