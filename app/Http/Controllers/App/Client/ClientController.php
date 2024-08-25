@@ -3913,14 +3913,13 @@ class ClientController extends Controller
         $ClientAdminChat = $ClientAdminChat->select("IDClientAdminChat", "IDClient",  "created_at", "updated_at")->first();
 
         $ClientAdminChat = ClientAdminChatResource::make($ClientAdminChat);
-        $Response = array("ClientAdminChat" => $ClientAdminChat);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $Response
+            'Response' => $ClientAdminChat
         );
         return $Response;
     }
