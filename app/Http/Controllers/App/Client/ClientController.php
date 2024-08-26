@@ -4035,7 +4035,7 @@ class ClientController extends Controller
         }
 
         $ClientAdminChatDetails = ClientAdminChatDetails::where("IDClientAdminChat", $IDClientAdminChat);
-        $ClientAdminChatDetails = $ClientAdminChatDetails->select("IDClientAdminChatDetails", "Message", "MessageType", "MessageStatus", "created_at", "updated_at",)->orderby("IDClientAdminChatDetails", "DESC");
+        $ClientAdminChatDetails = $ClientAdminChatDetails->select("IDClientAdminChatDetails", "Message", "MessageType", "MessageStatus", "created_at", "updated_at")->orderby("IDClientAdminChatDetails", "DESC");
         $Pages = ceil($ClientAdminChatDetails->count() / 20);
         $ClientAdminChatDetails = $ClientAdminChatDetails->skip($IDPage)->take(20)->get();
 
