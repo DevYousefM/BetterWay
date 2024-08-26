@@ -3110,8 +3110,7 @@ class ClientController extends Controller
         $PlanNetwork = PlanNetwork::where("IDClient", $Client->IDClient)->first();
         $EventAttendee = EventAttendee::where("IDEvent", $IDEvent)->where("IDClient", $Client->IDClient)->where("EventAttendeeStatus", "<>", "CANCELLED")->first();
         if ($EventAttendee) {
-            
-            if($EventAttendee->EventAttendeeStatus == "REMOVED"){
+            if ($EventAttendee->EventAttendeeStatus == "REMOVED") {
                 $EventAttendee->EventAttendeePaidAmount = 0;
                 $EventAttendee->EventAttendeeStatus = "PENDING";
                 $Event->EventClientNumber = $Event->EventClientNumber + 1;
@@ -3125,14 +3124,6 @@ class ClientController extends Controller
                 $Amount = $RemainingAmount;
                 $EventAttendee->EventAttendeePaidAmount = $Event->EventPrice;
                 $EventAttendee->EventAttendeeStatus = "PAID";
-
-                $CompanyLedger = new CompanyLedger;
-                $CompanyLedger->IDSubCategory = 23;
-                $CompanyLedger->CompanyLedgerAmount = $Event->EventPrice;
-                $CompanyLedger->CompanyLedgerDesc = "Event Payment by Client " . $Client->ClientName;
-                $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                $CompanyLedger->CompanyLedgerType = "CREDIT";
-                $CompanyLedger->save();
             } else {
                 $PlanNetwork = Null;
                 $EventPoints = 0;
@@ -3141,6 +3132,7 @@ class ClientController extends Controller
                 $Amount = $Client->ClientBalance;
                 $EventAttendee->EventAttendeePaidAmount = $EventAttendee->EventAttendeePaidAmount + $Client->ClientBalance;
             }
+
             $EventAttendee->save();
         } else {
             if ($Event->EventMaxNumber) {
@@ -3157,14 +3149,6 @@ class ClientController extends Controller
                 $Amount = $Event->EventPrice;
                 $EventAttendee->EventAttendeePaidAmount = $Event->EventPrice;
                 $EventAttendee->EventAttendeeStatus = "PAID";
-
-                $CompanyLedger = new CompanyLedger;
-                $CompanyLedger->IDSubCategory = 23;
-                $CompanyLedger->CompanyLedgerAmount = $Event->EventPrice;
-                $CompanyLedger->CompanyLedgerDesc = "Event Payment by Client " . $Client->ClientName;
-                $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                $CompanyLedger->CompanyLedgerType = "CREDIT";
-                $CompanyLedger->save();
             } else {
                 $PlanNetwork = Null;
                 $EventPoints = 0;
@@ -3185,6 +3169,7 @@ class ClientController extends Controller
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, -$Amount, $EventPoints, $EventReferralPoints, $EventUplinePoints, $PlanNetwork, "WALLET", "EVENT", "PAYMENT", $BatchNumber);
+        CompanyLedger(23, $Amount, "Event Payment by Client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -3331,13 +3316,7 @@ class ClientController extends Controller
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, -$Tool->ToolPrice, $Tool->ToolPoints, $Tool->ToolReferralPoints, $Tool->ToolUplinePoints, $PlanNetwork, "WALLET", "TOOL", "PAYMENT", $BatchNumber);
 
-        $CompanyLedger = new CompanyLedger;
-        $CompanyLedger->IDSubCategory = 20;
-        $CompanyLedger->CompanyLedgerAmount = $Tool->ToolPrice;
-        $CompanyLedger->CompanyLedgerDesc = "Tool bought by client " . $Client->ClientName;
-        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-        $CompanyLedger->CompanyLedgerType = "CREDIT";
-        $CompanyLedger->save();
+        CompanyLedger(20, $Tool->ToolPrice, "Tool bought by client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -3605,13 +3584,7 @@ class ClientController extends Controller
             $Counter++;
         }
 
-        $CompanyLedger = new CompanyLedger;
-        $CompanyLedger->IDSubCategory = 24;
-        $CompanyLedger->CompanyLedgerAmount = $PlanProduct->PlanProductPrice;
-        $CompanyLedger->CompanyLedgerDesc = "Product Bought by Client " . $Client->ClientName;
-        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-        $CompanyLedger->CompanyLedgerType = "CREDIT";
-        $CompanyLedger->save();
+        CompanyLedger($IDClient, $PlanProduct->PlanProductPrice, "Product Bought by Client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $Client = Client::find($IDClient);
         $Client->ClientStatus = "ACTIVE";
@@ -3718,13 +3691,8 @@ class ClientController extends Controller
 
         $Client = Client::find($Client->IDClient);
 
-        $CompanyLedger = new CompanyLedger;
-        $CompanyLedger->IDSubCategory = 26;
-        $CompanyLedger->CompanyLedgerAmount = $Amount;
-        $CompanyLedger->CompanyLedgerDesc = "Upgrade Bought by Client " . $Client->ClientName;
-        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-        $CompanyLedger->CompanyLedgerType = "CREDIT";
-        $CompanyLedger->save();
+
+        CompanyLedger(26, $Amount, "Upgrade Bought by Client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
@@ -4123,13 +4091,13 @@ class ClientController extends Controller
 
         switch ($ClientChatDetail->MessageType) {
             case 'TEXT':
-                sendFirebaseNotification($Friend, $ClientChatDetail, "$Client->ClientName: ", $Message);
+                sendFirebaseNotification($Friend, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName: ", $Message);
                 break;
             case "IMAGE":
-                sendFirebaseNotification($Friend, [], "$Client->ClientName ", "send an image");
+                sendFirebaseNotification($Friend, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName ", "send an image");
                 break;
             case "AUDIO":
-                sendFirebaseNotification($Friend, [], "$Client->ClientName ", 'send an audio');
+                sendFirebaseNotification($Friend, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName ", 'send an audio');
                 break;
         }
         return RespondWithSuccessRequest(8);
@@ -4191,13 +4159,13 @@ class ClientController extends Controller
             $Receiver = Client::find($ClientInNetwork->IDClient);
             switch ($ClientChatDetail->MessageType) {
                 case 'TEXT':
-                    sendFirebaseNotification($Receiver, $ClientChatDetail, "$Client->ClientName: ", $Message);
+                    sendFirebaseNotification($Receiver, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName: ", $Message);
                     break;
                 case "IMAGE":
-                    sendFirebaseNotification($Receiver, [], "$Client->ClientName ", "send an image");
+                    sendFirebaseNotification($Receiver, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName ", "send an image");
                     break;
                 case "AUDIO":
-                    sendFirebaseNotification($Receiver, [], "$Client->ClientName ", 'send an audio');
+                    sendFirebaseNotification($Receiver, ClientChatDetailResource::make($ClientChatDetail), "$Client->ClientName ", 'send an audio');
                     break;
             }
         }

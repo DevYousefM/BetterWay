@@ -8,27 +8,19 @@ use Illuminate\Support\Facades\Log;
 class ClientChatDetailResource extends JsonResource
 {
 
-    public function toArray($request){
-        $Client = auth('client')->user();
-        $Sender = "CLIENT";
-        if($Client->IDClient != $this->IDSender){
-            $Sender = "FRIEND";
-            if($this->ClientPrivacy){
-                $this->ClientPicture = Null;
-            }
-        }
-
+    public function toArray($request)
+    {
         $Message = $this->Message;
-        if($this->MessageType != "TEXT"){
+        if ($this->MessageType != "TEXT") {
             $Message = ($this->Message) ? asset($this->Message) : '';
         }
 
 
         return [
             'IDClientChatDetails'       => $this->IDClientChatDetails,
-            'ClientName'                => $this->ClientName,
-            'ClientPicture'             => ($this->ClientPicture) ? asset($this->ClientPicture) : '',
-            'Sender'                    => $Sender,
+            'ClientName'                => $this->sender->ClientName,
+            'ClientPicture'             => ($this->sender->ClientPicture) ? asset($this->sender->ClientPicture) : '',
+            'IDSender'                  => $this->sender->IDClient,
             'Message'                   => $Message,
             'MessageType'               => $this->MessageType,
             'MessageStatus'             => $this->MessageStatus,

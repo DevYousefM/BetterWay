@@ -52,7 +52,7 @@ class BonanzaEnd extends Command
         // Log::info($formattedTime);
 
         $Clients = Client::where("ClientStatus", "ACTIVE")->where("ClientDeleted", 0)->get();
-        $Bonanzas = Bonanza::where('BonanzaStatus', 'ACTIVE')->where("BonanzaEndTime", "<", $CurrentTime)->get();
+        $Bonanzas = Bonanza::where('BonanzaStatus', 'ACTIVE')->where("BonanzaEndTime", "<", $CurrentTime)->with(['bonanza_brands', 'bonanza_brands.brand'])->get();
 
         foreach ($Bonanzas as $Bonanza) {
             $Bonanza->BonanzaStatus = "EXPIRED";
@@ -162,21 +162,15 @@ class BonanzaEnd extends Command
                 $BatchNumber = $BatchNumber . $Time;
 
                 if ($Bonanza->BonanzaChequeValue > 0) {
-                    ChequesLedger($Client, $Bonanza->BonanzaChequeValue, 'BONANZA', "REWARD", 'WALLET', $BatchNumber);
+                    ChequesLedger($Client, $Bonanza->BonanzaChequeValue, 'BONANZA',  'WALLET', "REWARD", $BatchNumber);
                 }
                 if ($Bonanza->BonanzaRewardPoints > 0) {
                     AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
                 }
-                sendFirebaseNotification($Client, $Bonanza, "bonanza", 'bonanza end and you got a prize');
+                sendFirebaseNotification($Client, $Bonanza, "Congrats you have got the bonanza!", ' ');
 
                 if ($Bonanza->BonanzaChequeValue > 0) {
-                    $CompanyLedger = new CompanyLedger;
-                    $CompanyLedger->IDSubCategory = 22;
-                    $CompanyLedger->CompanyLedgerAmount = $Bonanza->BonanzaChequeValue;
-                    $CompanyLedger->CompanyLedgerDesc = "Bonanza Payment to Client " . $Client->ClientName;
-                    $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                    $CompanyLedger->CompanyLedgerType = "DEBIT";
-                    $CompanyLedger->save();
+                    CompanyLedger(22, $Bonanza->BonanzaChequeValue, "Bonanza Payment to Client " . $Client->ClientName, "AUTO", "DEBIT");
                 }
             }
         }
@@ -294,7 +288,7 @@ class BonanzaEnd extends Command
     }
     function checkUniqueVisits($client, $bonanza, $StartDate, $EndDate)
     {
-        $bonanza_brands = $bonanza->bonanza_brands()->where('BonanzaBrandDeleted', 1)->with('brand')->get();
+        $bonanza_brands = $bonanza->bonanza_brands()->where('BonanzaBrandDeleted', 0)->with('brand')->get();
         $isValid = true;
 
         foreach ($bonanza_brands as $bonanza_brand) {

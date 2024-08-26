@@ -1083,13 +1083,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(23);
         }
 
-        $CompanyLedger = new CompanyLedger;
-        $CompanyLedger->IDSubCategory = 21;
-        $CompanyLedger->CompanyLedgerAmount = $Amount;
-        $CompanyLedger->CompanyLedgerDesc = "Amount added to client " . $Client->ClientName;
-        $CompanyLedger->CompanyLedgerProcess = "AUTO";
-        $CompanyLedger->CompanyLedgerType = "DEBIT";
-        $CompanyLedger->save();
+        CompanyLedger(21, $Amount, "Amount added to client " . $Client->ClientName, "AUTO", "DEBIT");
 
         ActionBackLog($Admin->IDUser, $Client->IDClient, "EDIT_CLIENT", $Desc);
         return RespondWithSuccessRequest(8);

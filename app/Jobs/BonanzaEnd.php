@@ -129,6 +129,8 @@ class BonanzaEnd implements ShouldQueue
                 $CompanyLedger->CompanyLedgerProcess = "AUTO";
                 $CompanyLedger->CompanyLedgerType = "DEBIT";
                 $CompanyLedger->save();
+
+                
             }
         }
     }

@@ -152,7 +152,7 @@ class ChequeCycle extends Command
                         $IDClient = $Person->IDClient;
                         $Client = Client::find($IDClient);
 
-                        if($Client->ClientStatus != "ACTIVE"){
+                        if ($Client->ClientStatus != "ACTIVE") {
                             continue;
                         }
 
@@ -171,25 +171,12 @@ class ChequeCycle extends Command
                         $remainingAllowance = $ChequeMaxOut - $whatsGetToday;
 
                         if ($ChequeValue <= $remainingAllowance) {
-                            ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
-                            $CompanyLedger = new CompanyLedger;
-                            $CompanyLedger->IDSubCategory = 19;
-                            $CompanyLedger->CompanyLedgerAmount = $ChequeValue;
-                            $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
-                            $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                            $CompanyLedger->CompanyLedgerType = "DEBIT";
-                            $CompanyLedger->save();
+                            ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'REWARD', GenerateBatch("CH", $Client->IDClient));
+                            CompanyLedger(19, $ChequeValue, "Cheque Payment to Client " . $Client->ClientName, "REWARD", "DEBIT");
                         } elseif ($remainingAllowance > 0) {
-                            ChequesLedger($Client, $remainingAllowance, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
-                            $CompanyLedger = new CompanyLedger;
-                            $CompanyLedger->IDSubCategory = 19;
-                            $CompanyLedger->CompanyLedgerAmount = $remainingAllowance;
-                            $CompanyLedger->CompanyLedgerDesc = "Cheque Payment to Client " . $Client->ClientName;
-                            $CompanyLedger->CompanyLedgerProcess = "AUTO";
-                            $CompanyLedger->CompanyLedgerType = "DEBIT";
-                            $CompanyLedger->save();
+                            ChequesLedger($Client, $remainingAllowance, 'CHEQUE', "WALLET", 'REWARD', GenerateBatch("CH", $Client->IDClient));
+                            CompanyLedger(19, $remainingAllowance, "Cheque Payment to Client " . $Client->ClientName, "AUTO", "DEBIT");
                         }
-
 
                         $IDPlanNetworkCheque = $PlanNetworkCheque->IDPlanNetworkCheque;
 

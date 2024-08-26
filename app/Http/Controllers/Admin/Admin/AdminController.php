@@ -15,6 +15,7 @@ use App\Http\Resources\Admin\AreaResource;
 use App\Http\Resources\Admin\CategoryResource;
 use App\Http\Resources\Admin\SubCategoryResource;
 use App\Http\Resources\Admin\AdvertisementResource;
+use App\Http\Resources\Admin\ClientLedgerResource;
 use App\V1\User\User;
 use App\Notification;
 use App\V1\User\Role;
@@ -22,6 +23,7 @@ use App\V1\User\RoleSection;
 use App\V1\User\ActionBackLog;
 use App\V1\Plan\PlanNetwork;
 use App\V1\Client\Client;
+use App\V1\Client\ClientLedger;
 use App\V1\General\Section;
 use App\V1\General\APICode;
 use App\V1\General\Category;
@@ -2220,6 +2222,7 @@ class AdminController extends Controller
         if ($EventVideos) {
             if (count($EventVideos)) {
                 foreach ($EventVideos as $Video) {
+                    if ($Video == "") continue;
                     $EventVideo = YoutubeEmbedUrl($Video);
                     $EventGalleryRow = new EventGallery;
                     $EventGalleryRow->IDEvent = $Event->IDEvent;
@@ -2504,7 +2507,7 @@ class AdminController extends Controller
         }
 
         AdjustLedger($Client, $Amount, $EventPoints, 0, 0, $PlanNetwork, "EVENT", "WALLET", "CANCELLATION", $BatchNumber);
-
+        CompanyLedger(21, $Amount, 'Event Cancellation For Client: ' . $Client->ClientName, "MANUAL", "DEBIT");
         $EventAttendee->EventAttendeeStatus = "REMOVED";
         $EventAttendee->save();
         $Event->EventClientNumber = $Event->EventClientNumber - 1;
@@ -2626,7 +2629,7 @@ class AdminController extends Controller
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        $FileExtArray = ["jpeg", "jpg", "png", "svg", "pdf", "mp3", "mp4", "avi", "mov", "mkv","docx", "xlsx", "pptx"];
+        $FileExtArray = ["jpeg", "jpg", "png", "svg", "pdf", "mp3", "mp4", "avi", "mov", "mkv", "docx", "xlsx", "pptx"];
         foreach ($ToolGallery as $Gallery) {
             if (!in_array($Gallery->extension(), $ImageExtArray)) {
                 return RespondWithBadRequest(15);
@@ -3063,6 +3066,7 @@ class AdminController extends Controller
         $CompanyLedger->CompanyLedgerType = $CompanyLedgerType;
         $CompanyLedger->CompanyLedgerProcess = "MANUAL";
         $CompanyLedger->save();
+        $CompanyLedger = CompanyLedger($IDSubCategory, $CompanyLedgerAmount, $CompanyLedgerDesc, "MANUAL", $CompanyLedgerType);
 
         $Desc = "Company Ledger Added";
         ActionBackLog($Admin->IDUser, $CompanyLedger->IDCompanyLedger, "ADD_COMPANYLEDGER", $Desc);
@@ -3369,5 +3373,42 @@ class AdminController extends Controller
         curl_close($ch);
 
         return response()->json(['response' => $responseData], 200);
+    }
+    public function BetterWayDebit()
+    {
+        $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
+
+        $Ledgers = ClientLedger::where('ClientLedgerSource', "ADMIN")->where("ClientLedgerPoints", 0)->get();
+        $ClientLedger = ClientLedgerResource::collection($Ledgers);
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $ClientLedger,
+        );
+        return $Response;
+    }
+    public function BetterWayCredit()
+    {
+        $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
+        $Ledgers = ClientLedger::where('IDClient', 1)->where("ClientLedgerPoints", 0)->get();
+        $ClientLedger = ClientLedgerResource::collection($Ledgers);
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $ClientLedger,
+        );
+        return $Response;
     }
 }

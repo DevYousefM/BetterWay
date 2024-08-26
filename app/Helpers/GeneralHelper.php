@@ -29,6 +29,7 @@ use LaravelFCM\Message\PayloadNotificationBuilder;
 use Illuminate\Support\Facades\Response;
 use LaravelFCM\Facades\FCM;
 use App\Notification;
+use App\V1\Payment\CompanyLedger;
 use Carbon\Carbon;
 
 function RespondWithBadRequest($Code, $Variable = Null)
@@ -885,4 +886,16 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
     }
 
     curl_close($ch);
+}
+function CompanyLedger($IDSubCategory,$Amount, $Description, $Process,$Type)
+{
+    $CompanyLedger = new CompanyLedger;
+    $CompanyLedger->IDSubCategory = $IDSubCategory;
+    $CompanyLedger->CompanyLedgerAmount = $Amount;
+    $CompanyLedger->CompanyLedgerDesc = $Description;
+    $CompanyLedger->CompanyLedgerProcess = $Process;
+    $CompanyLedger->CompanyLedgerType = $Type;
+    $CompanyLedger->save();
+
+    return $CompanyLedger;
 }

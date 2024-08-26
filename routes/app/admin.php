@@ -6,7 +6,9 @@ use App\Http\Controllers\Admin\Brand\BrandController;
 use App\Http\Controllers\External\GhazalController;
 use App\V1\Client\Client;
 use App\V1\Client\Position;
+use App\V1\Plan\Bonanza;
 use Carbon\Carbon;
+use Google\Service\MyBusinessAccountManagement\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -96,10 +98,6 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/tools/details', [AdminController::class, 'ToolDetails']);
     Route::post('/tools/edit', [AdminController::class, 'ToolEdit']);
     Route::get('/tools/gallery/remove/{id}', [AdminController::class, 'ToolGalleryRemove']);
-
-    Route::post('/clients/status', [AdminController::class, 'ClientStatus']);
-    Route::post('/clients/balance/update', [AdminController::class, 'ClientBalanceUpdate']);
-    Route::post('/clients/ledger', [AdminController::class, 'ClientLedger']);
 
     Route::post('/company/ledger', [AdminController::class, 'CompanyLedger']);
     Route::post('/company/ledger/add', [AdminController::class, 'CompanyLedgerAdd']);
@@ -243,10 +241,16 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     Route::post('/clients/test', [ClientController::class, 'test']);
     Route::get('/backup', [AdminController::class, 'backup']);
     Route::post('/send-notifications', [AdminController::class, 'sendNotifications']);
+    // Expenses
+    Route::post("betterway/debit", [AdminController::class, "BetterWayDebit"]);
+    // Revenue
+    Route::post("betterway/credit", [AdminController::class, "BetterWayCredit"]);
 
     // Test
     Route::get(
         '/position',
+
+
         // function ($id) {
 
         //     // $client = Client::find(328);

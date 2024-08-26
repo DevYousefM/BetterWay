@@ -163,7 +163,7 @@ class ChequeCycle implements ShouldQueue
 
                         Log::info("PlanNetworkCheque saved with ID: " . $PlanNetworkCheque->IDPlanNetworkCheque);
 
-                        ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'CHEQUE', GenerateBatch("CH", $Client->IDClient));
+                        ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'REWARD', GenerateBatch("CH", $Client->IDClient));
 
                         $CompanyLedger = new CompanyLedger;
                         $CompanyLedger->IDSubCategory = 19;
