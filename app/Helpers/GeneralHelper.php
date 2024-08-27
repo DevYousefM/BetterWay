@@ -261,6 +261,7 @@ function GetCoForClient($Client)
 function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplinePoints, $PlanNetwork, $Source, $Destination, $Type, $BatchNumber)
 {
     $PlanProductPoints = 0;
+
     if ($Destination == "PLAN_PRODUCT" && $Type != "UPGRADE") {
         $PlanProduct = PlanProduct::find($PlanNetwork->IDPlanProduct);
         $PlanProductPoints = $PlanProduct->PlanProductPoints;
@@ -268,22 +269,38 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
         $ChildIDClient = $PlanNetwork->IDClient;
     }
 
-    if ($Amount || $RewardPoints) {
+    if ($Amount) {
         $ClientLedger = new ClientLedger;
         $ClientLedger->IDClient = $Client->IDClient;
         $ClientLedger->ClientLedgerAmount = abs($Amount);
-        $ClientLedger->ClientLedgerPoints = abs($RewardPoints);
+        $ClientLedger->ClientLedgerPoints = 0;
         $ClientLedger->ClientLedgerSource = $Source;
         $ClientLedger->ClientLedgerDestination = $Destination;
         $ClientLedger->ClientLedgerInitialeBalance = $Client->ClientBalance;
         $ClientLedger->ClientLedgerFinalBalance = $Client->ClientBalance + $Amount;
+        $ClientLedger->ClientLedgerInitialePoints = 0;
+        $ClientLedger->ClientLedgerFinalPoints = 0;
+        $ClientLedger->ClientLedgerType = $Type;
+        $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
+        $ClientLedger->save();
+
+        $Client->ClientBalance = $Client->ClientBalance + $Amount;
+    }
+    if ($RewardPoints) {
+        $ClientLedger = new ClientLedger;
+        $ClientLedger->IDClient = $Client->IDClient;
+        $ClientLedger->ClientLedgerAmount = 0;
+        $ClientLedger->ClientLedgerPoints = abs($RewardPoints);
+        $ClientLedger->ClientLedgerSource = $Source;
+        $ClientLedger->ClientLedgerDestination = $Destination;
+        $ClientLedger->ClientLedgerInitialeBalance = 0;
+        $ClientLedger->ClientLedgerFinalBalance = 0;
         $ClientLedger->ClientLedgerInitialePoints = $Client->ClientRewardPoints;
         $ClientLedger->ClientLedgerFinalPoints = $Client->ClientRewardPoints + $RewardPoints;
         $ClientLedger->ClientLedgerType = $Type;
         $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
         $ClientLedger->save();
 
-        $Client->ClientBalance = $Client->ClientBalance + $Amount;
         $Client->ClientRewardPoints = $Client->ClientRewardPoints + $RewardPoints;
     }
 
@@ -291,64 +308,64 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
 
     if ($PlanNetwork) {
         if ($PlanNetwork->IDReferralClient) {
-            $Client = Client::find($PlanNetwork->IDReferralClient);
+            $P_Client = Client::find($PlanNetwork->IDReferralClient);
 
-            if ($Amount && $RewardPoints) {
+            if ($RewardPoints) {
                 $ClientLedger = new ClientLedger;
-                $ClientLedger->IDClient = $Client->IDClient;
+                $ClientLedger->IDClient = $P_Client->IDClient;
                 $ClientLedger->ClientLedgerPoints = $ReferralPoints;
                 $ClientLedger->ClientLedgerSource = $Source;
                 $ClientLedger->ClientLedgerDestination = $Destination;
-                $ClientLedger->ClientLedgerInitialePoints = $Client->ClientRewardPoints;
-                $ClientLedger->ClientLedgerFinalPoints = $Client->ClientRewardPoints + $ReferralPoints;
+                $ClientLedger->ClientLedgerInitialePoints = $P_Client->ClientRewardPoints;
+                $ClientLedger->ClientLedgerFinalPoints = $P_Client->ClientRewardPoints + $ReferralPoints;
                 $ClientLedger->ClientLedgerType = "REFERRAL";
                 $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
                 $ClientLedger->save();
 
-                $Client->ClientRewardPoints = $Client->ClientRewardPoints + $ReferralPoints;
+                $P_Client->ClientRewardPoints = $P_Client->ClientRewardPoints + $ReferralPoints;
             }
 
-            $Client->save();
+            $P_Client->save();
         }
 
         if ($PlanNetwork->PlanNetworkPath) {
             $IDParentClients = explode("-", $PlanNetwork->PlanNetworkPath);
             $IDParentClients = array_reverse($IDParentClients);
             foreach ($IDParentClients as $IDParentClient) {
-                $Client = Client::find($IDParentClient);
+                $Parent_Client = Client::find($IDParentClient);
 
-                if ($Amount && $RewardPoints) {
+                if ($RewardPoints) {
                     $ClientLedger = new ClientLedger;
-                    $ClientLedger->IDClient = $Client->IDClient;
+                    $ClientLedger->IDClient = $Parent_Client->IDClient;
                     $ClientLedger->ClientLedgerPoints = $UplinePoints;
                     $ClientLedger->ClientLedgerSource = $Source;
                     $ClientLedger->ClientLedgerDestination = $Destination;
-                    $ClientLedger->ClientLedgerInitialePoints = $Client->ClientRewardPoints;
-                    $ClientLedger->ClientLedgerFinalPoints = $Client->ClientRewardPoints + $UplinePoints;
+                    $ClientLedger->ClientLedgerInitialePoints = $Parent_Client->ClientRewardPoints;
+                    $ClientLedger->ClientLedgerFinalPoints = $Parent_Client->ClientRewardPoints + $UplinePoints;
                     $ClientLedger->ClientLedgerType = "UPLINE";
                     $ClientLedger->ClientLedgerBatchNumber = $BatchNumber;
                     $ClientLedger->save();
 
-                    $Client->ClientRewardPoints = $Client->ClientRewardPoints + $UplinePoints;
+                    $Parent_Client->ClientRewardPoints = $Parent_Client->ClientRewardPoints + $UplinePoints;
                 }
 
                 if ($PlanProductPoints) {
                     if ($ChildPosition == "LEFT") {
-                        $Client->ClientLeftNumber++;
-                        $Client->ClientTotalNumber++;
-                        $Client->ClientLeftPoints = $Client->ClientLeftPoints + $PlanProductPoints;
-                        $Client->ClientTotalPoints = $Client->ClientTotalPoints + $PlanProductPoints;
+                        $Parent_Client->ClientLeftNumber++;
+                        $Parent_Client->ClientTotalNumber++;
+                        $Parent_Client->ClientLeftPoints = $Parent_Client->ClientLeftPoints + $PlanProductPoints;
+                        $Parent_Client->ClientTotalPoints = $Parent_Client->ClientTotalPoints + $PlanProductPoints;
                     }
                     if ($ChildPosition == "RIGHT") {
-                        $Client->ClientRightNumber++;
-                        $Client->ClientTotalNumber++;
-                        $Client->ClientRightPoints = $Client->ClientRightPoints + $PlanProductPoints;
-                        $Client->ClientTotalPoints = $Client->ClientTotalPoints + $PlanProductPoints;
+                        $Parent_Client->ClientRightNumber++;
+                        $Parent_Client->ClientTotalNumber++;
+                        $Parent_Client->ClientRightPoints = $Parent_Client->ClientRightPoints + $PlanProductPoints;
+                        $Parent_Client->ClientTotalPoints = $Parent_Client->ClientTotalPoints + $PlanProductPoints;
                     }
                     PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber);
                 }
 
-                $Client->save();
+                $Parent_Client->save();
                 $ParentPlanNetwork = PlanNetwork::where("IDClient", $IDParentClient)->first();
 
                 if (!$ParentPlanNetwork) {
@@ -887,7 +904,7 @@ function sendFirebaseNotification($Client, $dataPayload, $title, $body)
 
     curl_close($ch);
 }
-function CompanyLedger($IDSubCategory,$Amount, $Description, $Process,$Type)
+function CompanyLedger($IDSubCategory, $Amount, $Description, $Process, $Type)
 {
     $CompanyLedger = new CompanyLedger;
     $CompanyLedger->IDSubCategory = $IDSubCategory;

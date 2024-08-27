@@ -116,7 +116,8 @@ class BonanzaEnd implements ShouldQueue
                 $Time = $TimeFormat->format('H');
                 $Time = $Time . $TimeFormat->format('i');
                 $BatchNumber = $BatchNumber . $Time;
-                AdjustLedger($Client, $Bonanza->BonanzaChequeValue, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
+                AdjustLedger($Client, $Bonanza->BonanzaChequeValue,0, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
+                AdjustLedger($Client, 0, $Bonanza->BonanzaRewardPoints, 0, 0, Null, "BONANZA", "WALLET", "REWARD", $BatchNumber);
                 sendFirebaseNotification($Client, $Bonanza, "bonanza", 'bonanza end and you got a prize');
                 
                 $Bonanza->BonanzaStatus = "EXPIRED";

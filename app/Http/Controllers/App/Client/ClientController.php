@@ -3189,7 +3189,11 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
-        AdjustLedger($Client, -$Amount, $EventPoints, $EventReferralPoints, $EventUplinePoints, $PlanNetwork, "WALLET", "EVENT", "PAYMENT", $BatchNumber);
+
+        AdjustLedger($Client, -$Amount, 0, 0, 0, $PlanNetwork, "WALLET", "EVENT", "PAYMENT", $BatchNumber);
+        if ($EventAttendee->EventAttendeeStatus == "PAID") {
+            AdjustLedger($Client, 0, $EventPoints, $EventReferralPoints, $EventUplinePoints, $PlanNetwork, "EVENT", "WALLET", "REWARD", $BatchNumber);
+        }
         CompanyLedger(23, $Amount, "Event Payment by Client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -3335,7 +3339,8 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
-        AdjustLedger($Client, -$Tool->ToolPrice, $Tool->ToolPoints, $Tool->ToolReferralPoints, $Tool->ToolUplinePoints, $PlanNetwork, "WALLET", "TOOL", "PAYMENT", $BatchNumber);
+        AdjustLedger($Client, -$Tool->ToolPrice, 0, 0, 0, $PlanNetwork, "WALLET", "TOOL", "PAYMENT", $BatchNumber);
+        AdjustLedger($Client, 0, $Tool->ToolPoints, $Tool->ToolReferralPoints, $Tool->ToolUplinePoints, $PlanNetwork, "TOOL", "WALLET", "REWARD", $BatchNumber);
 
         CompanyLedger(20, $Tool->ToolPrice, "Tool bought by client " . $Client->ClientName, "AUTO", "CREDIT");
 
@@ -3616,7 +3621,8 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
-        AdjustLedger($Client, -$PlanProduct->PlanProductPrice, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
+        AdjustLedger($Client, -$PlanProduct->PlanProductPrice, 0, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
+        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLER", "REWARD", $BatchNumber);
 
         return RespondWithSuccessRequest(8);
     }

@@ -2506,7 +2506,9 @@ class AdminController extends Controller
             $EventPoints = $Event->EventPoints;
         }
 
-        AdjustLedger($Client, $Amount, $EventPoints, 0, 0, $PlanNetwork, "EVENT", "WALLET", "CANCELLATION", $BatchNumber);
+        AdjustLedger($Client, $Amount, 0, 0, 0, $PlanNetwork, "EVENT", "WALLET", "CANCELLATION", $BatchNumber);
+        AdjustLedger($Client, 0, -$EventPoints, 0, 0, $PlanNetwork, "WALLET", "EVENT", "CANCELLATION", $BatchNumber);
+        
         CompanyLedger(21, $Amount, 'Event Cancellation For Client: ' . $Client->ClientName, "MANUAL", "DEBIT");
         $EventAttendee->EventAttendeeStatus = "REMOVED";
         $EventAttendee->save();
