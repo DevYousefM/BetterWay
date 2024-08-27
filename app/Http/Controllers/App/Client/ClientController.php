@@ -3117,7 +3117,17 @@ class ClientController extends Controller
                 $Event->save();
                 $EventAttendee->save();
             }
-
+            if ($EventAttendee->EventAttendeePaidAmount > 0) {
+                if ($Event->EventInstallmentEndDate < Carbon::now()) {
+                    return RespondWithBadRequest(66);
+                }
+            } else {
+                if ($Event->EventPrice > $Client->ClientBalance) {
+                    if ($Event->EventInstallmentEndDate < Carbon::now()) {
+                        return RespondWithBadRequest(67);
+                    }
+                }
+            }
             $RemainingAmount = $Event->EventPrice - $EventAttendee->EventAttendeePaidAmount;
             $Amount = $Client->ClientBalance - $RemainingAmount;
             if ($Amount >= 0) {
@@ -3150,6 +3160,9 @@ class ClientController extends Controller
                 $EventAttendee->EventAttendeePaidAmount = $Event->EventPrice;
                 $EventAttendee->EventAttendeeStatus = "PAID";
             } else {
+                if ($Event->EventInstallmentEndDate < Carbon::now()) {
+                    return RespondWithBadRequest(67);
+                }
                 $PlanNetwork = Null;
                 $EventPoints = 0;
                 $EventReferralPoints = 0;
