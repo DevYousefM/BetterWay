@@ -2676,7 +2676,7 @@ class ClientController extends Controller
         return $Response;
     }
 
-    public function ClientRewardPoints(Request $request, ClientLedger $ClientLedger)
+    public function ClientRewardPoints(Request $request)
     {
         $Client = auth('client')->user();
         if (!$Client) {
@@ -2693,7 +2693,7 @@ class ClientController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $ClientLedger = $ClientLedger->where("IDClient", $Client->IDClient)
+        $ClientLedger = ClientLedger::where("IDClient", $Client->IDClient)
             ->where("ClientLedgerPoints", ">", 0)
             ->where("ClientLedgerType", "<>", "CANCELLATION");
 
