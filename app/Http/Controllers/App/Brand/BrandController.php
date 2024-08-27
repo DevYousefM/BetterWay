@@ -292,82 +292,18 @@ class BrandController extends Controller
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, 0, $BrandProduct->BrandProductPoints, $BrandProduct->BrandProductReferralPoints, $BrandProduct->BrandProductUplinePoints, Null, "BRAND_PRODUCT", "CASH", "PAYMENT", $BatchNumber);
 
+        $ClientReviews = BrandRating::where("IDClient", $Client->IDClient)->where("IDBrand", $BrandProduct->brand->IDBrand)->get();
+
         $dataPayload = [
             "BrandProduct" => $BrandProduct,
             "message" => "review",
+            'hasBeenReviewed' => $ClientReviews->count() > 0 ? true : false
         ];
 
         $title = "Review";
         $body = "Please review";
 
-        $responseData = sendFirebaseNotification($Client, $dataPayload, $title, $body);
-
-
-
-        // $firebaseToken = $Client->ClientDeviceToken;
-        // $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
-        // Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
-        // $body = 'please review';
-        // $title = 'review';
-        // $data = [
-        //     "BrandProduct" => $BrandProduct,
-        //     "message" => "review"
-        // ];
-
-        // $data = [
-        //     "to" => $firebaseToken,
-        //     "notification" => [
-        //         "title" => $title,
-        //         "body" => $body,
-        //     ],
-        //     "data" => $data,
-        // ];
-        // $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
-        // $headers = [
-        //     'Authorization: key=' . $SERVER_API_KEY,
-        //     'Content-Type: application/json; charset=UTF-8',
-        // ];
-
-        // $ch = curl_init();
-
-        // curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-        // curl_setopt($ch, CURLOPT_POST, true);
-        // curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        // curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        // curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        // curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-        // $response = curl_exec($ch);
-
-        // if ($response === false) {
-        //     $error = curl_error($ch);
-        //     curl_close($ch);
-        //     return response()->json(['error' => $error], 500);
-        // }
-
-        // $responseData = json_decode($response, true);
-        // Log::info("responseData: " . $response);
-        // if (isset($responseData['results'])) {
-        //     foreach ($responseData['results'] as $key => $result) {
-        //         if (isset($result['message_id'])) {
-        //             // Notification sent successfully
-        //             Notification::create([
-        //                 'client_id' => $Client->IDClient,
-        //                 'title' => $title,
-        //                 'body' => $BrandProduct,
-        //                 'created_at' => Carbon::now(),
-        //             ]);
-        //         } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
-        //             // Handle "NotRegistered" error - remove token from your database or list
-        //             Log::info("NotRegistered error: " . $result['error']);
-        //             Log::info("Token: " . $firebaseToken);
-        //             Log::info("Result: " . $result);
-        //             $invalidToken = $firebaseTokens[$key];
-        //             Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
-        //         }
-        //     }
-        // }
-
-        // curl_close($ch);
+        sendFirebaseNotification($Client, $dataPayload, $title, $body);
 
         return response()->json([
             'status' => 'success',
