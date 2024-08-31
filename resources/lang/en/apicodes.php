@@ -66,4 +66,7 @@ return [
     '63' => "Receiver account is not verified!",
     '64' => "Your account is not active!",
     '65' => "Receiver account is not active!",
+    '66' => "The installment payment period has ended",
+    '67' => "The installment payment period has ended you must pay full event price ",
+    '68' => "Your Reward points not enough to get voucher",    
 ];

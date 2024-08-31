@@ -26,6 +26,9 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::get('/logout', [ClientController::class, 'ClientLogout']);
     Route::post('/language/change', [ClientController::class, 'ChangeLanguage']);
     Route::post('/securitycode/change', [ClientController::class, 'UpdateSecurityCode']);
+    
+    Route::get('/vouchers', [ClientController::class, 'Vouchers']);
+    Route::post('/vouchers/buy', [ClientController::class, 'BuyVoucher']);
 
     Route::get('/nationalities', [ClientController::class, 'Nationalities']);
     Route::get('/countries', [ClientController::class, 'Countries']);
@@ -88,7 +91,7 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::post('/chat/send', [ClientController::class, 'ClientChatSend']);
     Route::post('/chat/all/send', [ClientController::class, 'ClientChatAllSend']);
 
-    Route::post('/test', [ClientController::class, 'Test']);
+    Route::get('/test', [ClientController::class, 'Test']);
     Route::get('/generate-pdf/{client_id}', [ClientController::class, 'generatePdf']);
 
     Route::post('/send-notifications', [NotificationController::class, 'sendNotifications']);

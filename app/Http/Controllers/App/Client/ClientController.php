@@ -4,6 +4,7 @@ namespace App\Http\Controllers\App\Client;
 
 header('Content-type: application/json');
 
+use App\ClientVoucher;
 use Illuminate\Support\Facades\Config;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\App\EventResource;
@@ -58,6 +59,7 @@ use App\V1\Client\ClientFriend;
 use App\V1\Client\ClientDocument;
 use App\V1\Client\ClientBrandProduct;
 use App\V1\Client\ClientBonanza;
+use App\V1\General\GeneralSetting;
 use App\V1\Payment\CompanyLedger;
 use App\V1\Payment\BalanceTransfer;
 use App\V1\Plan\Bonanza;
@@ -82,6 +84,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\App;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Location;
 use Input;
@@ -4205,6 +4208,9 @@ class ClientController extends Controller
 
     public function Test(Request $request)
     {
+
+        return "TST";
+
         // $Client = Client::find(343);
 
         // $ParentPlanNetwork = PlanNetwork::where("PlanNetworkPath", "LIKE", "%$Client->IDClient%")->get();
@@ -4393,5 +4399,97 @@ class ClientController extends Controller
         return response($pdfContent)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+    public function Vouchers(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+
+        $ClientRewardPoints = $Client->ClientRewardPoints;
+        $pointValue = GeneralSetting::where('GeneralSettingName', 'PricePerRewardPoint')->first()->GeneralSettingValue;
+        $maxPrice = 10000;
+
+        $voucherDetails = [];
+        $pricesToCheck = array_merge([200, 500, 700, 1000, 1500], range(1500 + 500, $maxPrice, 500));
+
+        foreach ($pricesToCheck as $price) {
+            $pointsNeeded = number_format($price / $pointValue, 2, '.', '');
+
+            if ($pointsNeeded <= $ClientRewardPoints) {
+                $voucherDetails[] = [
+                    'VoucherValue' => $price,
+                    'VoucherPoints' => $pointsNeeded,
+                ];
+            }
+        }
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $voucherDetails,
+        );
+        return $Response;
+    }
+    public function BuyVoucher(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+
+        $VoucherValue = $request->VoucherValue;
+        if (!$VoucherValue) {
+            return RespondWithBadRequest(1);
+        }
+
+        $VoucherPoints = $request->VoucherPoints;
+        if (!$VoucherPoints) {
+            return RespondWithBadRequest(1);
+        }
+
+        if ($VoucherPoints > $Client->ClientPoints) {
+            return RespondWithBadRequest(68);
+        }
+
+        function generateUniqueVoucherCodeForClientx($clientId, $length = 6)
+        {
+            do {
+                $code = strtoupper(Str::random($length));
+                $exists = ClientVoucher::where('IDClient', $clientId)
+                    ->where('VoucherCode', $code)
+                    ->exists();
+            } while ($exists);
+
+            return $code;
+        }
+
+        $ClientVoucher = new ClientVoucher;
+        $ClientVoucher->IDClient = $Client->IDClient;
+        $ClientVoucher->VoucherValue = $VoucherValue;
+        $ClientVoucher->ClientVoucherStatus = "ACTIVE";
+        $ClientVoucher->VoucherCode = generateUniqueVoucherCodeForClientx($Client->IDClient);
+        $ClientVoucher->save();
+
+        $BatchNumber = "#VO" . $Client->IDClient;
+        $TimeFormat = new DateTime('now');
+        $Time = $TimeFormat->format('H');
+        $Time = $Time . $TimeFormat->format('i');
+        $BatchNumber = $BatchNumber . $Time;
+
+        AdjustLedger($Client, 0, -$VoucherPoints, 0, 0, null, "VOUCHER", "VOUCHER", "PAYMENT", $BatchNumber);
+        CompanyLedger(21, $VoucherValue, "Voucher Bought By Client: " . $Client->ClientName, "AUTO", "DEBIT");
+
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $ClientVoucher,
+        );
+        return $Response;
     }
 }
