@@ -15,8 +15,7 @@ class CreateClientVouchersTable extends Migration
     {
         Schema::create('clientvouchers', function (Blueprint $table) {
             $table->id('IDClientVoucher');
-            $table->unsignedBigInteger('IDClient'); 
-            $table->foreign('IDClient')->references('IDClient')->on('clients')->onDelete('cascade');
+            $table->string('IDClient');
             $table->integer('VoucherValue');
             $table->string('VoucherCode')->unique();
             $table->enum('ClientVoucherStatus', ['ACTIVE', 'USED']);
