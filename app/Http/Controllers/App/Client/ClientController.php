@@ -660,9 +660,6 @@ class ClientController extends Controller
         $Client->ClientIDAddress = $ClientIDAddress;
         $Client->ClientLatitude = $ClientLatitude;
         $Client->ClientLongitude = $ClientLongitude;
-        $Client->ClientStatus = "ACTIVE";
-        $Client->save();
-
         if ($ClientNationalIDImage) {
             $ClientDocument = new ClientDocument;
             $ClientDocument->IDClient = $Client->IDClient;
@@ -686,6 +683,12 @@ class ClientController extends Controller
             $ClientDocument->ClientDocumentType = "PASSPORT";
             $ClientDocument->save();
         }
+        $hasContract = $Client->clientdocuments()->where('ClientDocumentType', 'CONTRACT')->exists();
+        if ($hasContract) {
+            $Client->ClientStatus = "ACTIVE";
+        }
+        $Client->save();
+
 
         return RespondWithSuccessRequest(8);
     }
