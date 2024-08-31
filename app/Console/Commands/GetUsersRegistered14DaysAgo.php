@@ -30,8 +30,18 @@ class GetUsersRegistered14DaysAgo extends Command
      */
     public function handle()
     {
-        $clients = Client::whereDate('created_at', '<=', Carbon::now()->subDays(14))->where("ClientNationalID", null)->where("ClientPassport", null)->get();
-        foreach ($clients as $client) {
+        $clientsSecondSignup = Client::whereDate('created_at', '<=', Carbon::now()->subDays(14))->where("ClientNationalID", null)->where("ClientPassport", null)->get();
+        foreach ($clientsSecondSignup as $client) {
+            $client->ClientStatus = "NOT_VERIFIED";
+            $client->save();
+        }
+
+        $clientsWithoutContract = Client::whereDate('created_at', '<=', Carbon::now()->subDays(14))->whereDoesntHave('clientdocuments', function ($query) {
+            $query->where('ClientDocumentType', 'CONTRACT');
+        })->where("IDClient", "<>", 1)
+            ->get();
+
+        foreach ($clientsWithoutContract as $client) {
             $client->ClientStatus = "NOT_VERIFIED";
             $client->save();
         }

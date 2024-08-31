@@ -18,7 +18,7 @@ class NotificationController extends Controller
         $users = Client::whereDate('created_at', '>=', Carbon::now()->subDays(14)->toDateString())->get();
 
         $firebaseTokens = $users->pluck('ClientDeviceToken')->toArray();
-        $SERVER_API_KEY = env('FCM_SERVER_KEY');
+        $SERVER_API_KEY = env('FCM_SERVER_API_KEY');
         $body = '15 days have passed since your registration.';
         $title = 'Reminder';
         $data = [

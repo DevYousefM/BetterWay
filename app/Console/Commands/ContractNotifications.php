@@ -8,52 +8,37 @@ use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
-class SendNotifications extends Command
+class ContractNotifications extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-    protected $signature = 'send:notifications';
+    protected $signature = 'send:contract-notifications';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Send notification to users who registered 14 days ago';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
     public function handle()
     {
-
         try {
+            // Log start of the process
+            // Log::info("Notification process started.");
             // Query to fetch users who need notifications
-            $users = Client::whereDate('created_at', '<=', Carbon::now()->subDays(15)->toDateString())
+            $users = Client::whereDate('created_at', '>=', Carbon::now()->subDays(14)->toDateString())
+                ->whereDate('created_at', '<=', Carbon::now()->subDays(10)->toDateString())
                 ->whereDoesntHave('clientdocuments', function ($query) {
                     $query->where('ClientDocumentType', 'CONTRACT');
                 })
-                ->whereDate('created_at', '>=', Carbon::now()->subDays(20)->toDateString())
-                ->where('ClientStatus', '!=', 'Pending')
+                ->where('ClientStatus', 'ACTIVE')
                 ->get();
+            // Log::info("Users fetched: " . $users->count());
+
             // Extract device tokens for Firebase notifications
             $firebaseTokens = $users->pluck('ClientDeviceToken')->toArray();
-            $SERVER_API_KEY = env('FCM_SERVER_KEY');
+            // Log::info("Firebase tokens: " . json_encode($firebaseTokens));
+
+            $SERVER_API_KEY = env('FCM_SERVER_API_KEY');
             $body = 'Please send the contract before 14 days from your registration date.';
             $title = 'Reminder';
             $data = [
@@ -64,8 +49,10 @@ class SendNotifications extends Command
                 ]
             ];
             $dataString = json_encode($data);
-            // Setup headers for the request
 
+            // Log::info("Notification data prepared: " . $dataString);
+
+            // Setup headers for the request
             $headers = [
                 'Authorization: key=' . $SERVER_API_KEY,
                 'Content-Type: application/json',
@@ -82,6 +69,7 @@ class SendNotifications extends Command
 
             // Execute the cURL session
             $response = curl_exec($ch);
+            // Log::info("cURL response: " . $response);
 
             // Check if cURL request was successful
             if ($response === false) {
@@ -93,6 +81,7 @@ class SendNotifications extends Command
 
             // Decode the JSON response
             $responseData = json_decode($response, true);
+            // Log::info("Decoded response: " . json_encode($responseData));
 
             // Handle response from FCM
             if (isset($responseData['results'])) {
@@ -100,6 +89,8 @@ class SendNotifications extends Command
                     if (isset($result['message_id'])) {
                         // Notification sent successfully
                         $user = $users[$key];
+                        // Log::info("Notification sent to user ID: " . $user->IDClient);
+
                         // Store notification in database
                         Notification::create([
                             'client_id' => $user->IDClient,
@@ -109,12 +100,14 @@ class SendNotifications extends Command
                     } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
                         // Handle "NotRegistered" error - remove token from your database or list
                         $invalidToken = $firebaseTokens[$key];
+                        Log::warning("NotRegistered error for token: " . $invalidToken);
                         Client::where('ClientDeviceToken', $invalidToken)->update(['ClientDeviceToken' => null]);
                     }
                 }
             }
 
             curl_close($ch);
+            // Log::info("Notification process completed.");
         } catch (\Exception $e) {
             Log::error("Exception occurred: " . $e->getMessage());
             return response()->json(['error' => 'Something went wrong.'], 500);

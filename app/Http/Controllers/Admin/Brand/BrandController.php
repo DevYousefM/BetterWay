@@ -771,6 +771,7 @@ class BrandController extends Controller
 
         $Desc = "Brand Contract Added";
         ActionBackLog($Admin->IDUser, $BrandContract->IDBrandContract, "ADD_BRAND_CONTRACT", $Desc);
+        CompanyLedger(21, $BrandContract->BrandContractAmount, "Brand Contract Added For " . $Brand->BrandNameEn, "MANUAL", "CREDIT");
         return RespondWithSuccessRequest(8);
     }
 
