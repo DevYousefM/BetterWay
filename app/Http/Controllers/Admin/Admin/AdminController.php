@@ -3007,6 +3007,10 @@ class AdminController extends Controller
         }
         if ($CompanyLedgerProcess) {
             $CompanyLedger = $CompanyLedger->where("companyledger.CompanyLedgerProcess", $CompanyLedgerProcess);
+            
+            if ($CompanyLedgerProcess == "DEBIT") {
+                $CompanyLedger = $CompanyLedger->where("companyledger.IDClient", 1);
+            }
         }
         if ($CompanyLedgerType) {
             $CompanyLedger = $CompanyLedger->where("companyledger.CompanyLedgerType", $CompanyLedgerType);
