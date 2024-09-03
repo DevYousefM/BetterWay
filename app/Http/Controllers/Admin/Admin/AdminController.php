@@ -683,6 +683,9 @@ class AdminController extends Controller
     public function CountryStatus($IDCountry)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $Country = Country::find($IDCountry);
         if (!$Country) {
             return RespondWithBadRequest(1);
@@ -698,6 +701,9 @@ class AdminController extends Controller
     public function CountryAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $CountryNameEn = $request->CountryNameEn;
         $CountryNameAr = $request->CountryNameAr;
         $CountryTimeZone = $request->CountryTimeZone;
@@ -760,6 +766,9 @@ class AdminController extends Controller
     public function CountryEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCountry = $request->IDCountry;
         $CountryNameEn = $request->CountryNameEn;
         $CountryNameAr = $request->CountryNameAr;
@@ -852,6 +861,9 @@ class AdminController extends Controller
     public function CityStatus($IDCity)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $City = City::find($IDCity);
         if (!$City) {
             return RespondWithBadRequest(1);
@@ -867,6 +879,9 @@ class AdminController extends Controller
     public function CityAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCountry = $request->IDCountry;
         $CityNameEn = $request->CityNameEn;
         $CityNameAr = $request->CityNameAr;
@@ -932,6 +947,9 @@ class AdminController extends Controller
     public function CityEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCity = $request->IDCity;
         $IDCountry = $request->IDCountry;
         $CityNameEn = $request->CityNameEn;
@@ -1026,6 +1044,9 @@ class AdminController extends Controller
     public function AreaStatus($IDArea)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $Area = Area::find($IDArea);
         if (!$Area) {
             return RespondWithBadRequest(1);
@@ -1041,6 +1062,9 @@ class AdminController extends Controller
     public function AreaAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCity = $request->IDCity;
         $AreaNameEn = $request->AreaNameEn;
         $AreaNameAr = $request->AreaNameAr;
@@ -1104,6 +1128,9 @@ class AdminController extends Controller
     public function AreaEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDArea = $request->IDArea;
         $IDCity = $request->IDCity;
         $AreaNameEn = $request->AreaNameEn;
@@ -1191,6 +1218,9 @@ class AdminController extends Controller
     public function CategoryStatus($IDCategory)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $Category = Category::find($IDCategory);
         if (!$Category) {
             return RespondWithBadRequest(1);
@@ -1206,6 +1236,9 @@ class AdminController extends Controller
     public function CategoryAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $CategoryNameEn = $request->CategoryNameEn;
         $CategoryNameAr = $request->CategoryNameAr;
         $CategoryLogo = $request->CategoryLogo;
@@ -1279,6 +1312,9 @@ class AdminController extends Controller
     public function CategoryEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCategory = $request->IDCategory;
         $CategoryNameEn = $request->CategoryNameEn;
         $CategoryNameAr = $request->CategoryNameAr;
@@ -1402,6 +1438,9 @@ class AdminController extends Controller
     public function SubCategoryStatus($IDSubCategory)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $SubCategory = SubCategory::find($IDSubCategory);
         if (!$SubCategory) {
             return RespondWithBadRequest(1);
@@ -1417,6 +1456,9 @@ class AdminController extends Controller
     public function SubCategoryAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCategory = $request->IDCategory;
         $SubCategoryNameEn = $request->SubCategoryNameEn;
         $SubCategoryNameAr = $request->SubCategoryNameAr;
@@ -1491,6 +1533,9 @@ class AdminController extends Controller
     public function SubCategoryEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDSubCategory = $request->IDSubCategory;
         $SubCategoryNameEn = $request->SubCategoryNameEn;
         $SubCategoryNameAr = $request->SubCategoryNameAr;
@@ -1615,6 +1660,9 @@ class AdminController extends Controller
     public function AdvertisementStatus($IDAdvertisement)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $Advertisement = Advertisement::find($IDAdvertisement);
         if (!$Advertisement) {
             return RespondWithBadRequest(1);
@@ -1702,6 +1750,9 @@ class AdminController extends Controller
     public function AdvertisementEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDAdvertisement = $request->IDAdvertisement;
         $IDLink = $request->IDLink;
         $AdvertisementStartDate = $request->AdvertisementStartDate;
@@ -1825,8 +1876,7 @@ class AdminController extends Controller
     public function GeneralSettingEdit(Request $request)
     {
         $Admin = auth('user')->user();
-        $User = auth('user')->user();
-        if (!$User) {
+        if (!$Admin) {
             return RespondWithBadRequest(10);
         }
 
@@ -1908,6 +1958,9 @@ class AdminController extends Controller
     public function SocialMediaStatus($IDSocialMedia)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $SocialMedia = SocialMedia::find($IDSocialMedia);
         if (!$SocialMedia) {
             return RespondWithBadRequest(1);
@@ -1924,6 +1977,9 @@ class AdminController extends Controller
     public function SocialMediaAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $SocialMediaName = $request->SocialMediaName;
         if (!$SocialMediaName) {
             return RespondWithBadRequest(1);
@@ -1977,6 +2033,9 @@ class AdminController extends Controller
     public function SocialMediaEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDSocialMedia = $request->IDSocialMedia;
         $SocialMediaName = $request->SocialMediaName;
         $Desc = "";
@@ -2065,6 +2124,9 @@ class AdminController extends Controller
     public function EventStatus(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDEvent = $request->IDEvent;
         $EventStatus = $request->EventStatus;
         if (!$IDEvent) {
@@ -2099,6 +2161,10 @@ class AdminController extends Controller
     public function EventAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
+
         $IDArea = $request->IDArea;
         $EventTitleEn = $request->EventTitleEn;
         $EventTitleAr = $request->EventTitleAr;
@@ -2305,6 +2371,9 @@ class AdminController extends Controller
     public function EventEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDEvent = $request->IDEvent;
         $IDArea = $request->IDArea;
         $EventTitleEn = $request->EventTitleEn;
@@ -2461,6 +2530,9 @@ class AdminController extends Controller
     public function EventGalleryRemove($IDEventGallery)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $EventGallery = EventGallery::find($IDEventGallery);
         if (!$EventGallery) {
             return RespondWithBadRequest(1);
@@ -2482,6 +2554,9 @@ class AdminController extends Controller
     public function EventAttendeeRemove($IDEventAttendee)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $EventAttendee = EventAttendee::find($IDEventAttendee);
         if (!$EventAttendee) {
             return RespondWithBadRequest(1);
@@ -2562,6 +2637,9 @@ class AdminController extends Controller
     public function ToolStatus(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDTool = $request->IDTool;
         $ToolStatus = $request->ToolStatus;
         if (!$IDTool) {
@@ -2592,6 +2670,9 @@ class AdminController extends Controller
     public function ToolAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $ToolTitleEn = $request->ToolTitleEn;
         $ToolTitleAr = $request->ToolTitleAr;
         $ToolDescEn = $request->ToolDescEn;
@@ -2756,6 +2837,9 @@ class AdminController extends Controller
     public function ToolEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDTool = $request->IDTool;
         $ToolTitleEn = $request->ToolTitleEn;
         $ToolTitleAr = $request->ToolTitleAr;
@@ -2866,6 +2950,9 @@ class AdminController extends Controller
     public function ToolGalleryRemove($IDToolGallery)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $ToolGallery = ToolGallery::find($IDToolGallery);
         if (!$ToolGallery) {
             return RespondWithBadRequest(1);
@@ -2901,6 +2988,9 @@ class AdminController extends Controller
     public function NationalityAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $NationalityNameEn = $request->NationalityNameEn;
         $NationalityNameAr = $request->NationalityNameAr;
 
@@ -2948,6 +3038,9 @@ class AdminController extends Controller
     public function NationalityEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDNationality = $request->IDNationality;
         $NationalityNameEn = $request->NationalityNameEn;
         $NationalityNameAr = $request->NationalityNameAr;
@@ -3046,6 +3139,9 @@ class AdminController extends Controller
     public function CompanyLedgerAdd(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDSubCategory = $request->IDSubCategory;
         $CompanyLedgerType = $request->CompanyLedgerType;
         $CompanyLedgerAmount = $request->CompanyLedgerAmount;
@@ -3107,6 +3203,9 @@ class AdminController extends Controller
     public function CompanyLedgerEdit(Request $request)
     {
         $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
         $IDCompanyLedger = $request->IDCompanyLedger;
         $IDSubCategory = $request->IDSubCategory;
         $CompanyLedgerType = $request->CompanyLedgerType;
