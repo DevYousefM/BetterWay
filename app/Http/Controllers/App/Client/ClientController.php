@@ -3496,7 +3496,6 @@ class ClientController extends Controller
         if (!$PlanProduct) {
             return RespondWithBadRequest(1);
         }
-
         if ($PlanProduct->PlanProductPrice > $Client->ClientBalance) {
             return RespondWithBadRequest(26);
         }
@@ -3616,7 +3615,7 @@ class ClientController extends Controller
             $Counter++;
         }
 
-        CompanyLedger($IDClient, $PlanProduct->PlanProductPrice, "Product Bought by Client " . $Client->ClientName, "AUTO", "CREDIT");
+        CompanyLedger(21, $PlanProduct->PlanProductPrice, "Product Bought by Client " . $Client->ClientName, "AUTO", "CREDIT");
 
         $Client = Client::find($IDClient);
         $Client->ClientStatus = "ACTIVE";
