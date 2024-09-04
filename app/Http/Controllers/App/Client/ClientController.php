@@ -4491,4 +4491,19 @@ class ClientController extends Controller
         );
         return $Response;
     }
+    public function ClientNotifications(Request $request)
+    {
+        $Client = auth('client')->user();
+        if (!$Client) {
+            return RespondWithBadRequest(10);
+        }
+        $APICode = APICode::where('IDAPICode', 8)->first();
+        $Response = array(
+            'Success' => true,
+            'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
+            'ApiCode' => $APICode->IDApiCode,
+            'Response' => $Client->notifications,
+        );
+        return $Response;
+    }
 }

@@ -26,6 +26,7 @@ Route::middleware('clientapi')->prefix('client')->group(function () {
     Route::get('/logout', [ClientController::class, 'ClientLogout']);
     Route::post('/language/change', [ClientController::class, 'ChangeLanguage']);
     Route::post('/securitycode/change', [ClientController::class, 'UpdateSecurityCode']);
+    Route::post('/notifications', [ClientController::class, 'ClientNotifications']);
 
     Route::get('/vouchers', [ClientController::class, 'Vouchers']);
     Route::post('/vouchers/buy', [ClientController::class, 'BuyVoucher']);

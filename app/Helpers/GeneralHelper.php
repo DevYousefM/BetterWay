@@ -29,6 +29,7 @@ use LaravelFCM\Message\PayloadNotificationBuilder;
 use Illuminate\Support\Facades\Response;
 use LaravelFCM\Facades\FCM;
 use App\Notification;
+use App\Notifications\NotificationForClient;
 use App\V1\Payment\CompanyLedger;
 use Carbon\Carbon;
 
@@ -844,65 +845,12 @@ function extractIDClientsFromJson($jsonString)
 }
 function sendFirebaseNotification($Client, $dataPayload, $title, $body)
 {
-    // Log::info('Client: ' . $Client);
-    $firebaseToken = $Client->ClientDeviceToken;
-
-    $SERVER_API_KEY = env("FCM_SERVER_API_KEY");
-    // Log::info('FCM_SERVER_API_KEY: ' . $SERVER_API_KEY);
-
     $data = [
-        "to" => $firebaseToken,
-        "notification" => [
-            "title" => $title,
-            "body" => $body,
-        ],
+        "title" => $title,
+        "body" => $body,
         "data" => $dataPayload,
     ];
-    // Log::info("data: " . json_encode($data));
-    $dataString = json_encode($data, JSON_UNESCAPED_UNICODE);
-    $headers = [
-        'Authorization: key=' . $SERVER_API_KEY,
-        'Content-Type: application/json; charset=UTF-8',
-    ];
-
-    $ch = curl_init();
-
-    curl_setopt($ch, CURLOPT_URL, 'https://fcm.googleapis.com/fcm/send');
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
-    $response = curl_exec($ch);
-
-    if ($response === false) {
-        $error = curl_error($ch);
-        curl_close($ch);
-        return response()->json(['error' => $error], 500);
-    }
-
-    $responseData = json_decode($response, true);
-    Log::info("responseData: " . $response);
-
-    if (isset($responseData['results'])) {
-        foreach ($responseData['results'] as $key => $result) {
-            if (isset($result['message_id'])) {
-                Notification::create([
-                    'client_id' => $Client->IDClient,
-                    'title' => $title,
-                    'body' => json_encode($dataPayload),
-                    'created_at' => Carbon::now(),
-                ]);
-            } elseif (isset($result['error']) && $result['error'] === 'NotRegistered') {
-                Log::info("NotRegistered error: " . $result['error']);
-                Log::info("Token: " . $firebaseToken);
-                Log::info("Result: " . json_encode($result));
-                // Client::where('ClientDeviceToken', $firebaseToken)->update(['ClientDeviceToken' => null]);
-            }
-        }
-    }
-
-    curl_close($ch);
+    $Client->notify(new NotificationForClient($title, $data));
 }
 function CompanyLedger($IDSubCategory, $Amount, $Description, $Process, $Type)
 {
