@@ -2288,13 +2288,15 @@ class AdminController extends Controller
         if ($EventVideos) {
             if (count($EventVideos)) {
                 foreach ($EventVideos as $Video) {
-                    if ($Video == "") continue;
-                    $EventVideo = YoutubeEmbedUrl($Video);
-                    $EventGalleryRow = new EventGallery;
-                    $EventGalleryRow->IDEvent = $Event->IDEvent;
-                    $EventGalleryRow->EventGalleryPath = $EventVideo;
-                    $EventGalleryRow->EventGalleryType = "VIDEO";
-                    $EventGalleryRow->save();
+                    if ($Video != "") {
+                        // $EventVideo = YoutubeEmbedUrl($Video);
+                        $EventVideo = $Video;
+                        $EventGalleryRow = new EventGallery;
+                        $EventGalleryRow->IDEvent = $Event->IDEvent;
+                        $EventGalleryRow->EventGalleryPath = $EventVideo;
+                        $EventGalleryRow->EventGalleryType = "VIDEO";
+                        $EventGalleryRow->save();
+                    }
                 }
             }
         }
@@ -2512,12 +2514,15 @@ class AdminController extends Controller
         if ($EventVideos) {
             if (count($EventVideos)) {
                 foreach ($EventVideos as $Video) {
-                    $EventVideo = YoutubeEmbedUrl($Video);
-                    $EventGallery = new EventGallery;
-                    $EventGallery->IDEvent = $Event->IDEvent;
-                    $EventGallery->EventGalleryPath = $EventVideo;
-                    $EventGallery->EventGalleryType = "VIDEO";
-                    $EventGallery->save();
+                    if ($Video != "") {
+                        // $EventVideo = YoutubeEmbedUrl($Video);
+                        $EventVideo = $Video;
+                        $EventGallery = new EventGallery;
+                        $EventGallery->IDEvent = $Event->IDEvent;
+                        $EventGallery->EventGalleryPath = $EventVideo;
+                        $EventGallery->EventGalleryType = "VIDEO";
+                        $EventGallery->save();
+                    }
                 }
             }
             $Desc = $Desc . ", Event Videos Added";
@@ -2760,13 +2765,16 @@ class AdminController extends Controller
         if ($ToolVideos) {
             if (count($ToolVideos)) {
                 foreach ($ToolVideos as $Video) {
-                    $ToolVideo = YoutubeEmbedUrl($Video);
-                    $ToolGalleryRow = new ToolGallery;
-                    $ToolGalleryRow->IDTool = $Tool->IDTool;
-                    $ToolGalleryRow->ToolGalleryPath = $ToolVideo;
-                    $ToolGalleryRow->ToolGalleryClass = "COVER";
-                    $ToolGalleryRow->ToolGalleryType = "VIDEO";
-                    $ToolGalleryRow->save();
+                    if ($Video != "") {
+                        // $ToolVideo = YoutubeEmbedUrl($Video);
+                        $ToolVideo = $Video;
+                        $ToolGalleryRow = new ToolGallery;
+                        $ToolGalleryRow->IDTool = $Tool->IDTool;
+                        $ToolGalleryRow->ToolGalleryPath = $ToolVideo;
+                        $ToolGalleryRow->ToolGalleryClass = "COVER";
+                        $ToolGalleryRow->ToolGalleryType = "VIDEO";
+                        $ToolGalleryRow->save();
+                    }
                 }
             }
         }
@@ -2931,13 +2939,16 @@ class AdminController extends Controller
         if ($ToolVideos) {
             if (count($ToolVideos)) {
                 foreach ($ToolVideos as $Video) {
-                    $ToolVideo = YoutubeEmbedUrl($Video);
-                    $ToolGalleryRow = new ToolGallery;
-                    $ToolGalleryRow->IDTool = $Tool->IDTool;
-                    $ToolGalleryRow->ToolGalleryPath = $ToolVideo;
-                    $ToolGalleryRow->ToolGalleryClass = "COVER";
-                    $ToolGalleryRow->ToolGalleryType = "VIDEO";
-                    $ToolGalleryRow->save();
+                    if ($Video != "") {
+                        // $ToolVideo = YoutubeEmbedUrl($Video);
+                        $ToolVideo = $Video;
+                        $ToolGalleryRow = new ToolGallery;
+                        $ToolGalleryRow->IDTool = $Tool->IDTool;
+                        $ToolGalleryRow->ToolGalleryPath = $ToolVideo;
+                        $ToolGalleryRow->ToolGalleryClass = "COVER";
+                        $ToolGalleryRow->ToolGalleryType = "VIDEO";
+                        $ToolGalleryRow->save();
+                    }
                 }
             }
             $Desc = $Desc . ", Tool videos were added";
