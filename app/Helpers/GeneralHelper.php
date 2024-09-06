@@ -32,6 +32,7 @@ use App\Notification;
 use App\Notifications\NotificationForClient;
 use App\V1\Payment\CompanyLedger;
 use Carbon\Carbon;
+use Google\Client as GoogleClient;
 
 function RespondWithBadRequest($Code, $Variable = Null)
 {
@@ -574,109 +575,6 @@ function SplitForwardList($entities)
     return $forwardList;
 }
 
-function FirebaseDownStreamNotify($forwardList, $payload)
-{
-
-    if (!empty($forwardList['forwardList'])) {
-        if ($payload['IDTemp'] == 0) {
-            //private notification (diff for each iteration) needs to create one in ClientNotification table
-            $ClientNotification = new ClientNotification;
-            $ClientNotification->TitleAr = $payload['notifyTitleAr'];
-            $ClientNotification->MessageAr = $payload['notifyBodyAr'];
-            $ClientNotification->TitleEn = $payload['notifyTitleEn'];
-            $ClientNotification->MessageEn = $payload['notifyBodyEn'];
-            $ClientNotification->NotificationType = 1;
-            if (array_key_exists('IDAgent', $payload)) {
-                $ClientNotification->IDAgent = $payload['IDAgent'];
-            }
-            $ClientNotification->save();
-        }
-    }
-
-    $optionBuilder = new OptionsBuilder();
-    $optionBuilder->setTimeToLive(60 * 20);
-    $optionBuilder->setContentAvailable(1);
-    $option = $optionBuilder->build();
-
-    $FilePath = Null;
-    if (array_key_exists('FilePath', $payload)) {
-        $FilePath = $payload['FilePath'];
-    }
-
-    $dataBuilder = new PayloadDataBuilder();
-    $dataBuilder->addData(['NotificationType' => $payload['NotificationType'], 'Screen' => $payload['Screen'], 'IDData' => $payload['IDData'], 'DataType' => $payload['DataType'], 'FilePath' => $FilePath, 'Message' => $payload['notifyBodyEn']]);
-    $data = $dataBuilder->build();
-
-    $notificationEn = null;
-    $notificationAr = null;
-    if ($payload['notifyAllowed']) {
-        $notificationBuilderEn = new PayloadNotificationBuilder($payload['notifyTitleEn']);
-        $notificationBuilderEn->setBody($payload['notifyBodyEn'])
-            ->setSound($payload['notifySound']);
-        $notificationBuilderAr = new PayloadNotificationBuilder($payload['notifyTitleAr']);
-        $notificationBuilderAr->setBody($payload['notifyBodyAr'])
-            ->setSound($payload['notifySound']);
-        $notificationEn = $notificationBuilderEn->build();
-        $notificationAr = $notificationBuilderAr->build();
-    }
-    $downstreamResponseEn = null;
-    $downstreamResponseAr = null;
-    if (count($forwardList['forwardTokenEn']) != 0) {
-        $downstreamResponseEn = FCM::sendTo($forwardList['forwardTokenEn'], $option, $notificationEn, $data);
-    }
-    if (count($forwardList['forwardTokenAr']) != 0) {
-        $downstreamResponseAr = FCM::sendTo($forwardList['forwardTokenAr'], $option, $notificationAr, $data);
-    }
-
-    if ($payload['notifyAllowed']) {
-
-        $forwardListResponseFail = [];
-        if ($downstreamResponseEn) {
-            foreach ($downstreamResponseEn->tokensToDelete() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach ($downstreamResponseEn->tokensToRetry() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach ($downstreamResponseEn->tokensToModify() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach (array_keys($downstreamResponseEn->tokensWithError()) as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-        }
-        if ($downstreamResponseAr) {
-            foreach ($downstreamResponseAr->tokensToDelete() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach ($downstreamResponseAr->tokensToRetry() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach ($downstreamResponseAr->tokensToModify() as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-            foreach (array_keys($downstreamResponseAr->tokensWithError()) as $token) {
-                $forwardListResponseFail[$token] = true;
-            }
-        }
-    }
-
-    if (!empty($forwardList['forwardList'])) {
-        foreach ($forwardList['forwardList'] as $IDClient => $Token) {
-            $ClientNotificationDetail = new ClientNotificationDetail;
-            $ClientNotificationDetail->IDClientNotification = $ClientNotification->IDClientNotification;
-            $ClientNotificationDetail->IDClient = $IDClient;
-            if ($Token) {
-                $ClientNotificationDetail->NotificationDetailStatus = !isset($forwardListResponseFail[$Token]);
-            } else {
-                $ClientNotificationDetail->NotificationDetailStatus = 0;
-            }
-            $ClientNotificationDetail->save();
-        }
-    }
-}
-
-
 function SaveImage($File, $FolderName, $ID)
 {
     return "uploads/" . Storage::disk('uploads')->put($FolderName . "/" . $ID, $File);
@@ -845,12 +743,76 @@ function extractIDClientsFromJson($jsonString)
 }
 function sendFirebaseNotification($Client, $dataPayload, $title, $body)
 {
+    Log::info('HERE');
     $data = [
         "title" => $title,
         "body" => $body,
         "data" => $dataPayload,
     ];
     $Client->notify(new NotificationForClient($title, $data));
+
+    // try {
+    //     $fcm = $Client->ClientDeviceToken;
+
+    //     if (!$fcm) {
+    //         Log::info('No FCM token found for the client.');
+    //         return;
+    //     }
+
+    //     $projectId = config('services.fcm.project_id');
+    //     $credentialsFilePath = Storage::path(env("FIREBASE_CREDENTIALS"));
+    //     Log::info('Credentials file path: ' . $credentialsFilePath);
+
+    //     $GoogleClient = new GoogleClient();
+    //     $GoogleClient->setAuthConfig($credentialsFilePath);
+    //     $GoogleClient->addScope('https://www.googleapis.com/auth/firebase.messaging');
+    //     $GoogleClient->fetchAccessTokenWithAssertion();
+    //     $token = $GoogleClient->getAccessToken();
+
+    //     $access_token = $token['access_token'];
+
+    //     $headers = [
+    //         "Authorization: Bearer $access_token",
+    //         'Content-Type: application/json'
+    //     ];
+
+    //     $data = [
+    //         "message" => [
+    //             "token" => $fcm,
+    //             "notification" => [
+    //                 "title" => $title,
+    //                 "body" => $body,
+    //             ],
+    //         ]
+    //     ];
+    //     $payload = json_encode($data);
+
+    //     Log::debug('FCM payload:', ['payload' => $payload]);
+
+    //     $ch = curl_init();
+    //     curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
+    //     curl_setopt($ch, CURLOPT_POST, true);
+    //     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    //     curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    //     curl_setopt($ch, CURLOPT_VERBOSE, true);
+
+    //     $response = curl_exec($ch);
+    //     $err = curl_error($ch);
+
+    //     Log::debug('FCM response:', ['response' => $response]);
+    //     if ($err) {
+    //         Log::error('cURL error:', ['error' => $err]);
+    //     }
+
+    //     curl_close($ch);
+
+    //     Log::info('-------FCM notification sent successfully---------');
+    // } catch (Exception $e) {
+    //     Log::error('Exception occurred:', ['exception' => $e->getMessage()]);
+    // }
+
 }
 function CompanyLedger($IDSubCategory, $Amount, $Description, $Process, $Type)
 {

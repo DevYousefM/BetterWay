@@ -163,7 +163,6 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-        LaravelFCM\FCMServiceProvider::class,
         Paytabscom\Laravel_paytabs\PaypageServiceProvider::class,
 
         /*
