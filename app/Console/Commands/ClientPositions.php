@@ -22,6 +22,7 @@ class ClientPositions extends Command
 
     public function handle()
     {
+        Log::info("Start Positions Check");
         $Positions = Position::all();
         foreach ($Positions as $position) {
 
@@ -84,6 +85,8 @@ class ClientPositions extends Command
                         'IDPosition' => $position->IDPosition,
                     ];
                 })->unique('IDClient')->values();
+                // Log::info($simplifiedClients);
+
                 foreach ($simplifiedClients as $clientData) {
                     PositionsForClients::firstOrCreate(
                         ['IDClient' => $clientData['IDClient'], 'IDPosition' => $clientData['IDPosition']],
@@ -92,6 +95,7 @@ class ClientPositions extends Command
                 }
             }
         }
+        Log::info("End Positions Check");
         return 0;
     }
     function getFilteredByReferral($clients, $intervalMinutes, $referralNumber)
@@ -99,11 +103,12 @@ class ClientPositions extends Command
         if ($referralNumber > 0) {
 
             return $clients->filter(function ($client) use ($intervalMinutes, $referralNumber) {
+                // Log::info($client->ClientName);
                 $now = Carbon::now();
                 $recentReferrals = $client->referrals->filter(function ($referral) use ($now, $intervalMinutes) {
                     return Carbon::parse($referral->created_at)->diffInMinutes($now) <= $intervalMinutes;
                 });
-
+                // Log::info("recentReferrals: " . $recentReferrals->count());
                 $sortedReferrals = $recentReferrals->sortBy('created_at');
 
                 foreach ($sortedReferrals as $referral) {
@@ -178,10 +183,11 @@ class ClientPositions extends Command
     {
         return $clients->filter(function ($client) use ($intervalMinutes, $personsNumber) {
             $now = Carbon::now();
-
+            // Log::info($client->ClientName);
             $recentPersons = $client->persons->filter(function ($person) use ($now, $intervalMinutes) {
                 return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
+            // Log::info("recentPersons: " . $recentPersons->count());
 
             $sortedPersons = $recentPersons->sortBy('created_at');
 
@@ -204,7 +210,7 @@ class ClientPositions extends Command
     {
         return $clients->filter(function ($client) use ($intervalMinutes, $rightPersonsNumber, $leftPersonsNumber) {
             $now = Carbon::now();
-
+            // Log::info($client->ClientName);
             $recentRightPersons = $client->right_persons->filter(function ($person) use ($now, $intervalMinutes) {
                 return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
@@ -212,7 +218,8 @@ class ClientPositions extends Command
             $recentLeftPersons = $client->left_persons->filter(function ($person) use ($now, $intervalMinutes) {
                 return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
-
+            // Log::info("recentRightPersons: " . $recentRightPersons->count());
+            // Log::info("recentLeftPersons: " . $recentLeftPersons->count());
             if ($recentRightPersons->count() >= $rightPersonsNumber && $recentLeftPersons->count() >= $leftPersonsNumber) {
                 return true;
             }
@@ -223,11 +230,12 @@ class ClientPositions extends Command
     function getFilteredByTotalPoints($clients, $intervalMinutes, $pointsNumber)
     {
         return $clients->filter(function ($client) use ($intervalMinutes, $pointsNumber) {
+            // Log::info($client->ClientName);
             $now = Carbon::now();
             $recentPointsHistory = $client->points_history->filter(function ($point) use ($now, $intervalMinutes, $client) {
                 return Carbon::parse($point->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
-
+            // Log::info("recentPointsHistory: " . $recentPointsHistory->count());
             $pointsCount = $recentPointsHistory->sum('ClientLedgerPoints');
 
             return $pointsCount >= $pointsNumber;
@@ -250,11 +258,12 @@ class ClientPositions extends Command
     {
         return $clients->filter(function ($client) use ($intervalMinutes, $rightPointsNumber, $leftPointsNumber) {
             $now = Carbon::now();
+            // Log::info($client->ClientName);
 
             $recentPointsHistory = $client->points_history->filter(function ($point) use ($now, $intervalMinutes) {
                 return Carbon::parse($point->created_at)->diffInMinutes($now) <= $intervalMinutes;
             });
-
+            // Log::info("recentPointsHistory: " . $recentPointsHistory->count());
             $sortedPointsHistory = $recentPointsHistory->sortBy('created_at');
 
             foreach ($sortedPointsHistory as $point) {

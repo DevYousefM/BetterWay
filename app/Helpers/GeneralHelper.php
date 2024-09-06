@@ -363,7 +363,7 @@ function AdjustLedger($Client, $Amount, $RewardPoints, $ReferralPoints, $UplineP
                         $Parent_Client->ClientRightPoints = $Parent_Client->ClientRightPoints + $PlanProductPoints;
                         $Parent_Client->ClientTotalPoints = $Parent_Client->ClientTotalPoints + $PlanProductPoints;
                     }
-                    PointsLedger($PlanProductPoints, $Client, $ChildIDClient, $ChildPosition, $BatchNumber);
+                    PointsLedger($PlanProductPoints, $Parent_Client, $ChildIDClient, $ChildPosition, $BatchNumber);
                 }
 
                 $Parent_Client->save();

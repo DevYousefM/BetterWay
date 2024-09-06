@@ -16,37 +16,21 @@ use Illuminate\Support\Facades\Log;
 
 class ChequeCycle extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+
     protected $signature = 'dispatch:cheque-cycle';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+
     protected $description = 'dispatch cheque cycle';
 
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
+
     public function handle()
     {
+        Log::info("Cycle started");
         $CurrentTime = new DateTime('now');
         $Day = strtoupper($CurrentTime->format('l'));
 
@@ -77,7 +61,6 @@ class ChequeCycle extends Command
                     $RightNetwork = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkAgency", $Counter)->where("PlanNetworkPosition", "RIGHT")->first();
 
                     if ($LeftNetwork) {
-
                         $IDClient = $LeftNetwork->IDClient;
                         $Key = $IDClient . "-";
                         $SecondKey = $IDClient . "-";
@@ -93,6 +76,7 @@ class ChequeCycle extends Command
 
                         $LeftNetworkNumber = $AllNetwork->count();
                         $LeftNetwork = $AllNetwork->select("plannetwork.IDClient")->get()->pluck("IDClient")->toArray();
+
                         if (!in_array($IDClient, $PreviousNetworkClients)) {
                             array_push($LeftNetwork, $IDClient);
                             $LeftNetworkNumber++;
@@ -128,9 +112,7 @@ class ChequeCycle extends Command
                     if ($RightNetworkNumber > $RightMaxOutNumber) {
                         $RightNetworkNumber = $RightMaxOutNumber;
                     }
-
                     if ($LeftBalanceNumber <= $LeftNetworkNumber && $RightBalanceNumber <= $RightNetworkNumber) {
-
                         $LeftNumber = intdiv($LeftNetworkNumber, $LeftBalanceNumber);
                         $RightNumber = intdiv($RightNetworkNumber, $RightBalanceNumber);
                         if ($LeftNumber <= $RightNumber) {
@@ -152,9 +134,12 @@ class ChequeCycle extends Command
                         $IDClient = $Person->IDClient;
                         $Client = Client::find($IDClient);
 
+                        // Log::info($Client->ClientName);
                         if ($Client->ClientStatus != "ACTIVE") {
                             continue;
                         }
+
+                        // Log::info($ChequeValue);
 
                         $PlanNetworkCheque = new PlanNetworkCheque;
                         $PlanNetworkCheque->IDPlanNetwork = $Person->IDPlanNetwork;
@@ -193,11 +178,13 @@ class ChequeCycle extends Command
                             $PlanNetworkChequeDetail->IDClientNetwork = $RightNetwork[$I];
                             $PlanNetworkChequeDetail->save();
                         }
+                        // Log::info("--------------------------------");
                     }
 
                     $Counter++;
                 }
             }
         }
+        Log::info("Cycle ended");
     }
 }
