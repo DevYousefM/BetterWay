@@ -56,8 +56,8 @@ class BonanzaEnd extends Command
         $Bonanzas = Bonanza::where('BonanzaStatus', 'ACTIVE')->where("BonanzaEndTime", "<", $CurrentTime)->with(['bonanza_brands', 'bonanza_brands.brand'])->get();
 
         foreach ($Bonanzas as $Bonanza) {
-            // $Bonanza->BonanzaStatus = "EXPIRED";
-            // $Bonanza->save();
+            $Bonanza->BonanzaStatus = "EXPIRED";
+            $Bonanza->save();
             foreach ($Clients as $Client) {
                 $IDClient = $Client->IDClient;
 
