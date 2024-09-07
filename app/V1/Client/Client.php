@@ -94,31 +94,37 @@ class Client extends Authenticatable implements JWTSubject
     }
     public function position()
     {
-        if(!$this->IDPosition) return null;
+        if (!$this->IDPosition) return null;
         return $this->hasOne(Position::class, 'IDPosition');
     }
 
     public function getRightPersonsAttribute()
     {
         $IDClient = $this->IDClient;
-        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $IDClient . '%')->where("PlanNetworkPosition", "RIGHT")->get();
+        $GetRightClient = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkPosition", "RIGHT")->first();
+
+        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $GetRightClient->IDClient . '%')->get();
 
         $extractedIDs = [];
         foreach ($records as $record) {
             $extractedIDs[] = $record->IDClient;
         }
+        $extractedIDs[] = $GetRightClient->IDClient;
         $extractedIDs = array_unique($extractedIDs);
         return Client::whereIn('IDClient', $extractedIDs)->get();
     }
     public function getLeftPersonsAttribute()
     {
         $IDClient = $this->IDClient;
-        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $IDClient . '%')->where("PlanNetworkPosition", "LEFT")->get();
+        $GetLeftClient = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkPosition", "LEFT")->first();
+
+        $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $GetLeftClient->IDClient . '%')->get();
 
         $extractedIDs = [];
         foreach ($records as $record) {
             $extractedIDs[] = $record->IDClient;
         }
+        $extractedIDs[] = $GetLeftClient->IDClient;
         $extractedIDs = array_unique($extractedIDs);
         return Client::whereIn('IDClient', $extractedIDs)->get();
     }
