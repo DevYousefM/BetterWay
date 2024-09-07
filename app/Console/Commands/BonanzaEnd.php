@@ -273,8 +273,8 @@ class BonanzaEnd extends Command
         $rightPersonsCount = $this->getFilteredRightPersons($client, $startDate, $endDate)->count();
 
         $leftPersonsCount = $this->getFilteredLeftPersons($client, $startDate, $endDate)->count();
-        Log::info($this->getFilteredRightPersons($client, $startDate, $endDate)->get());
-        Log::info($this->getFilteredLeftPersons($client, $startDate, $endDate)->get());
+        Log::info($this->getFilteredRightPersons($client, $startDate, $endDate));
+        Log::info($this->getFilteredLeftPersons($client, $startDate, $endDate));
         
         Log::info("----------------------------------------");
         Log::info("Persons Right: $rightPersonsCount, Persons Left: $leftPersonsCount");
