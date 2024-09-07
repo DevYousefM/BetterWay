@@ -283,21 +283,22 @@ class BonanzaEnd extends Command
 
     function getFilteredRightPersons($client, $startDate, $endDate)
     {
-        return $client->right_persons->isNotEmpty()
-            ? $client->right_persons->filter(function ($person) use ($startDate, $endDate) {
-                $createdAt = Carbon::parse($person->created_at);
+        return !empty($client->right_persons)
+            ? collect($client->right_persons)->filter(function ($person) use ($startDate, $endDate) {
+                $createdAt = Carbon::parse($person['created_at']);
                 return $createdAt->between($startDate, $endDate);
             })
             : collect();
     }
     function getFilteredLeftPersons($client, $startDate, $endDate)
     {
-        return $client->left_persons->isNotEmpty()
-            ? $client->left_persons->filter(function ($person) use ($startDate, $endDate) {
-                $createdAt = Carbon::parse($person->created_at);
+        return !empty($client->left_persons)
+            ? collect($client->left_persons)->filter(function ($person) use ($startDate, $endDate) {
+                $createdAt = Carbon::parse($person['created_at']);
                 return $createdAt->between($startDate, $endDate);
             })
-            : collect();
+            : collect(); // or return [] if you prefer an array
+
     }
     function checkVisitsNumber($client, $visitsNumber, $StartDate, $EndDate)
     {
