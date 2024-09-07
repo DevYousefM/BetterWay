@@ -297,7 +297,7 @@ class BonanzaEnd extends Command
                 $createdAt = Carbon::parse($person['created_at']);
                 return $createdAt->between($startDate, $endDate);
             })
-            : collect(); // or return [] if you prefer an array
+            : collect();
 
     }
     function checkVisitsNumber($client, $visitsNumber, $StartDate, $EndDate)

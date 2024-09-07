@@ -211,13 +211,14 @@ class ClientPositions extends Command
         return $clients->filter(function ($client) use ($intervalMinutes, $rightPersonsNumber, $leftPersonsNumber) {
             $now = Carbon::now();
             // Log::info($client->ClientName);
-            $recentRightPersons = $client->right_persons->filter(function ($person) use ($now, $intervalMinutes) {
-                return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
+            $recentRightPersons = !empty($client->right_persons)
+                ? $client->right_persons->filter(function ($person) use ($now, $intervalMinutes) {
+                    return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
+                }) : collect();
 
-            $recentLeftPersons = $client->left_persons->filter(function ($person) use ($now, $intervalMinutes) {
+            $recentLeftPersons = !empty($client->left_persons) ? collect($client->left_persons)->filter(function ($person) use ($now, $intervalMinutes) {
                 return Carbon::parse($person->created_at)->diffInMinutes($now) <= $intervalMinutes;
-            });
+            }) : collect();
             // Log::info("recentRightPersons: " . $recentRightPersons->count());
             // Log::info("recentLeftPersons: " . $recentLeftPersons->count());
             if ($recentRightPersons->count() >= $rightPersonsNumber && $recentLeftPersons->count() >= $leftPersonsNumber) {
