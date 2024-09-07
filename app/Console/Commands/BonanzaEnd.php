@@ -63,15 +63,15 @@ class BonanzaEnd extends Command
 
                 $StartDate = $Bonanza->BonanzaStartTime;
                 $EndDate = $Bonanza->BonanzaEndTime;
-                // Log::info("BON: $Bonanza->BonanzaTitleEn");
-                // Log::info("C: $Client->ClientName");
+                Log::info("BON: $Bonanza->BonanzaTitleEn");
+                Log::info("C: $Client->ClientName");
 
                 $BonanzaLeftPoints = $Bonanza->BonanzaLeftPoints;
                 $BonanzaRightPoints = $Bonanza->BonanzaRightPoints;
                 if ($BonanzaLeftPoints > 0 && $BonanzaRightPoints > 0) {
                     if (!$this->checkBalancePoints($Client, $BonanzaLeftPoints, $BonanzaRightPoints, $StartDate, $EndDate)) {
-                        // Log::info("B Balance Points");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Balance Points");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -80,8 +80,8 @@ class BonanzaEnd extends Command
                 $BonanzaTotalPoints = $Bonanza->BonanzaTotalPoints;
                 if ($BonanzaTotalPoints > 0) {
                     if (!$this->checkTotalPoints($Client, $BonanzaTotalPoints, $StartDate, $EndDate)) {
-                        // Log::info("B Total Points");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Total Points");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -91,8 +91,8 @@ class BonanzaEnd extends Command
                 $BonanzaRightPersons = $Bonanza->BonanzaRightPersons;
                 if ($BonanzaLeftPersons > 0 && $BonanzaRightPersons > 0) {
                     if (!$this->checkBalancePersons($Client, $BonanzaLeftPersons, $BonanzaRightPersons, $StartDate, $EndDate)) {
-                        // Log::info("B Balance Persons");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Balance Persons");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -101,8 +101,8 @@ class BonanzaEnd extends Command
                 $BonanzaTotalPersons = $Bonanza->BonanzaTotalPersons;
                 if ($BonanzaTotalPersons > 0) {
                     if (!$this->checkTotalPersons($Client, $BonanzaTotalPersons, $StartDate, $EndDate)) {
-                        // Log::info("B Total Persons");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Total Persons");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -112,8 +112,8 @@ class BonanzaEnd extends Command
 
                 if ($BonanzaVisitNumber > 0) {
                     if (!$this->checkVisitsNumber($Client, $BonanzaVisitNumber, $StartDate, $EndDate)) {
-                        // Log::info("B Visits Number");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Visits Number");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -122,8 +122,8 @@ class BonanzaEnd extends Command
                 $IsBonanzaUniqueVisits = $Bonanza->IsBonanzaUniqueVisits;
                 if ($IsBonanzaUniqueVisits) {
                     if (!$this->checkUniqueVisits($Client, $Bonanza, $StartDate, $EndDate)) {
-                        // Log::info("B Unique Visits");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Unique Visits");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -132,8 +132,8 @@ class BonanzaEnd extends Command
                 $BonanzaReferralNumber = $Bonanza->BonanzaReferralNumber;
                 if ($BonanzaReferralNumber > 0) {
                     if (!$this->checkReferralsNumber($Client, $BonanzaReferralNumber, $StartDate, $EndDate)) {
-                        // Log::info("B Referrals Number");
-                        // Log::info("----------------------------------------");
+                        Log::info("B Referrals Number");
+                        Log::info("----------------------------------------");
 
                         continue;
                     }
@@ -143,9 +143,9 @@ class BonanzaEnd extends Command
                     continue;
                 }
 
-                // Log::info("Arrived");
-                // Log::info("Arrived:" . $Client->ClientName);
-                // Log::info("----------------------------------------");
+                Log::info("Arrived");
+                Log::info("Arrived:" . $Client->ClientName);
+                Log::info("----------------------------------------");
                 $ClientBonanza = new ClientBonanza;
                 $ClientBonanza->IDBonanza = $Bonanza->IDBonanza;
                 $ClientBonanza->IDClient = $IDClient;
@@ -192,7 +192,7 @@ class BonanzaEnd extends Command
             }
         }
         Log::info("Bonanza End End");
-        // Log::info("----------------------------------------");
+        Log::info("----------------------------------------");
 
         return 0;
     }
@@ -205,7 +205,7 @@ class BonanzaEnd extends Command
         $rightPointsCount = $this->getFilteredRightPoints($client, $startDate, $endDate)->sum('ClientLedgerPoints');
 
         $leftPointsCount = $this->getFilteredLeftPoints($client, $startDate, $endDate)->sum('ClientLedgerPoints');
-        // Log::info("Points Right: $rightPointsCount, Points Left: $leftPointsCount");
+        Log::info("Points Right: $rightPointsCount, Points Left: $leftPointsCount");
 
         return $rightPointsCount >= $rightPointsNumber && $leftPointsCount >= $leftPointsNumber;
     }
@@ -237,7 +237,7 @@ class BonanzaEnd extends Command
         $endDate = Carbon::parse($EndDate);
 
         $filteredPointsHistory = $this->getFilteredTotalPoints($client, $startDate, $endDate);
-        // Log::info("Total Points: " . $filteredPointsHistory->count());
+        Log::info("Total Points: " . $filteredPointsHistory->count());
         $totalPointsCount = $filteredPointsHistory->sum('ClientLedgerPoints');
         return $totalPointsCount >= $totalPoints;
     }
@@ -254,7 +254,7 @@ class BonanzaEnd extends Command
         $endDate = Carbon::parse($EndDate);
 
         $recentPersons = $this->getFilteredTotalPersons($client, $startDate, $endDate);
-        // Log::info("recentPersons: " . $recentPersons->count());
+        Log::info("recentPersons: " . $recentPersons->count());
         $personsCount = $recentPersons->count();
         return $personsCount >= $totalPersons;
     }
@@ -274,7 +274,7 @@ class BonanzaEnd extends Command
 
         $leftPersonsCount = $this->getFilteredLeftPersons($client, $startDate, $endDate)->count();
 
-        // Log::info("Persons Right: $rightPersonsCount, Persons Left: $leftPersonsCount");
+        Log::info("Persons Right: $rightPersonsCount, Persons Left: $leftPersonsCount");
         return $rightPersonsCount >= $rightPersonsNumber && $leftPersonsCount >= $leftPersonsNumber;
     }
 
@@ -333,7 +333,7 @@ class BonanzaEnd extends Command
         if ($referralNumber > 0) {
             $recentReferrals = $this->getFilteredReferral($client, $StartDate, $EndDate);
             $referralCount = $recentReferrals->count();
-            // Log::info("referralCount: " . $referralCount);
+            Log::info("referralCount: " . $referralCount);
             return $referralCount >= $referralNumber;
         } else return true;
     }
