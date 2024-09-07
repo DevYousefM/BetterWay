@@ -28,18 +28,19 @@ class PlanNetworkResource extends JsonResource
         }
 
         return [
-            'IDClient'             => $this->IDClient,
-            'ClientName'           => $this->ClientName,
-            'ClientContact'        => $ClientContact,
-            'ClientPicture'        => ($ClientPicture) ? asset($ClientPicture) : '',
-            'ReferralName'         => ($this->ReferralName) ? $this->ReferralName : '',
-            'TotalPoints'          => $this->ClientLeftPoints + $this->ClientRightPoints,
-            'LeftPoints'           => $this->ClientLeftPoints,
-            'RightPoints'          => $this->ClientRightPoints,
-            'NetworkPosition'      => $this->PlanNetworkPosition,
-            'PositionName'         => $PositionName,
-            'PlanNetworkAgencies'  => ($this->PlanNetworkAgencies) ? $this->PlanNetworkAgencies : [],
-            'ChildrenNetwork'      => ($this->ChildrenNetwork) ? $this->ChildrenNetwork : [],
+            'IDClient'              => $this->IDClient,
+            'ClientName'            => $this->ClientName,
+            'ClientContact'         => $ClientContact,
+            'ClientAppID'           => $this->ClientAppID,
+            'ClientPicture'         => ($ClientPicture) ? asset($ClientPicture) : '',
+            'ReferralName'          => ($this->ReferralName) ? $this->ReferralName : '',
+            'TotalPoints'           => $this->ClientLeftPoints + $this->ClientRightPoints,
+            'LeftPoints'            => $this->ClientLeftPoints,
+            'RightPoints'           => $this->ClientRightPoints,
+            'NetworkPosition'       => $this->PlanNetworkPosition,
+            'PositionName'          => $PositionName,
+            'PlanNetworkAgencies'   => ($this->PlanNetworkAgencies) ? $this->PlanNetworkAgencies : [],
+            'ChildrenNetwork'       => ($this->ChildrenNetwork) ? $this->ChildrenNetwork : [],
         ];
     }
 }
