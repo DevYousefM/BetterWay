@@ -1421,6 +1421,12 @@ class BrandController extends Controller
         if (!$BrandProductPoints) {
             return RespondWithBadRequest(1);
         }
+        if (!$BrandProductDescEn) {
+            return RespondWithBadRequest(1);
+        }
+        if (!$BrandProductDescAr) {
+            return RespondWithBadRequest(1);
+        }
         if (!$BrandProductReferralPoints) {
             $BrandProductReferralPoints = 0;
         }
