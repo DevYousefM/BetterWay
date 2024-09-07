@@ -103,6 +103,9 @@ class Client extends Authenticatable implements JWTSubject
         $IDClient = $this->IDClient;
         $GetRightClient = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkPosition", "RIGHT")->first();
 
+        if (!$GetRightClient) {
+            return [];
+        }
         $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $GetRightClient->IDClient . '%')->get();
 
         $extractedIDs = [];
@@ -117,7 +120,9 @@ class Client extends Authenticatable implements JWTSubject
     {
         $IDClient = $this->IDClient;
         $GetLeftClient = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkPosition", "LEFT")->first();
-
+        if(!$GetLeftClient) {
+            return [];
+        }
         $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $GetLeftClient->IDClient . '%')->get();
 
         $extractedIDs = [];
