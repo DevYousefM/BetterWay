@@ -206,7 +206,9 @@ class BonanzaEnd extends Command
 
         $leftPointsCount = $this->getFilteredLeftPoints($client, $startDate, $endDate)->sum('ClientLedgerPoints');
         Log::info("Points Right: $rightPointsCount, Points Left: $leftPointsCount");
-
+        Log::info($this->getFilteredRightPoints($client, $startDate, $endDate)->get());
+        Log::info($this->getFilteredLeftPoints($client, $startDate, $endDate)->get());
+        Log::info("----------------------------------------");
         return $rightPointsCount >= $rightPointsNumber && $leftPointsCount >= $leftPointsNumber;
     }
     function getFilteredRightPoints($client, $startDate, $endDate)
