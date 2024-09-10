@@ -2916,16 +2916,16 @@ class AdminController extends Controller
         }
 
         if ($ToolFiles) {
-            foreach ($ToolFiles as $Gallery) {
-                if (!in_array($Gallery->extension(), $FileExtArray)) {
+            foreach ($ToolFiles as $File) {
+                if (!in_array($File->extension(), $FileExtArray)) {
                     return RespondWithBadRequest(15);
                 }
-                $Image = SaveImage($Gallery, "tools", $Tool->IDTool);
+                $Image = SaveImage($File, "tools", $Tool->IDTool);
                 $ToolGalleryRow = new ToolGallery;
                 $ToolGalleryRow->IDTool = $Tool->IDTool;
                 $ToolGalleryRow->ToolGalleryPath = $Image;
                 $ToolGalleryRow->ToolGalleryClass = "PRODUCT";
-                if (!in_array($Gallery->extension(), $ImageExtArray)) {
+                if (!in_array($File->extension(), $FileExtArray)) {
                     $ToolGalleryRow->ToolGalleryType = "FILE";
                 }
                 $ToolGalleryRow->save();
