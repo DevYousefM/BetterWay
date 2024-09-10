@@ -31,6 +31,7 @@ class ClientBrandProductResource extends JsonResource
         }
 
         return [
+            'IDClient'                  => $this->IDClient,
             'IDBrandProduct'             => $this->IDBrandProduct,
             'IDBrand'                    => $this->IDBrand,
             'IDSubCategory'              => $this->IDSubCategory,
