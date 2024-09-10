@@ -3483,13 +3483,13 @@ class ClientController extends Controller
         if ($Client->ClientStatus == "NOT_VERIFIED") {
             return RespondWithBadRequest(62);
         }
-        // $ClientSecurityCode = $request->ClientSecurityCode;
-        // if (!$ClientSecurityCode) {
-        //     return RespondWithBadRequest(1);
-        // }
-        // if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
-        //     return RespondWithBadRequest(38);
-        // }
+        $ClientSecurityCode = $request->ClientSecurityCode;
+        if (!$ClientSecurityCode) {
+            return RespondWithBadRequest(1);
+        }
+        if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
+            return RespondWithBadRequest(38);
+        }
 
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanProduct = PlanProduct::where("PlanProductStatus", "ACTIVE")->where("IDPlanProduct", $IDPlanProduct)->first();
@@ -3627,7 +3627,7 @@ class ClientController extends Controller
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, -$PlanProduct->PlanProductPrice, 0, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
-        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLER", "REWARD", $BatchNumber);
+        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLET", "REWARD", $BatchNumber);
 
         return RespondWithSuccessRequest(8);
     }
