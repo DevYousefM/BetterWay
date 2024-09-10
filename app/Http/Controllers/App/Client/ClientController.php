@@ -2054,15 +2054,15 @@ class ClientController extends Controller
             $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", $ClientBrandProductStatus);
         }
         if ($StartDate) {
-            $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.created_at", ">=", $StartDate);
+            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", ">=", $StartDate);
         }
         if ($EndDate) {
-            $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.created_at", "<=", $EndDate);
+            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", "<=", $EndDate);
         }
         if ($SubCategories && count($SubCategories)) {
             $ClientBrandProducts = $ClientBrandProducts->whereIn("brandproducts.IDSubCategory", $SubCategories);
         }
-        $ClientBrandProducts = $ClientBrandProducts->select("clientbrandproducts.IDClientBrandProduct", "brandproducts.IDSubCategory", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
+        $ClientBrandProducts = $ClientBrandProducts->select("clientbrandproducts.IDClientBrandProduct", "clientbrandproducts.IDClient", "brandproducts.IDSubCategory", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.UsedAt", "clientbrandproducts.updated_at", "brandproducts.IDBrandProduct", "brandproducts.IDBrand", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "brands.BrandLogo", "brands.BrandRating", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
 
         $Pages = ceil($ClientBrandProducts->count() / 20);
         $ClientBrandProducts = $ClientBrandProducts->orderby("clientbrandproducts.IDClientBrandProduct", "DESC")->skip($IDPage)->take(20)->get();
@@ -3483,13 +3483,13 @@ class ClientController extends Controller
         if ($Client->ClientStatus == "NOT_VERIFIED") {
             return RespondWithBadRequest(62);
         }
-        // $ClientSecurityCode = $request->ClientSecurityCode;
-        // if (!$ClientSecurityCode) {
-        //     return RespondWithBadRequest(1);
-        // }
-        // if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
-        //     return RespondWithBadRequest(38);
-        // }
+        $ClientSecurityCode = $request->ClientSecurityCode;
+        if (!$ClientSecurityCode) {
+            return RespondWithBadRequest(1);
+        }
+        if (!Hash::check($ClientSecurityCode, $Client->ClientSecurityCode)) {
+            return RespondWithBadRequest(38);
+        }
 
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanProduct = PlanProduct::where("PlanProductStatus", "ACTIVE")->where("IDPlanProduct", $IDPlanProduct)->first();
@@ -3627,7 +3627,7 @@ class ClientController extends Controller
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
         AdjustLedger($Client, -$PlanProduct->PlanProductPrice, 0, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
-        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLER", "REWARD", $BatchNumber);
+        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLET", "REWARD", $BatchNumber);
 
         return RespondWithSuccessRequest(8);
     }

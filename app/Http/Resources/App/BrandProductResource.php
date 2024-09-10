@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\App;
 
+use App\V1\Brand\Branch;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Log;
 
@@ -29,7 +30,6 @@ class BrandProductResource extends JsonResource
         if ($this->BrandProductDiscountType === "VALUE") {
             $BrandProductDiscount = round(($BrandProductDiscount / $this->BrandProductPrice) * 100);
         }
-
         return [
             'IDBrandProduct'                  => $this->IDBrandProduct,
             'IDBrand'                         => $this->IDBrand,
@@ -49,7 +49,7 @@ class BrandProductResource extends JsonResource
             'BrandProductStartDate'           => $this->BrandProductStartDate,
             'BrandProductEndDate'             => $this->BrandProductEndDate,
             'BrandProductGallery'             => $this->BrandProductGallery,
-            'ProductBranches'                 => ($this->ProductBranches) ? $this->ProductBranches : [],
+            'ProductBranches'                 => ($this->ProductBranches) ? $this->ProductBranches : ProductBranches($this->IDBrand, $Client, "BRAND"),
         ];
     }
 }

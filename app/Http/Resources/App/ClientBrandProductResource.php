@@ -31,6 +31,7 @@ class ClientBrandProductResource extends JsonResource
         }
 
         return [
+            'IDClient'                  => $this->IDClient,
             'IDBrandProduct'             => $this->IDBrandProduct,
             'IDBrand'                    => $this->IDBrand,
             'IDSubCategory'              => $this->IDSubCategory,
@@ -54,6 +55,7 @@ class ClientBrandProductResource extends JsonResource
             'ClientBrandProductStatus'   => $this->ClientBrandProductStatus,
             'CreateDate'                 => $this->created_at,
             'StatusDate'                 => $this->updated_at,
+            'UsedAt'                     => $this->UsedAt
         ];
     }
 }
