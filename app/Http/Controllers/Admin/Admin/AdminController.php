@@ -2717,7 +2717,7 @@ class AdminController extends Controller
         }
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
-        $FileExtArray = ["jpeg", "jpg", "png", "svg", "pdf", "mp3", "mp4", "avi", "mov", "mkv", "docx", "xlsx", "pptx","zip","rar"];
+        $FileExtArray = ["jpeg", "jpg", "png", "svg", "pdf", "mp3", "mp4", "avi", "mov", "mkv", "docx", "xlsx", "pptx", "zip", "rar"];
         foreach ($ToolGallery as $Gallery) {
             if (!in_array($Gallery->extension(), $ImageExtArray)) {
                 return RespondWithBadRequest(15);
@@ -2898,13 +2898,12 @@ class AdminController extends Controller
         $Tool->save();
 
         $ImageExtArray = ["jpeg", "jpg", "png", "svg"];
+        $FileExtArray = ["jpeg", "jpg", "png", "svg", "pdf", "mp3", "mp4", "avi", "mov", "mkv", "docx", "xlsx", "pptx", "zip", "rar"];
         if ($ToolGallery) {
             foreach ($ToolGallery as $Gallery) {
                 if (!in_array($Gallery->extension(), $ImageExtArray)) {
                     return RespondWithBadRequest(15);
                 }
-            }
-            foreach ($ToolGallery as $Gallery) {
                 $Image = SaveImage($Gallery, "tools", $Tool->IDTool);
                 $ToolGalleryRow = new ToolGallery;
                 $ToolGalleryRow->IDTool = $Tool->IDTool;
@@ -2918,11 +2917,9 @@ class AdminController extends Controller
 
         if ($ToolFiles) {
             foreach ($ToolFiles as $Gallery) {
-                if (!in_array($Gallery->extension(), $ImageExtArray)) {
+                if (!in_array($Gallery->extension(), $FileExtArray)) {
                     return RespondWithBadRequest(15);
                 }
-            }
-            foreach ($ToolFiles as $Gallery) {
                 $Image = SaveImage($Gallery, "tools", $Tool->IDTool);
                 $ToolGalleryRow = new ToolGallery;
                 $ToolGalleryRow->IDTool = $Tool->IDTool;
