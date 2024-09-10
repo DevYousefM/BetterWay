@@ -2054,7 +2054,7 @@ class ClientController extends Controller
             $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.ClientBrandProductStatus", $ClientBrandProductStatus);
         }
         if ($StartDate) {
-            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", ">=", $StartDate)->orWhereDate("clientbrandproducts.UsedAt", "=", $StartDate);
+            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", ">=", $StartDate);
         }
         if ($EndDate) {
             $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", "<=", $EndDate);
