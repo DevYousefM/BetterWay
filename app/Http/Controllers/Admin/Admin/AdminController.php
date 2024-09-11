@@ -1401,7 +1401,7 @@ class AdminController extends Controller
             $IDPage = ($request->IDPage - 1) * 20;
         }
 
-        $SubCategories = $SubCategories->leftjoin("categories", "categories.IDCategory", "subcategories.IDCategory",);
+        $SubCategories = $SubCategories->leftjoin("categories", "categories.IDCategory", "subcategories.IDCategory");
         if ($SearchKey) {
             $SubCategories = $SubCategories->where(function ($query) use ($SearchKey) {
                 $query->where('subcategories.SubCategoryNameEn', 'like', '%' . $SearchKey . '%')

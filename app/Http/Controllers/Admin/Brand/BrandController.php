@@ -1343,7 +1343,7 @@ class BrandController extends Controller
         $BrandProducts = $BrandProducts->select("brandproducts.IDBrandProduct", "brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductDescEn", "brandproducts.BrandProductDescAr", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount", "brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPoints", "brandproducts.BrandProductUplinePoints", "brandproducts.BrandProductReferralPoints", "brandproducts.BrandProductStatus", "brandproducts.BrandProductStartDate", "brandproducts.BrandProductEndDate", "brandproducts.created_at", "brands.BrandNameEn", "brands.BrandNameAr", "subcategories.SubCategoryNameEn", "subcategories.SubCategoryNameAr");
 
         $Pages = ceil($BrandProducts->count() / 20);
-        $BrandProducts = $BrandProducts->skip($IDPage)->take(20)->get();
+        $BrandProducts = $BrandProducts->skip($IDPage)->take(20)->latest()->get();
         $BrandProducts = BrandProductResource::collection($BrandProducts);
         $Response = array("BrandProducts" => $BrandProducts, "Pages" => $Pages);
 
