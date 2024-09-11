@@ -158,7 +158,7 @@ class ChequeCycle extends Command
                         if ($ChequeValue <= $remainingAllowance) {
                             ChequesLedger($Client, $ChequeValue, 'CHEQUE', "WALLET", 'REWARD', GenerateBatch("CH", $Client->IDClient));
                             CompanyLedger(19, $ChequeValue, "Cheque Payment to Client " . $Client->ClientName, "REWARD", "DEBIT");
-                        } elseif ($remainingAllowance > 0) {
+                        } else if ($remainingAllowance > 0) {
                             ChequesLedger($Client, $remainingAllowance, 'CHEQUE', "WALLET", 'REWARD', GenerateBatch("CH", $Client->IDClient));
                             CompanyLedger(19, $remainingAllowance, "Cheque Payment to Client " . $Client->ClientName, "AUTO", "DEBIT");
                         }
