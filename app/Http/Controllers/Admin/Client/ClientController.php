@@ -1270,7 +1270,23 @@ class ClientController extends Controller
             return RespondWithBadRequest(1);
         }
 
-        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("clientbrandproducts.IDClient", $IDClient)->orderby("clientbrandproducts.IDClientBrandProduct", "DESC")->select("brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductPrice", "brands.BrandNameEn", "brands.BrandNameAr", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.ProductDiscount");
+        $ClientBrandProducts = ClientBrandProduct::leftJoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")
+            ->leftJoin("brands", "brands.IDBrand", "brandproducts.IDBrand")
+            ->where("clientbrandproducts.IDClient", $IDClient)
+            ->orderBy("clientbrandproducts.IDClientBrandProduct", "DESC")
+            ->select(
+                "brandproducts.BrandProductTitleEn",
+                "brandproducts.BrandProductTitleAr",
+                "brandproducts.BrandProductPrice",
+                "brands.BrandNameEn",
+                "brands.BrandNameAr",
+                "clientbrandproducts.ClientBrandProductSerial",
+                "clientbrandproducts.ClientBrandProductStatus",
+                "clientbrandproducts.created_at",
+                "clientbrandproducts.ProductDiscount",
+                DB::raw("CASE WHEN clientbrandproducts.ClientBrandProductStatus = 'USED' THEN 'Used' ELSE 'Not Used' END AS ClientBrandProductStatus")
+            );
+
         $ProductNumber = ClientBrandProduct::where("IDClient", $IDClient)->where("ClientBrandProductStatus", "USED")->count();
         $Pages = ceil($ClientBrandProducts->count() / 20);
         $ClientBrandProducts = $ClientBrandProducts->skip($IDPage)->take(20)->get();
