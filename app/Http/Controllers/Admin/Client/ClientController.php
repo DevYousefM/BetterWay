@@ -1071,7 +1071,7 @@ class ClientController extends Controller
                     $BatchNumber = $BatchNumber . $Time;
                     $Desc = "Client balance changed from  " . $firstClient->ClientBalance . " to " . $firstClient->ClientBalance - $Amount;
                     if ($Amount >= 0) {
-                        AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "ADMIN", "Client " . $Client->ClientName . " WALLET", "ADJUST", $BatchNumber);
+                        AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "ADMIN", "WALLET", "ADJUST", $BatchNumber);
                     } else {
                         AdjustLedger($firstClient, -$Amount, 0, 0, 0, Null, "WALLET", "ADMIN", "ADJUST", $BatchNumber);
                     }

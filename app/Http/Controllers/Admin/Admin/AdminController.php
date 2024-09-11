@@ -3490,7 +3490,12 @@ class AdminController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $Ledgers = ClientLedger::where('ClientLedgerSource', "ADMIN")->where("ClientLedgerPoints", 0)->get();
+        $Ledgers = ClientLedger::where('IDClient', "!=", 1)
+            ->where("ClientLedgerPoints", 0)
+            ->where("ClientLedgerAmount", ">", 0)
+            ->where("ClientLedgerType", "ADJUST")
+            ->latest()
+            ->get();
         $ClientLedger = ClientLedgerResource::collection($Ledgers);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
@@ -3508,7 +3513,12 @@ class AdminController extends Controller
         if (!$Admin) {
             return RespondWithBadRequest(10);
         }
-        $Ledgers = ClientLedger::where('IDClient', 1)->where("ClientLedgerPoints", 0)->get();
+        $Ledgers = ClientLedger::where('IDClient', 1)
+            ->where("ClientLedgerPoints", 0)
+            ->where("ClientLedgerAmount", ">", 0)
+            ->whereColumn("ClientLedgerInitialeBalance", "<", "ClientLedgerFinalBalance")
+            ->latest()
+            ->get();
         $ClientLedger = ClientLedgerResource::collection($Ledgers);
 
         $APICode = APICode::where('IDAPICode', 8)->first();
