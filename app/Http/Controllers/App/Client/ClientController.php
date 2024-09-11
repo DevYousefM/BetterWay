@@ -2085,10 +2085,10 @@ class ClientController extends Controller
         $UsedCategory = "";
         $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->where("clientbrandproducts.IDClient", $Client->IDClient);
         if ($StartDate) {
-            $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.created_at", ">=", $StartDate);
+            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", ">=", $StartDate);
         }
         if ($EndDate) {
-            $ClientBrandProducts = $ClientBrandProducts->where("clientbrandproducts.created_at", "<=", $EndDate);
+            $ClientBrandProducts = $ClientBrandProducts->whereDate("clientbrandproducts.UsedAt", "<=", $EndDate);
         }
         if ($SubCategories && count($SubCategories)) {
             $ClientBrandProducts = $ClientBrandProducts->whereIn("brandproducts.IDSubCategory", $SubCategories);
