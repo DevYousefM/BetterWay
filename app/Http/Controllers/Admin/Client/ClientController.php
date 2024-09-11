@@ -1270,7 +1270,7 @@ class ClientController extends Controller
             return RespondWithBadRequest(1);
         }
 
-        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("clientbrandproducts.IDClient", $IDClient)->orderby("clientbrandproducts.IDClientBrandProduct", "DESC")->select("brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductPrice", "brands.BrandNameEn", "brands.BrandNameAr", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at");
+        $ClientBrandProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->leftjoin("brands", "brands.IDBrand", "brandproducts.IDBrand")->where("clientbrandproducts.IDClient", $IDClient)->orderby("clientbrandproducts.IDClientBrandProduct", "DESC")->select("brandproducts.BrandProductTitleEn", "brandproducts.BrandProductTitleAr", "brandproducts.BrandProductPrice", "brands.BrandNameEn", "brands.BrandNameAr", "clientbrandproducts.ClientBrandProductSerial", "clientbrandproducts.ClientBrandProductStatus", "clientbrandproducts.created_at", "clientbrandproducts.ProductDiscount");
         $ProductNumber = ClientBrandProduct::where("IDClient", $IDClient)->where("ClientBrandProductStatus", "USED")->count();
         $Pages = ceil($ClientBrandProducts->count() / 20);
         $ClientBrandProducts = $ClientBrandProducts->skip($IDPage)->take(20)->get();
@@ -1283,15 +1283,7 @@ class ClientController extends Controller
             unset($Product["BrandProductTitleAr"]);
         }
 
-        $MoneySaved = 0;
-        $UsedProducts = ClientBrandProduct::leftjoin("brandproducts", "brandproducts.IDBrandProduct", "clientbrandproducts.IDBrandProduct")->where("clientbrandproducts.IDClient", $IDClient)->where("clientbrandproducts.ClientBrandProductStatus", "USED")->select("brandproducts.BrandProductDiscountType", "brandproducts.BrandProductPrice", "brandproducts.BrandProductDiscount")->get();
-        foreach ($UsedProducts as $Product) {
-            if ($Product->BrandProductDiscountType == "VALUE") {
-                $MoneySaved = $MoneySaved + $Product->BrandProductDiscount;
-            } else {
-                $MoneySaved = $MoneySaved + ($Product->BrandProductDiscount * $Product->BrandProductPrice);
-            }
-        }
+        $MoneySaved = ClientBrandProduct::where("clientbrandproducts.IDClient", $IDClient)->where("clientbrandproducts.ClientBrandProductStatus", "USED")->sum('ProductDiscount');
 
         $Response = array("ClientBrandProducts" => $ClientBrandProducts, "ProductNumber" => $ProductNumber, "MoneySaved" => $MoneySaved, "Pages" => $Pages);
 
