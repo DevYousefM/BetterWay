@@ -26,6 +26,7 @@ use App\Http\Resources\App\BrandSocialMediaResource;
 use App\Http\Resources\App\ClientAdminChatDetailsResource;
 use App\Http\Resources\App\ClientAdminChatResource;
 use App\Http\Resources\App\ClientBrandProductResource;
+use App\Http\Resources\ClientsCheckResource;
 use App\V1\Event\Event;
 use App\V1\Event\EventGallery;
 use App\V1\Event\EventAttendee;
@@ -2438,13 +2439,50 @@ class ClientController extends Controller
             }
         } else {
             if ($Type == "REFERRAL") {
-                $Clients = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->where("clients.ClientDeleted", 0);
-                $Clients = $Clients->where(function ($query) use ($UserName) {
-                    $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
-                })->select("clients.IDClient", "clients.ClientName", "clients.ClientPicture", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientPrivacy")->get();
+                $InitialClients = PlanNetwork::leftJoin("clients", "clients.IDClient", "plannetwork.IDClient")
+                    ->where("clients.ClientDeleted", 0)
+                    ->where(function ($query) use ($UserName) {
+                        $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
+                    })
+                    ->select("clients.IDClient")
+                    ->get()
+                    ->pluck('IDClient')
+                    ->toArray();
+
+                $AdditionalClients = PlanNetwork::leftJoin("clients", "clients.IDClient", "plannetwork.IDClient")
+                    ->where("clients.ClientDeleted", 0)
+                    ->whereIn('clients.AgencyFor', $InitialClients)
+                    ->select(
+                        "clients.IDClient",
+                        "clients.ClientName",
+                        "clients.ClientPicture",
+                        "clients.ClientType",
+                        "clients.AgencyFor",
+                        "clients.ClientPhone",
+                        "clients.ClientAppID",
+                        "clients.ClientPrivacy"
+                    )
+                    ->get();
+
+                $AllClientIds = array_unique(array_merge($InitialClients, $AdditionalClients->pluck('IDClient')->toArray()));
+
+                $Clients = PlanNetwork::leftJoin("clients", "clients.IDClient", "plannetwork.IDClient")
+                    ->where("clients.ClientDeleted", 0)
+                    ->whereIn("clients.IDClient", $AllClientIds)
+                    ->select(
+                        "clients.IDClient",
+                        "clients.ClientName",
+                        "clients.ClientPicture",
+                        "clients.ClientType",
+                        "clients.AgencyFor",
+                        "clients.ClientPhone",
+                        "clients.ClientAppID",
+                        "clients.ClientPrivacy"
+                    )
+                    ->get();
             }
             if ($Type == "UPLINE") {
                 if (!$IDReferral) {
@@ -2453,15 +2491,33 @@ class ClientController extends Controller
                 $Key = $IDReferral . "-";
                 $SecondKey = $IDReferral . "-";
                 $ThirdKey = "-" . $IDReferral;
-                $AllNetwork = PlanNetwork::where("PlanNetworkPath", 'like', $IDReferral . '%')->orwhere("PlanNetworkPath", 'like', $Key . '%')->orwhere("PlanNetworkPath", 'like', '%' . $SecondKey . '%')->orwhere("PlanNetworkPath", 'like', '%' . $ThirdKey . '%')->get()->pluck("IDClient")->toArray();
+
+                $AllNetwork = PlanNetwork::where("PlanNetworkPath", 'like', $IDReferral . '%')
+                    ->orWhere("PlanNetworkPath", 'like', $Key . '%')
+                    ->orWhere("PlanNetworkPath", 'like', '%' . $SecondKey . '%')
+                    ->orWhere("PlanNetworkPath", 'like', '%' . $ThirdKey . '%')
+                    ->get()
+                    ->pluck("IDClient")
+                    ->toArray();
+
                 array_push($AllNetwork, $IDReferral);
-                $Clients = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->where("clients.ClientDeleted", 0)->whereIn("clients.IDClient", $AllNetwork);
-                $Clients = $Clients->where(function ($query) use ($UserName) {
-                    $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
-                        ->orwhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
-                })->select("clients.IDClient", "clients.ClientName", "clients.ClientPicture", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientPrivacy")->get();
+
+                $Clients = PlanNetwork::leftJoin("clients", "clients.IDClient", "plannetwork.IDClient")
+                    ->where("clients.ClientDeleted", 0)
+                    ->whereIn("clients.IDClient", $AllNetwork)
+                    ->orWhereIn('clients.IDClient', function ($query) use ($AllNetwork) {
+                        $query->select('AgencyFor')
+                            ->from('clients')
+                            ->whereIn('AgencyFor', $AllNetwork);
+                    })
+                    ->where(function ($query) use ($UserName) {
+                        $query->where('clients.ClientName', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientAppID', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientEmail', 'like', '%' . $UserName . '%')
+                            ->orWhere('clients.ClientPhone', 'like', '%' . $UserName . '%');
+                    })
+                    ->select("clients.IDClient", "clients.ClientName", "clients.ClientPicture", "clients.ClientType", "clients.AgencyFor", "clients.ClientPhone", "clients.ClientAppID", "clients.ClientPrivacy")
+                    ->get();
             }
         }
 
@@ -2471,7 +2527,7 @@ class ClientController extends Controller
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $Clients
+            'Response' => ClientsCheckResource::collection($Clients)
         );
         return $Response;
     }
@@ -3369,7 +3425,6 @@ class ClientController extends Controller
             $ClientAppLanguage = $request->ClientAppLanguage == 'ar' ? 'Ar' : 'En';
         }
 
-
         $PlanProductName = "PlanProductName" . $ClientAppLanguage;
 
         $PlanProducts = PlanProduct::where("PlanProductStatus", "ACTIVE")->get();
@@ -3493,6 +3548,7 @@ class ClientController extends Controller
 
         $IDPlanProduct = $request->IDPlanProduct;
         $PlanProduct = PlanProduct::where("PlanProductStatus", "ACTIVE")->where("IDPlanProduct", $IDPlanProduct)->first();
+
         if (!$PlanProduct) {
             return RespondWithBadRequest(1);
         }
@@ -3626,8 +3682,15 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
+
+        $ClientPointsFromProduct = ceil($PlanProduct->PlanProductRewardPoints / $PlanProduct->AgencyNumber);
+        $PointsForAgencies = $PlanProduct->PlanProductRewardPoints - $ClientPointsFromProduct;
+        $AgencyPointsFromProduct = $PointsForAgencies / $PlanProduct->AgencyNumber;
+
         AdjustLedger($Client, -$PlanProduct->PlanProductPrice, 0, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
-        AdjustLedger($Client, 0, $PlanProduct->PlanProductRewardPoints, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLET", "REWARD", $BatchNumber);
+        AdjustLedger($Client, 0, $ClientPointsFromProduct, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLET", "REWARD", $BatchNumber);
+
+        if ($PlanProduct->AgencyNumber == 3) CreateThirdAgencyClients($Client, $IDPlan, $IDPlanProduct, $ParentPlanNetwork, $PlanNetworkExpireDate, $AgencyPointsFromProduct);
 
         return RespondWithSuccessRequest(8);
     }

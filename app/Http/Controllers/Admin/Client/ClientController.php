@@ -796,10 +796,19 @@ class ClientController extends Controller
         $Time = $TimeFormat->format('H');
         $Time = $Time . $TimeFormat->format('i');
         $BatchNumber = $BatchNumber . $Time;
-        AdjustLedger($Client, 0, 0, 0, 0, $PlanNetwork, "WALLET", "PLAN_PRODUCT", "PAYMENT", $BatchNumber);
+
+        $ClientPointsFromProduct = ceil($PlanProduct->PlanProductRewardPoints / $PlanProduct->AgencyNumber);
+        $PointsForAgencies = $PlanProduct->PlanProductRewardPoints - $ClientPointsFromProduct;
+        $AgencyPointsFromProduct = $PointsForAgencies / $PlanProduct->AgencyNumber;
+
+        AdjustLedger($Client, 0, $ClientPointsFromProduct, 0, 0, $PlanNetwork, "PLAN_PRODUCT", "WALLET", "REWARD", $BatchNumber);
 
         $Desc = "Client Network was added";
         ActionBackLog($Admin->IDUser, $IDClient, "EDIT_CLIENT", $Desc);
+
+        if ($PlanProduct->AgencyNumber == 3) {
+            CreateThirdAgencyClients($Client, $IDPlan, $IDPlanProduct, $ParentPlanNetwork, $PlanNetworkExpireDate, $AgencyPointsFromProduct);
+        }
 
         return RespondWithSuccessRequest(8);
     }
@@ -2212,6 +2221,12 @@ class ClientController extends Controller
         if (!$AgencyNumber) {
             return RespondWithBadRequest(1);
         }
+
+        $AgencyNumbers = [1, 3, 5];
+        if (!in_array($AgencyNumber, $AgencyNumbers)) {
+            return RespondWithBadRequest(1);
+        }
+
         if (!$CardNumber) {
             return RespondWithBadRequest(1);
         }

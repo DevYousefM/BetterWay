@@ -120,7 +120,7 @@ class Client extends Authenticatable implements JWTSubject
     {
         $IDClient = $this->IDClient;
         $GetLeftClient = PlanNetwork::where("IDParentClient", $IDClient)->where("PlanNetworkPosition", "LEFT")->first();
-        if(!$GetLeftClient) {
+        if (!$GetLeftClient) {
             return [];
         }
         $records = PlanNetwork::where('PlanNetworkPath', 'like', '%' . $GetLeftClient->IDClient . '%')->get();
@@ -141,4 +141,9 @@ class Client extends Authenticatable implements JWTSubject
     {
         return ClientLedger::where('IDClient', $this->IDClient)->where('ClientLedgerSource', 'CHEQUE')->get();
     }
+    public function getClientAgenciesAttribute()
+    {
+        return Client::where("AgencyFor", $this->IDClient)->get();
+    }
+    
 }
