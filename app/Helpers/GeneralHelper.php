@@ -397,7 +397,7 @@ function ChequesLedger($Client, $Amount, $Source, $Destination, $Type, $BatchNum
     if ($Client->ClientType == "Agency") {
         $P_AgencyClient = Client::find($Client->AgencyFor);
         if ($P_AgencyClient) {
-            $P_AgencyClient->ClientBalance = $$P_AgencyClient->ClientBalance + $Amount;
+            $P_AgencyClient->ClientBalance = $P_AgencyClient->ClientBalance + $Amount;
             $P_AgencyClient->save();
         }
     } else {
