@@ -34,6 +34,7 @@ use App\V1\Payment\CompanyLedger;
 use Carbon\Carbon;
 use Google\Client as GoogleClient;
 
+
 function RespondWithBadRequest($Code, $Variable = Null)
 {
     $ClientAppLanguage = LocalAppLanguage(app()->getLocale());
@@ -57,8 +58,6 @@ function RespondWithBadRequest($Code, $Variable = Null)
 
 function RespondWithSuccessRequest($Code)
 {
-
-    //bad or invalid request missing some params
     $response = new stdClass();
     $APICode = APICode::where('IDApiCode', $Code)->first();
     $response_array = array(

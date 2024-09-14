@@ -16,6 +16,7 @@ use App\Http\Resources\Admin\CategoryResource;
 use App\Http\Resources\Admin\SubCategoryResource;
 use App\Http\Resources\Admin\AdvertisementResource;
 use App\Http\Resources\Admin\ClientLedgerResource;
+use App\Models\Contact;
 use App\V1\User\User;
 use App\Notification;
 use App\V1\User\Role;
@@ -3529,5 +3530,13 @@ class AdminController extends Controller
             'Response' => $ClientLedger,
         );
         return $Response;
+    }
+    public function ContactMessages()
+    {
+        $Admin = auth('user')->user();
+        if (!$Admin) {
+            return RespondWithBadRequest(10);
+        }
+        return Contact::latest()->get();
     }
 }

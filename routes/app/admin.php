@@ -246,6 +246,7 @@ Route::middleware('adminapi')->prefix('admin')->group(function () {
     // Revenue
     Route::post("betterway/credit", [AdminController::class, "BetterWayCredit"]);
 
+    Route::post("contact-messages", [AdminController::class, "ContactMessages"]);
     // Test
     Route::get(
         '/position',
