@@ -2172,13 +2172,10 @@ class ClientController extends Controller
         }
 
         $IDParentClient = $request->IDParentClient;
-        $AgencyNumber = $request->AgencyNumber;
         if (!$IDParentClient) {
             return RespondWithBadRequest(1);
         }
-        if (!$AgencyNumber) {
-            $AgencyNumber = 1;
-        }
+        $AgencyNumber = 1;
 
         $ParentNetwork = PlanNetwork::leftjoin("clients as c1", "c1.IDClient", "plannetwork.IDClient")->leftjoin("clients as c2", "c2.IDClient", "plannetwork.IDReferralClient")->where("plannetwork.IDClient", $IDParentClient)->select("plannetwork.IDPlanNetwork", "plannetwork.PlanNetworkPosition", "c1.IDClient", "c1.IDPosition", "c1.ClientName", "c1.ClientPhone", "c1.ClientAppID", "c1.ClientPrivacy", "c1.ClientPicture", "c1.ClientLeftPoints", "c1.ClientRightPoints", "c2.ClientName as ReferralName")->first();
         if (!$ParentNetwork) {
@@ -2228,11 +2225,9 @@ class ClientController extends Controller
         }
 
         $ClientLanguage = LocalAppLanguage($Client->ClientAppLanguage);
-        $IDClient = $Client->IDClient;
-        $AgencyNumber = $request->AgencyNumber;
-        if (!$AgencyNumber) {
-            $AgencyNumber = 1;
-        }
+        $IDClient = $request->IDClient ? $request->IDClient : $Client->IDClient;
+
+        $AgencyNumber = 1;
 
         $PlanProductPoints = 0;
         $LeftPoints = 0;
@@ -2329,17 +2324,16 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $IDClient = $Client->IDClient;
-        $AgencyNumber = $request->AgencyNumber;
+        $IDClient = $request->IDClient ? $request->IDClient : $Client->IDClient;
+
         $IDPage = $request->IDPage;
         if (!$IDPage) {
             $IDPage = 0;
         } else {
             $IDPage = ($request->IDPage - 1) * 20;
         }
-        if (!$AgencyNumber) {
-            $AgencyNumber = 1;
-        }
+
+        $AgencyNumber = 1;
 
         $AllNetwork = PlanNetwork::leftjoin("clients", "clients.IDClient", "plannetwork.IDClient")->where("plannetwork.IDReferralClient", $IDClient)->where("plannetwork.PlanNetworkAgency", $AgencyNumber);
 
@@ -2375,17 +2369,14 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $IDClient = $Client->IDClient;
-        $AgencyNumber = $request->AgencyNumber;
+        $IDClient = $request->IDClient ? $request->IDClient : $Client->IDClient;
         $IDPage = $request->IDPage;
         if (!$IDPage) {
             $IDPage = 0;
         } else {
             $IDPage = ($request->IDPage - 1) * 20;
         }
-        if (!$AgencyNumber) {
-            $AgencyNumber = 1;
-        }
+        $AgencyNumber = 1;
 
         $Key = $IDClient . "-";
         $SecondKey = $IDClient . "-";
@@ -3873,19 +3864,19 @@ class ClientController extends Controller
             return RespondWithBadRequest(10);
         }
 
-        $PlanNetwork = PlanNetwork::where("plannetwork.IDClient", $Client->IDClient)->first();
-        if (!$PlanNetwork) {
-            return RespondWithBadRequest(1);
-        }
-
-        $PlanNetworkAgencies = PlanNetworkAgency::where("IDPlanNetwork", $PlanNetwork->IDPlanNetwork)->get();
+        $ClientAgencies = $Client->ClientAgencies;
 
         $APICode = APICode::where('IDAPICode', 8)->first();
         $Response = array(
             'Success' => true,
             'ApiMsg' => __('apicodes.' . $APICode->IDApiCode),
             'ApiCode' => $APICode->IDApiCode,
-            'Response' => $PlanNetworkAgencies
+            'Response' => $ClientAgencies->map(function ($client) {
+                return [
+                    'IDClient' => $client->IDClient,
+                    'ClientName' => $client->ClientName
+                ];
+            })
         );
         return $Response;
     }
